@@ -121,12 +121,25 @@ def edit(path: Path, old: str, new: str):
     path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
+def placeholder_blocks(r: Path):
+    """Return the prompt blocks to their placeholder form, so these tests run
+    the same before a release and after the default branch is bumped to a tag."""
+    for f in ("README.md", "ONE-LINE-PROMPT.md"):
+        p = r / f
+        text = p.read_text(encoding="utf-8")
+        text = re.sub(r"/securing-ai-best-practices/[0-9a-f]{40}/", "/securing-ai-best-practices/<release-sha>/", text)
+        text = re.sub(r"commit [0-9a-f]{40}", "commit <release-sha>", text)
+        text = re.sub(r"\(release v\d{4}\.\d{2}([;,])", r"(release <vYYYY.MM>\1", text)
+        p.write_text(text, encoding="utf-8")
+
+
 def main() -> int:
     sha = "0123456789abcdef0123456789abcdef01234567"
 
     # check-prompt-blocks
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
+        placeholder_blocks(r)
         expect("prompt blocks pass on the tree", run(["check-prompt-blocks.py", "--root", str(r)], r), True)
         expect("prompt blocks: tag given while placeholder remains fails",
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "placeholder")
