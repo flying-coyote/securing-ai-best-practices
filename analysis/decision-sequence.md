@@ -191,7 +191,7 @@ The sequence is not a maturity score, and a regulated organization that owns a s
 ## Notes
 
 - Status (2026-11-10): ships `EMERGING` ahead of the long-form article that argues the sequence (`DECISIONS.md` Decision 15) and gains a `follows:` line naming the article when it publishes.
-- Measurement claims: none. The lab figures the decisions rest on live in the routed documents, pinned to sdw-lab-benchmarks branch `hub/ai-research-2026-11-09` until it merges.
+- Measurement claims: none. The lab figures the decisions rest on live in the routed documents, pinned to lab master at `91e44df` (the research branch merged there on 2026-11-10).
 - The 80 to 90 percent observation (dated 2026-11-09) is a perspective, not a measurement; any anecdote behind it comes from operational work before August 2026 or is stated generally.
 - Revalidate-by is three months out because ATLAS releases and the 2026-12-02 trigger fall inside the window. Products in the trigger table are examples of a trigger kind; nothing here says any named organization runs any product.
 

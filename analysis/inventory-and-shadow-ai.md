@@ -14,19 +14,19 @@ revalidate-by: 2027-04-10
 status: EMERGING
 measurement-claims:
   - claim: "Across nine planted shadow-AI surfaces scored as ten cells on one endpoint, the union of five discovery methods (Zeek, a DNS log, osquery, Syft, an egress allowlist) found 8, reached 1 only partially (a local OpenAI-compatible server seen as a port) and missed 1 (model weights in the Ollama store)"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t1-shadow-ai-discovery/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df t1-shadow-ai-discovery/RESULTS.md:39-42, :82"
     date: 2026-11-09
     revalidate: 2027-05-10
   - claim: "osquery found 6 of 10 cells and was the only method to reach the IDE extension, the MCP client configs and the browser extension; four of its six finds needed the query to name the path or table in advance, and under the literally frozen query text it scores 4"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t1-shadow-ai-discovery/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df t1-shadow-ai-discovery/RESULTS.md:42-58"
     date: 2026-11-09
     revalidate: 2027-05-10
   - claim: "Each network method (Zeek on an eth0 tap, the DNS log, the egress allowlist) found 2 of 10 cells, the outbound model-API calls and the AI SaaS visits, and saw local runtimes only as a port on a peer's connection"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t1-shadow-ai-discovery/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df t1-shadow-ai-discovery/RESULTS.md:44-46, :82"
     date: 2026-11-09
     revalidate: 2027-05-10
   - claim: "Exactly one false positive across all methods and benign controls: the port 8080 rule (Zeek and osquery) on a benign Python file server"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t1-shadow-ai-discovery/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df t1-shadow-ai-discovery/RESULTS.md:58-60, :86-92"
     date: 2026-11-09
     revalidate: 2027-05-10
 ---
@@ -81,7 +81,7 @@ The specifics behind the table, each read from the vendor's own page on 2026-11-
 
 ## What the lab run showed
 
-The T1 bench planted nine shadow-AI surfaces on one simulated endpoint, with the Ollama model store scored separately to make ten cells, and ran five methods over three fresh runs whose fired-rule sets were identical (Tier B, first-party, sdw-lab-benchmarks@e568f5b on branch hub/ai-research-2026-11-09, `t1-shadow-ai-discovery/RESULTS.md`; single host, planted fixtures, rules written by the same agent that planted them, independently re-run with a VERIFIED-WITH-FIXES verdict that changed no grade). The union found eight cells, reached the local OpenAI-compatible server only as a port, and missed the weights in the Ollama store. osquery found six and was the only method to reach the IDE extension, the MCP configs and the browser extension at all, while Zeek, the DNS log and the egress allowlist each found the two remote surfaces and nothing on disk. There was exactly one false positive, the port 8080 rule firing on a benign Python file server.
+The T1 bench planted nine shadow-AI surfaces on one simulated endpoint, with the Ollama model store scored separately to make ten cells, and ran five methods over three fresh runs whose fired-rule sets were identical (Tier B, first-party, sdw-lab-benchmarks@91e44df `t1-shadow-ai-discovery/RESULTS.md:33-60`; single host, planted fixtures, rules written by the same agent that planted them, independently re-run with a VERIFIED-WITH-FIXES verdict that changed no grade). The union found eight cells, reached the local OpenAI-compatible server only as a port, and missed the weights in the Ollama store. osquery found six and was the only method to reach the IDE extension, the MCP configs and the browser extension at all, while Zeek, the DNS log and the egress allowlist each found the two remote surfaces and nothing on disk. There was exactly one false positive, the port 8080 rule firing on a benign Python file server.
 
 The finding I'd carry forward is about how the endpoint wins, since four of osquery's six finds needed the query to already name a path or a table, and its recursive `%%` glob skips hidden directories, so the pre-registered query never reached `.ollama`. Two of the finds also rest on harness changes made after the freeze, which leaves osquery at four under the literal frozen text. That makes the path list itself the control, which is why action 3 names the hidden directories explicitly and why the maintenance of that list is a recurring cost. Syft reported nothing for the extension directories or the config files, and the two model files it did catalogue carried no PURL, which is the same blind spot for model artifacts that the repo's planned document on models the organization holds will take up in depth.
 
@@ -118,7 +118,7 @@ Tier A
 
 Tier B
 
-- sdw-lab-benchmarks, T1 shadow-AI discovery, commit e568f5b on branch hub/ai-research-2026-11-09, `t1-shadow-ai-discovery/RESULTS.md` and `VERIFICATION.md` (run 2026-11-09). https://github.com/flying-coyote/sdw-lab-benchmarks
+- sdw-lab-benchmarks@91e44df (lab master), T1 shadow-AI discovery, `t1-shadow-ai-discovery/RESULTS.md` and `VERIFICATION.md` (run 2026-11-09). https://github.com/flying-coyote/sdw-lab-benchmarks/tree/91e44df/t1-shadow-ai-discovery
 - Chhetri et al., "From Frontier to Shadow AI", arXiv 2606.00088, preprint, 2026. https://arxiv.org/abs/2606.00088
 - Bick, Blandin and Deming, NBER working paper w32966, 2024. https://doi.org/10.3386/w32966
 - Anthropic, tenant restrictions. https://support.claude.com/en/articles/13198485 (read 2026-11-10)

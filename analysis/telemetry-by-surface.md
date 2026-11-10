@@ -17,15 +17,15 @@ revalidate-by: 2027-03-17
 status: EMERGING
 measurement-claims:
   - claim: "Claude Code 2.1.321 OpenTelemetry export at documented defaults delivered 8 of 12 per-interaction fields (identity, session, tool name, model, tokens, cost, host attributes, timestamps) and withheld prompt text, tool arguments, tool output and response text as lengths or <REDACTED>, identically in 3 of 3 trials"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ e568f5b t2-platform-telemetry/RESULTS.md:32-35"
+    source: "sdw-lab-benchmarks@91e44df t2-platform-telemetry/RESULTS.md:32-35"
     date: 2026-11-10
     revalidate: 2027-03-17
   - claim: "With every documented content gate on, Claude Code 2.1.321 delivered all 12 fields with values matching the known session in 3 of 3 trials, and tool output arrived only on the traces path behind a beta flag"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ e568f5b t2-platform-telemetry/RESULTS.md:35-38"
+    source: "sdw-lab-benchmarks@91e44df t2-platform-telemetry/RESULTS.md:35-38"
     date: 2026-11-10
     revalidate: 2027-03-17
   - claim: "Ollama 0.20.6 server log at default level carried none of the eight content, identity, model-per-request or token fields in 3 of 3 trials; model, token counts, tool call and response came back only in the client response body"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ e568f5b t2-platform-telemetry/RESULTS.md:40-47"
+    source: "sdw-lab-benchmarks@91e44df t2-platform-telemetry/RESULTS.md:40-47"
     date: 2026-11-10
     revalidate: 2027-03-17
 ---
@@ -100,7 +100,7 @@ The pattern across the rows is that nearly every platform I could read ships an 
 
 ## What the lab measured
 
-Two cells in this table were measured rather than read, on one host, one account and one day (2026-11-10 UTC), three trials per configuration, with an independent verification that reproduced every headline number (sdw-lab-benchmarks branch hub/ai-research-2026-11-09 at `e568f5b`, t2-platform-telemetry/RESULTS.md and VERIFICATION.md, verdict VERIFIED-WITH-FIXES; Tier B).
+Two cells in this table were measured rather than read, on one host, one account and one day (2026-11-10 UTC), three trials per configuration, with an independent verification that reproduced every headline number (sdw-lab-benchmarks@91e44df t2-platform-telemetry/RESULTS.md:32-47 and VERIFICATION.md, verdict VERIFIED-WITH-FIXES; Tier B).
 
 Claude Code 2.1.321's OpenTelemetry export at its documented defaults delivered 8 of the 12 fields the bench scored: the account email and ids, session id, tool name, model id, four token counters, a list-price cost, host attributes and timestamps. The four content fields were present as lengths or as the literal `<REDACTED>`, so a parser sees the shape of the interaction without its content. With every documented content gate on, all 12 arrived with values matching the known session, though tool output arrived only on the traces path, which sits behind a beta flag. The attribute set was identical across trials. One detail matters for correlation: the network identity field was host attributes with no client IP, so the join key to a proxy or firewall record is the account email, not an address. The vendor's documentation says a direct API key, Bedrock, Vertex or Foundry deployment populates only the user id and session id, which the bench did not test.
 
@@ -136,7 +136,7 @@ The table is also not a ranking. A platform with more cells filled is not the mo
 ## Notes
 
 - Convergence is `single-source`. The standards route covers practices a standard prescribes; this document describes what products record, and no standard yet prescribes a per-interaction AI record outside the high-risk scope of the EU AI Act, which the law document covers.
-- The `measurement-claims` sources name commit `e568f5b` on the lab branch hub/ai-research-2026-11-09, because the run has not yet merged to the lab's main line; they will be swapped to the merged commit before this document is gated. `revalidate-by` is about four months out because vendor logging defaults move on release cycles faster than the schemas do.
+- 2026-11-10: the `measurement-claims` sources were first written against commit `e568f5b` on the lab branch hub/ai-research-2026-11-09 and now point at lab master `91e44df`, which carries the run; `t2-platform-telemetry/RESULTS.md` is unchanged between the two, so the line ranges stand. `revalidate-by` is about four months out because vendor logging defaults move on release cycles faster than the schemas do.
 - The grade ladder and the "where content lands" framing are my judgement as of 2026-11-10 (Tier D). The last-checked dates are the dates the vendor pages were read, not the date this document was written.
 - Microsoft's `ModelTransparencyDetails` field is described inconsistently on its own page (one section says model name is not available for Microsoft 365 Copilot, a later one says it is when a user picks a model), so the table does not claim the record names the model; test a tenant before relying on either reading.
 
@@ -179,7 +179,7 @@ Tier B, vendor documentation of what a feature does (all read 2026-11-09)
 
 Tier B, practitioner and first-party lab work
 
-- sdw-lab-benchmarks, branch hub/ai-research-2026-11-09 at commit e568f5b, t2-platform-telemetry/RESULTS.md and VERIFICATION.md, https://github.com/flying-coyote/sdw-lab-benchmarks, run 2026-11-10 UTC, verdict VERIFIED-WITH-FIXES; one host, one account, Claude Code 2.1.321, Ollama 0.20.6.
+- sdw-lab-benchmarks@91e44df t2-platform-telemetry/RESULTS.md and VERIFICATION.md (lab master), https://github.com/flying-coyote/sdw-lab-benchmarks/tree/91e44df/t2-platform-telemetry, run 2026-11-10 UTC, verdict VERIFIED-WITH-FIXES; one host, one account, Claude Code 2.1.321, Ollama 0.20.6.
 - OpenTelemetry semantic conventions for generative AI, v1.45.0 registry, https://github.com/open-telemetry/semantic-conventions (attributes at `development` stability on the read date).
 - Zhu and Pu, "TelemetrySuffBench: Is Agent Telemetry Sufficient for Failure-Origin Diagnosis?", arXiv:2608.07899, 2026, preprint.
 

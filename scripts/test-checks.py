@@ -17,8 +17,10 @@ check meaningful whether the working tree is a bare skeleton or a release
 candidate.
 
 Covered: check-prompt-blocks.py, check-routing-coverage.py,
-render-audit-context.py, route.py, check-exclusions.py, check-pins.py and
-build-release-bundle.sh.
+render-audit-context.py, route.py (including its reading of the sequence-order
+block in analysis/decision-sequence.md), check-exclusions.py, check-pins.py and
+build-release-bundle.sh (including the stamp step retiring every pre-release
+statement and the bundle refusing a missing routed doc).
 
 Usage: python scripts/test-checks.py
 """
@@ -38,6 +40,15 @@ SCRIPTS = ROOT / "scripts"
 COPY = ["README.md", "ONE-LINE-PROMPT.md", "AUDIT-CONTEXT.md", "routing.yaml", "RELEASES.md",
         "CONTRIBUTING.md", "analysis", "fixtures"]
 results: list[tuple[bool, str]] = []
+# results appended directly rather than through expect(), printed in the summary
+DIRECT = {"bundle: AUDIT-CONTEXT header stamped",
+          "bundle: stamp retires the banner, the prompt paragraph, the routing comment and the pins Release line",
+          "bundle: RELEASES.md row carries the commit and the bundle's real SHA-256",
+          "bundle: contains routing.yaml under its file header",
+          "bundle: holds every routed doc",
+          "bundle: carries no pre-release wording",
+          "bundle: a refused stamp leaves AUDIT-CONTEXT unstamped",
+          "bundle: two builds of the same tree have the same SHA-256"}
 
 
 def tree(td: str) -> Path:
@@ -64,6 +75,25 @@ def always_fetch(root: Path) -> list[str]:
     docs = list((yaml.safe_load((root / "routing.yaml").read_text(encoding="utf-8")) or {}).get("always-fetch") or [])
     assert docs, "routing.yaml has no always-fetch list to plant a missing doc from"
     return docs
+
+
+def routed_docs(root: Path) -> list[str]:
+    data = yaml.safe_load((root / "routing.yaml").read_text(encoding="utf-8")) or {}
+    always = set(data.get("always-fetch") or [])
+    return sorted({d for r in data["signals"] for d in r.get("docs", [])} - always)
+
+
+def fill_routed(root: Path) -> list[str]:
+    """Plant a placeholder for every routed doc not written yet, in a copy only, so the
+    bundle's missing-doc refusal can be tested both ways whatever the working tree holds."""
+    planted = []
+    for d in routed_docs(root):
+        p = root / d
+        if not p.is_file():
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text("---\nstatus: test-placeholder\n---\n\n# Placeholder planted by test-checks.py\n", encoding="utf-8")
+            planted.append(d)
+    return planted
 
 
 def run(args: list[str], root: Path, env: dict | None = None) -> subprocess.CompletedProcess:
@@ -166,6 +196,30 @@ def main() -> int:
         expect("route.py: a platform outside the closed list is refused", run(["route.py", "--root", str(r), str(bad)], r), False, "platform list")
         bad.write_text("answers-block: 1\nsignals:\n  surface-S1: maybe\n", encoding="utf-8")
         expect("route.py: a free-text value is refused", run(["route.py", "--root", str(r), str(bad)], r), False, "must be")
+    seq_doc = "analysis/decision-sequence.md"
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / seq_doc, "\nsequence-order:\n", "\nsequence-ordering:\n")
+        expect("route.py: no sequence-order block is refused, not silently replaced by another order",
+               run(["route.py", "--root", str(r), "--check-fixtures"], r), False, "sequence-order")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / seq_doc, "  7-containment: [incident-response]\n", "  7-containment: []\n")
+        expect("route.py: a family in no sequence group is refused",
+               run(["route.py", "--root", str(r), "--check-fixtures"], r), False, "families in no sequence group")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / seq_doc, "  containment-pre-authorized-broad: 7-containment\n",
+             "  containment-pre-authorized-broad: 9-no-such-group\n")
+        expect("route.py: a row override naming an unknown group is refused",
+               run(["route.py", "--root", str(r), "--check-fixtures"], r), False, "not a sequence group")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / seq_doc, "  1-ownership: [profile, surface]\n  2-risk-tolerance-and-owners: [governance]\n",
+             "  1-ownership: [profile, surface]\n  2-risk-tolerance-and-owners: [frameworks]\n")
+        edit(r / seq_doc, "  8-vendor-conversation: [frameworks]\n", "  8-vendor-conversation: [governance]\n")
+        expect("route.py: moving a family to another sequence group moves a golden and fails",
+               run(["route.py", "--root", str(r), "--check-fixtures"], r), False, "differs")
 
     # check-exclusions
     with tempfile.TemporaryDirectory() as td:
@@ -208,12 +262,26 @@ def main() -> int:
         expect("bundle: stamp writes the tag and date", run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), True)
         ac = (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
         results.append(("Release: v2026.12. Date: 2026-12-01." in ac, "bundle: AUDIT-CONTEXT header stamped"))
+        olp = (r / "ONE-LINE-PROMPT.md").read_text(encoding="utf-8")
+        ry = (r / "routing.yaml").read_text(encoding="utf-8")
+        pins = (r / "analysis" / "revalidation-and-pins.md").read_text(encoding="utf-8")
+        results.append(("> Pre-release." not in ac and "should stop and say the repo is unreleased" not in ac
+                        and "has not cut a release yet" not in olp and "release v2026.12, stamped 2026-12-01" in olp
+                        and "State: pre-release" not in ry and "# State: release v2026.12, stamped 2026-12-01." in ry
+                        and "release: v2026.12\n" in ry
+                        and "Release: unreleased" not in pins and "Release: v2026.12; pins last verified" in pins,
+                        "bundle: stamp retires the banner, the prompt paragraph, the routing comment and the pins Release line"))
         held = always_fetch(r)[0]
         body = (r / held).read_bytes()
         unwrite(r, held)
         expect("bundle: refuses to build while Always Fetch docs are missing",
                run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, "Always Fetch docs missing")
         (r / held).write_bytes(body)
+        fill_routed(r)
+        gone = unwrite(r, routed_docs(r)[0])
+        expect("bundle: refuses to build while a routed doc is missing",
+               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, f"routed docs missing (1)")
+        expect("bundle: names the missing routed doc", run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, gone)
         p = run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, dict(env, ALLOW_MISSING="1"))
         expect("bundle: builds with ALLOW_MISSING=1", p, True)
         out = r / "dist" / "securing-ai-best-practices-v2026.12.md"
@@ -225,6 +293,38 @@ def main() -> int:
                         "bundle: contains routing.yaml under its file header"))
         expect("bundle: refuses a second row for the same tag",
                run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, dict(env, ALLOW_MISSING="1")), False, "already has a row")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        env = {"ROOT": str(r)}
+        fill_routed(r)
+        run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env)
+        expect("bundle: builds without ALLOW_MISSING once every routed doc exists",
+               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), True, "sha256:")
+        out = (r / "dist" / "securing-ai-best-practices-v2026.12.md")
+        text = out.read_text(encoding="utf-8") if out.is_file() else ""
+        results.append((all(f"===== FILE: {d} =====" in text for d in routed_docs(r)),
+                        "bundle: holds every routed doc"))
+        results.append(("pre-release:start" in text and "has not cut a release yet" not in text
+                        and "Release: unreleased" not in text, "bundle: carries no pre-release wording"))
+        expect("bundle: a second stamp for the next release finds the markers again",
+               run(["build-release-bundle.sh", "stamp", "v2027.01", "2027-01-05"], r, env), True, "stamped v2027.01")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        env = {"ROOT": str(r)}
+        before = (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
+        edit(r / "routing.yaml", "# pre-release:end\n", "")
+        expect("bundle: stamp refuses when a pre-release marker is missing, and writes nothing",
+               run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), False, "nothing written")
+        results.append(((r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8") == before,
+                        "bundle: a refused stamp leaves AUDIT-CONTEXT unstamped"))
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        env = {"ROOT": str(r), "ALLOW_MISSING": "1"}
+        unstamped = (r / "ONE-LINE-PROMPT.md").read_text(encoding="utf-8")
+        run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env)
+        (r / "ONE-LINE-PROMPT.md").write_text(unstamped, encoding="utf-8")
+        expect("bundle: refuses when pre-release wording survives the stamp, even with ALLOW_MISSING=1",
+               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, "survives the stamp")
     with tempfile.TemporaryDirectory() as td:
         r1, r2 = tree(td), None
         r2 = Path(td) / "repo2"
@@ -238,10 +338,7 @@ def main() -> int:
         results.append((digests[0] == digests[1], "bundle: two builds of the same tree have the same SHA-256"))
 
     for good, label in results:
-        if label.startswith("bundle: ") and label in ("bundle: AUDIT-CONTEXT header stamped",
-                                                      "bundle: RELEASES.md row carries the commit and the bundle's real SHA-256",
-                                                      "bundle: contains routing.yaml under its file header",
-                                                      "bundle: two builds of the same tree have the same SHA-256"):
+        if label in DIRECT:
             print(f"{'ok  ' if good else 'FAIL'} {label}")
     bad = [label for good, label in results if not good]
     print(f"{len(results)} checks, {len(bad)} failed")

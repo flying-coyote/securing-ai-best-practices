@@ -7,7 +7,10 @@ agent reads, so the section between the `routing:start` and `routing:end`
 markers is generated from the data and never edited by hand. The rendered
 section carries, per signal, how it is collected, its weight and priority
 (with the escalation and the condition that triggers it), any row it requires,
-and the docs it routes to. The interview question and the why for each row stay
+and the docs it routes to, plus each row's ordinal in routing.yaml (the `#`
+column), which is the last tie-breaker in the Priority rubric and so has to be
+visible to the agent as a rule rather than implied by table position. The
+interview question and the why for each row stay
 in routing.yaml, which the review fetches beside this file, so the rendered
 section stays small enough to sit in an agent's context.
 
@@ -17,7 +20,9 @@ Usage:
     python scripts/render-audit-context.py --root DIR
 
 The output is deterministic: rows render in routing.yaml order, grouped by
-family in order of first appearance.
+family in order of first appearance, each numbered by its position in the
+whole file. render() reads routing.yaml data only, because
+check-routing-coverage.py calls it with that data alone.
 """
 
 import argparse
@@ -57,22 +62,26 @@ def render(data: dict) -> str:
     lines = [START, ""]
     lines.append(
         "Rendered from `routing.yaml`. Each row's interview question and its why are in that file. "
-        "Weight: PROBLEM produces an action, REVIEW is listed with the answer quoted, INVENTORY enables "
-        "other rows and fetches nothing on its own. Priority shows the band and the four factor scores "
-        "(reach + stakes + reversibility + blast). Collected: I interview, E export or reducer output, "
-        "D derived by the stated predicate."
+        "`#` is the row's position in `routing.yaml`, the last tie-breaker in the Priority rubric: within "
+        "a band and a sequence group, and at equal factor sum, the lower number comes first. "
+        "Weight: PROBLEM produces an action and is the only weight that can take a top-action slot in the "
+        "Next 30 days section; REVIEW is listed under Prioritized actions after the PROBLEM rows, in the "
+        "same order, with the matched answer quoted, and becomes a PROBLEM only where its escalation says "
+        "so; INVENTORY enables other rows and fetches nothing on its own. Priority shows the band and the "
+        "four factor scores (reach + stakes + reversibility + blast). Collected: I interview, E export or "
+        "reducer output, D derived by the stated predicate."
     )
     families: dict[str, list] = {}
-    for row in data.get("signals", []):
-        families.setdefault(row.get("family", "other"), []).append(row)
+    for n, row in enumerate(data.get("signals", []), 1):
+        families.setdefault(row.get("family", "other"), []).append((n, row))
     for fam, rows in families.items():
         owner = data.get("family-owners", {}).get(fam)
         lines += ["", f"### {fam}", ""]
         if owner:
             lines += [f"Question Packets for this family go to: {owner}.", ""]
-        lines += ["| Key | Collected | Weight, priority | Conditions | Routes to |",
-                  "|---|---|---|---|---|"]
-        for r in rows:
+        lines += ["| # | Key | Collected | Weight, priority | Conditions | Routes to |",
+                  "|---|---|---|---|---|---|"]
+        for n, r in rows:
             cond = []
             if r.get("predicate"):
                 cond.append(f"derived: {r['predicate']}")
@@ -86,7 +95,7 @@ def render(data: dict) -> str:
                 cond.append(f"packets to {r['owner']}")
             docs = ", ".join(f"`{d}`" for d in r.get("docs", []))
             lines.append(
-                f"| `{cell(r['key'])}` | {'/'.join(r.get('method', []))} | {cell(priority_cell(r))} "
+                f"| {n} | `{cell(r['key'])}` | {'/'.join(r.get('method', []))} | {cell(priority_cell(r))} "
                 f"| {cell('; '.join(cond))} | {docs} |"
             )
     special = data.get("special-keys", [])

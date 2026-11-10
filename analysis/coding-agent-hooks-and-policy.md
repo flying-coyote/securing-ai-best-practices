@@ -13,19 +13,19 @@ status: EMERGING
 follows: "claude-code-project-best-practices analysis/safety-and-sandboxing.md and analysis/ai-tool-vetting.md (Claude Code mechanism, MCP vetting and the credential-boundary hook pattern)"
 measurement-claims:
   - claim: "In 24 of 24 cells where a deny control was in force (a PreToolUse hook deny or a permissions.deny rule, placed in the user, shared-project, project-local or --settings source), 0 created the forbidden marker or leaked the fixture token; Claude Code 2.1.321 headless, one host, one model, one run per cell"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ T9-FIX-COMMIT-PENDING t9-pretooluse-hook-enforcement/RESULTS.md:20-22"
+    source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:13, :19-23"
     date: 2026-11-10
     revalidate: 2027-02-10
   - claim: "disableAllHooks: true in .claude/settings.local.json switched off a PreToolUse hook committed in .claude/settings.json and the forbidden command ran, including when the project file pinned disableAllHooks: false (cells E1, E1b); a user-file true did the same when the project file was silent (E2) and lost only to an explicit project false (E2b)"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ T9-FIX-COMMIT-PENDING t9-pretooluse-hook-enforcement/RESULTS.md:24-32"
+    source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:24-27, :84-87"
     date: 2026-11-10
     revalidate: 2027-02-10
   - claim: "Permission deny rules had no equivalent switch in the four precedence pairs measured (E3, E4, E6, E7); the managed tier and other pairs were not measured"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ T9-FIX-COMMIT-PENDING t9-pretooluse-hook-enforcement/RESULTS.md:24-32"
+    source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:27-31, :88-92"
     date: 2026-11-10
     revalidate: 2027-02-10
   - claim: "With hooks disabled by a local file, the OTLP log-event stream carried no record that a hook had been configured and switched off; the only difference from a hooked session was the absent hook_registered startup event (cell E1c)"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ T9-FIX-COMMIT-PENDING t9-pretooluse-hook-enforcement/RESULTS.md (cell table, row E1c)"
+    source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:100, :222-225"
     date: 2026-11-10
     revalidate: 2027-02-10
 ---
@@ -89,7 +89,7 @@ The reason vendors default open is usability, since a broken hook should not bri
 
 ## What the lab measured
 
-Run T9 put PreToolUse hook denies and `permissions.deny` rules into each settings source of Claude Code 2.1.321 in headless mode and scored each cell by whether a forbidden marker file appeared and whether a fixture token leaked, across 37 invocations on one host with one model and one run per cell, for about USD 0.05 in spend (Tier B measured; sdw-lab-benchmarks branch hub/ai-research-2026-11-09, t9-pretooluse-hook-enforcement/RESULTS.md, verified with fixes). A second agent re-ran 22 of the cells on a fresh rig directory using the same method, and all 22 matched on marker, token and decision fields; its seven required fixes corrected wording and three factual details, and none reversed an enforcement finding (same folder, VERIFICATION.md).
+Run T9 put PreToolUse hook denies and `permissions.deny` rules into each settings source of Claude Code 2.1.321 in headless mode and scored each cell by whether a forbidden marker file appeared and whether a fixture token leaked, across 37 invocations on one host with one model and one run per cell, for about USD 0.05 in spend (Tier B measured; sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:10-15, :19-31, verified with fixes). A second agent re-ran 22 of the cells on a fresh rig directory using the same method, and all 22 matched on marker, token and decision fields; its seven required fixes corrected wording and three factual details, and none reversed an enforcement finding (same folder, VERIFICATION.md).
 
 In the 24 cells where a deny control was in force, none created the marker or leaked the token. The marker appeared only where a hook had been switched off by `disableAllHooks` and in the allow cells built to show it. The finding I would put in front of a platform team is that switch, because `disableAllHooks: true` in a developer's `.claude/settings.local.json` disabled the hook in the committed `.claude/settings.json` and the forbidden command ran, and it still ran when the project file pinned `false`, because local outranks project. A deny rule had no such switch in the four precedence pairs measured, though the managed tier was not measured at all, so this holds for those pairs and not as a general rule.
 
@@ -126,7 +126,7 @@ The lab run is one version of one product. Cursor, Copilot CLI, Gemini CLI and C
 
 ## Notes
 
-- 2026-11-10: the T9 citations are meant to point at the commit on branch hub/ai-research-2026-11-09 that carries the seven verifier fixes, and the `T9-FIX-COMMIT-PENDING` placeholder stands in for that hash until it exists. The branch head as of this date predates those fixes and serves the unfixed text, so it is not the cited source.
+- 2026-11-10: the T9 citations point at lab master `91e44df`, the commit that applies the seven verifier fixes to `t9-pretooluse-hook-enforcement/RESULTS.md`; they replace the `T9-FIX-COMMIT-PENDING` placeholder the document was first written with, and the line ranges were re-derived from that commit (the headline moved to lines 19-23).
 - 2026-11-10: the policy order and the three-shape grouping are my judgement (Tier D) and are expected to move as the gaps above close.
 - 2026-11-10: the GitLab Duo row describes what the MCP clients page says about approvals; the page "doesn't describe allowlisting specific servers", so I have recorded the absence rather than inferred a feature.
 - The canon for the Claude Code mechanism, MCP vetting and the credential-boundary hook is [safety-and-sandboxing.md](https://github.com/flying-coyote/claude-code-project-best-practices/blob/master/analysis/safety-and-sandboxing.md) and [ai-tool-vetting.md](https://github.com/flying-coyote/claude-code-project-best-practices/blob/master/analysis/ai-tool-vetting.md) in claude-code-project-best-practices; this document keeps the cross-vendor comparison and the lab result those do not carry.
@@ -151,7 +151,7 @@ Tier B, vendor documentation of what a feature does (all read 2026-11-09)
 
 Tier B, measured and preprints
 
-- sdw-lab-benchmarks, branch hub/ai-research-2026-11-09, t9-pretooluse-hook-enforcement/RESULTS.md and VERIFICATION.md (verdict VERIFIED-WITH-FIXES), https://github.com/flying-coyote/sdw-lab-benchmarks
+- sdw-lab-benchmarks@91e44df (lab master), t9-pretooluse-hook-enforcement/RESULTS.md and VERIFICATION.md (verdict VERIFIED-WITH-FIXES), https://github.com/flying-coyote/sdw-lab-benchmarks/tree/91e44df/t9-pretooluse-hook-enforcement
 - Shi et al., Progent, arXiv 2504.11703
 - Beurer-Kellner et al., design patterns for securing LLM agents, arXiv 2506.08837
 - Sharma et al., Ajar, arXiv 2609.26900

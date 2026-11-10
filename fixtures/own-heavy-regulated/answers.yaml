@@ -11,6 +11,7 @@
 # (containment-pre-authorized-broad); and questionnaire-only, since nothing
 # was read from a system.
 answers-block: 1
+interview-branch: full
 overrides: []
 observations:
   runtime-internet-reachable: {value: true, confidence: owner-stated}

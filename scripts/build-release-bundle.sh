@@ -5,7 +5,15 @@
 # (RELEASES.md and DECISIONS.md, Decision 2):
 #
 #   1. stamp:  write the tag and date into AUDIT-CONTEXT.md's release header and
-#              routing.yaml's `release:` field, then commit and tag that commit.
+#              routing.yaml's `release:` field, and retire every pre-release
+#              statement so a stamped tree does not argue with itself: remove
+#              AUDIT-CONTEXT's pre-release banner, rewrite the pre-release
+#              paragraph in ONE-LINE-PROMPT.md and routing.yaml's header comment
+#              (each between pre-release:start and pre-release:end markers,
+#              which stay so the next release's stamp finds them), and
+#              rewrite the `Release:` line in analysis/revalidation-and-pins.md.
+#              Every one of the five must match exactly once or nothing is
+#              written. Then commit and tag that commit.
 #   2. bundle: from the tagged commit, concatenate the release files into one
 #              offline bundle, compute its SHA-256, and add the release row to
 #              RELEASES.md (tag, date, commit SHA, bundle hash, pins).
@@ -13,9 +21,11 @@
 #              the default branch; check-prompt-blocks.py then holds them to it.
 #
 # The bundle holds AUDIT-CONTEXT.md, ONE-LINE-PROMPT.md, routing.yaml, the four
-# Always Fetch docs and every routed doc that exists, in that order, each under
-# a header line naming its path, with no timestamps, so the same commit always
-# produces the same bytes and the same hash.
+# Always Fetch docs and every routed doc, in that order, each under a header
+# line naming its path, with no timestamps, so the same commit always produces
+# the same bytes and the same hash. It refuses when any Always Fetch or routed
+# doc is missing, because a review routed to a doc the bundle does not hold can
+# only guess at it, and it refuses when any pre-release text survived the stamp.
 #
 # Usage:
 #   scripts/build-release-bundle.sh stamp  vYYYY.MM YYYY-MM-DD
@@ -23,8 +33,8 @@
 #
 # Environment:
 #   ROOT=DIR          repo root (default: the parent of this script's folder)
-#   ALLOW_MISSING=1   build even if an Always Fetch doc is missing (tests only;
-#                     a real release must never set it)
+#   ALLOW_MISSING=1   build even if an Always Fetch or routed doc is missing
+#                     (tests only; a real release must never set it)
 #
 # This script never runs git; the operator passes the commit SHA.
 
@@ -46,20 +56,44 @@ case "$cmd" in
 import re, sys
 from pathlib import Path
 root, tag, date = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
-ac = root / "AUDIT-CONTEXT.md"
-text = ac.read_text(encoding="utf-8")
-new, n = re.subn(r"(<!-- release-header:[^\n]*-->\n)Release: [^\n]*\n",
-                 rf"\g<1>Release: {tag}. Date: {date}.\n", text, count=1)
-if n != 1:
-    sys.exit("ERROR: AUDIT-CONTEXT.md has no release-header comment followed by a Release: line")
-ac.write_text(new, encoding="utf-8")
-ry = root / "routing.yaml"
-rtext = ry.read_text(encoding="utf-8")
-rnew, n = re.subn(r"(?m)^release: .*$", f"release: {tag}", rtext, count=1)
-if n != 1:
-    sys.exit("ERROR: routing.yaml has no top-level release: line")
-ry.write_text(rnew, encoding="utf-8")
-print(f"stamped {tag} ({date}) into AUDIT-CONTEXT.md and routing.yaml")
+edits, errors = {}, []
+
+def sub(rel, pattern, repl, what, flags=0):
+    p = root / rel
+    if not p.is_file():
+        errors.append(f"{rel} not found ({what})")
+        return
+    text = edits.get(rel, p.read_text(encoding="utf-8"))
+    new, n = re.subn(pattern, repl, text, flags=flags)
+    if n != 1:
+        errors.append(f"{rel}: expected exactly one {what}, found {n}")
+        return
+    edits[rel] = new
+
+sub("AUDIT-CONTEXT.md", r"(<!-- release-header:[^\n]*-->\n)Release: [^\n]*\n",
+    lambda m: f"{m.group(1)}Release: {tag}. Date: {date}.\n", "release-header comment followed by a Release: line")
+# The markers stay, so the next release's stamp finds them again; only the text between them changes.
+sub("AUDIT-CONTEXT.md", r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -->\n)",
+    lambda m: m.group(1) + m.group(2), "pre-release banner between markers", re.S)
+sub("ONE-LINE-PROMPT.md", r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -->\n)",
+    lambda m: m.group(1) + (f"This copy belongs to release {tag}, stamped {date}. The blocks below still carry the "
+               "`<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, "
+               "so take the release's full commit SHA, its tag and the SHA-256 of the offline bundle from "
+               "`RELEASES.md`; the copy on the default branch carries them filled in.\n") + m.group(2),
+    "pre-release paragraph between markers", re.S)
+sub("routing.yaml", r"(?m)^release: .*$", lambda m: f"release: {tag}", "top-level release: line")
+sub("routing.yaml", r"(# pre-release:start[^\n]*\n).*?(# pre-release:end\n)",
+    lambda m: m.group(1) + (f"# State: release {tag}, stamped {date}. The factor scores and the surface-to-signal\n"
+               "# \"enables\" lists are the author's judgement (Tier D) and may move between\n"
+               "# releases.\n") + m.group(2),
+    "pre-release header comment between markers", re.S)
+sub("analysis/revalidation-and-pins.md", r"Release: [^;\n]+; pins last verified",
+    lambda m: f"Release: {tag}; pins last verified", "'Release: ...; pins last verified' line")
+if errors:
+    sys.exit("ERROR: stamp refused, nothing written:\n  " + "\n  ".join(errors))
+for rel, text in edits.items():
+    (root / rel).write_text(text, encoding="utf-8")
+print(f"stamped {tag} ({date}) into {', '.join(sorted(edits))}")
 PY
     ;;
   bundle)
@@ -82,11 +116,28 @@ if routing.get("release") != tag:
 always = list(routing.get("always-fetch") or [])
 routed = sorted({d for r in routing["signals"] for d in r.get("docs", [])} - set(always))
 missing = [d for d in always if not (root / d).is_file()]
+missing_routed = [d for d in routed if not (root / d).is_file()]
+errors = []
 if missing and not allow_missing:
-    sys.exit(f"ERROR: Always Fetch docs missing: {missing}")
+    errors.append(f"Always Fetch docs missing: {missing}")
+if missing_routed and not allow_missing:
+    errors.append(f"routed docs missing ({len(missing_routed)}); write them or stop routing to them "
+                  f"before the release: {missing_routed}")
 files = ["AUDIT-CONTEXT.md", "ONE-LINE-PROMPT.md", "routing.yaml"]
 files += [d for d in always if (root / d).is_file()]
 files += [d for d in routed if (root / d).is_file()]
+# Text between pre-release markers must be empty or name this release; anything else is
+# pre-release wording the stamp step did not retire.
+marker = re.compile(r"pre-release:start[^\n]*\n(.*?)(?:<!-- |# )pre-release:end", re.S)
+leftover = [f for f in files for body in marker.findall((root / f).read_text(encoding="utf-8"))
+            if body.strip() and f"release {tag}" not in body]
+if (root / "analysis/revalidation-and-pins.md").is_file() and re.search(
+        r"Release: unreleased", (root / "analysis/revalidation-and-pins.md").read_text(encoding="utf-8")):
+    leftover.append("analysis/revalidation-and-pins.md")
+if leftover:
+    errors.append(f"pre-release text survives the stamp in: {sorted(set(leftover))}")
+if errors:
+    sys.exit("ERROR: " + "\nERROR: ".join(errors))
 
 parts = [f"# securing-ai-best-practices offline bundle, release {tag}, commit {sha}\n",
          f"# {len(files)} files follow, each under a line of the form '===== FILE: <path> ====='.\n"]
@@ -123,8 +174,9 @@ rtext = rtext.replace(header, header + row, 1)
 rel.write_text(rtext, encoding="utf-8")
 print(f"bundle: {out.relative_to(root)} ({len(data)} bytes, {len(files)} files)")
 print(f"sha256: {digest}")
-if missing:
-    print(f"WARNING: built with ALLOW_MISSING=1; missing Always Fetch docs: {missing}")
+if missing or missing_routed:
+    print(f"WARNING: built with ALLOW_MISSING=1; missing Always Fetch docs: {missing}; "
+          f"missing routed docs: {missing_routed}")
 PY
     ;;
   *)

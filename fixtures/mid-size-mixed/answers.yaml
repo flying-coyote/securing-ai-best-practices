@@ -14,6 +14,7 @@
 # reducer counts selecting MCP keys; a surface answered unsure; two pattern
 # instances, one yes and one no; and a profile override.
 answers-block: 1
+interview-branch: full
 overrides: [profile-override-gateway-chosen]
 observations:
   mcp-server-count: {value: 9, confidence: read}

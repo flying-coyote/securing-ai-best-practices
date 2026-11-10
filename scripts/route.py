@@ -38,10 +38,18 @@ Rules, all read from routing.yaml (AUDIT-CONTEXT.md states them for agents):
   - INVENTORY rows fetch nothing. Docs are the four Always Fetch docs, then the
     docs of selected actions, then of selected review rows, deduplicated in
     that order.
-  - Ordering within a band: until analysis/decision-sequence.md exists and
-    carries a machine-readable sequence, the mapper orders by factor sum
-    (descending) and then by row order in routing.yaml. This is a
-    deterministic stand-in, recorded in the output as `ordering`.
+  - Ordering within a band reads the `sequence-order` block (a fenced YAML
+    block in analysis/decision-sequence.md): a row named under `row-overrides`
+    takes that group, any other row takes its family's group, and groups run
+    in the order the block lists them. Within a group, factor sum (descending)
+    and then row order in routing.yaml break ties. A missing or malformed block,
+    a family in no group or in two, or an override naming an unknown key or
+    group is an error, never a silent fall back to another order. The rule is
+    recorded in the output as `ordering`.
+  - REVIEW rows never take a top-action slot: `top-actions` is drawn from
+    PROBLEM rows only (a REVIEW row whose escalation sets escalate-weight to
+    PROBLEM counts as PROBLEM), and REVIEW rows are listed under `review` in
+    the same order.
 
 Exit 0 on success (and, with --check-fixtures, when every golden matches);
 1 on a mismatch or an invalid Answers Block.
@@ -56,7 +64,9 @@ import yaml
 
 BAND_RANK = {"High": 0, "Medium": 1, "Low": 2}
 CONFIDENCES = {"read", "owner-stated", "believed"}
-ORDERING = "band, then factor sum descending, then routing.yaml row order (stand-in until decision-sequence.md carries a sequence)"
+ORDERING = ("band, then sequence group from the sequence-order block in analysis/decision-sequence.md "
+            "(row-overrides first, else the row's family), then factor sum descending, then routing.yaml row order")
+SEQUENCE_DOC = "analysis/decision-sequence.md"
 
 
 class AnswersError(ValueError):
@@ -163,7 +173,7 @@ def merge(answers: dict, reducer_docs: list[dict]) -> tuple[dict, dict]:
 
 # ---------- routing ----------
 
-def route(data: dict, answers: dict, reducer_docs: list[dict]) -> dict:
+def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, int]) -> dict:
     rows = data["signals"]
     by_key = {r["key"]: r for r in rows}
     order = {r["key"]: i for i, r in enumerate(rows)}
@@ -325,7 +335,7 @@ def route(data: dict, answers: dict, reducer_docs: list[dict]) -> dict:
                 weight = pr.get("escalate-weight", weight)
             if conf == "believed" and band == "High":
                 band, capped = "Medium", True
-            item = {"key": kk, "weight": weight, "band": band, "factor-sum": sum(f.values()),
+            item = {"key": kk, "weight": weight, "band": band, "sequence-group": seq[k] + 1, "factor-sum": sum(f.values()),
                     "confidence": conf, "docs": list(r.get("docs", []))}
             if escalated:
                 item["escalated"] = True
@@ -338,7 +348,8 @@ def route(data: dict, answers: dict, reducer_docs: list[dict]) -> dict:
         add_packet(r, r["key"], "not checked")
 
     def sort_items(items):
-        return [it for _, it in sorted(items, key=lambda t: (BAND_RANK[t[1]["band"]], -t[1]["factor-sum"], t[0], t[1]["key"]))]
+        return [it for _, it in sorted(items, key=lambda t: (BAND_RANK[t[1]["band"]], t[1]["sequence-group"],
+                                                                -t[1]["factor-sum"], t[0], t[1]["key"]))]
 
     actions_s, review_s = sort_items(actions), sort_items(review)
     docs = []
@@ -381,7 +392,49 @@ def run(root: Path, answers_path: Path, reducer_paths: list[Path]) -> dict:
         if "reducer" not in doc:
             raise AnswersError(f"{p}: not reducer output (no 'reducer' field)")
         reducer_docs.append(doc)
-    return route(data, answers, reducer_docs)
+    return route(data, answers, reducer_docs, load_sequence(root, data))
+
+
+def load_sequence(root: Path, data: dict) -> dict[str, int]:
+    """Return {routing key: group index} from the sequence-order block, validated against routing.yaml."""
+    p = root / SEQUENCE_DOC
+    if not p.is_file():
+        raise AnswersError(f"{SEQUENCE_DOC} not found; the mapper orders by its sequence-order block")
+    blocks = [b for b in re.findall(r"^```yaml\n(.*?)^```", p.read_text(encoding="utf-8"), re.S | re.M)
+              if re.search(r"^sequence-order:", b, re.M)]
+    if len(blocks) != 1:
+        raise AnswersError(f"{SEQUENCE_DOC}: expected one fenced yaml block with sequence-order, found {len(blocks)}")
+    try:
+        blk = yaml.safe_load(blocks[0]) or {}
+    except yaml.YAMLError as e:
+        raise AnswersError(f"{SEQUENCE_DOC}: sequence-order block is not valid YAML: {e}") from e
+    groups = blk.get("sequence-order")
+    if not isinstance(groups, dict) or not groups:
+        raise AnswersError(f"{SEQUENCE_DOC}: sequence-order is empty or not a mapping")
+    group_idx = {g: i for i, g in enumerate(groups)}
+    fam_group: dict[str, int] = {}
+    for g, fams in groups.items():
+        for f in fams or []:
+            if f in fam_group:
+                raise AnswersError(f"{SEQUENCE_DOC}: family '{f}' is in more than one sequence group")
+            fam_group[f] = group_idx[g]
+    rows = data["signals"]
+    keys = {r["key"] for r in rows}
+    families = {r.get("family") for r in rows}
+    missing = sorted(f for f in families if f not in fam_group)
+    if missing:
+        raise AnswersError(f"{SEQUENCE_DOC}: families in no sequence group: {missing}")
+    unknown = sorted(f for f in fam_group if f not in families)
+    if unknown:
+        raise AnswersError(f"{SEQUENCE_DOC}: sequence-order names families routing.yaml does not have: {unknown}")
+    overrides = blk.get("row-overrides") or {}
+    for k, g in overrides.items():
+        if k not in keys:
+            raise AnswersError(f"{SEQUENCE_DOC}: row-overrides names '{k}', which is not a routing key")
+        if g not in group_idx:
+            raise AnswersError(f"{SEQUENCE_DOC}: row-overrides puts '{k}' in '{g}', which is not a sequence group")
+    return {r["key"]: group_idx[overrides[r["key"]]] if r["key"] in overrides else fam_group[r["family"]]
+            for r in rows}
 
 
 class _NoAliasDumper(yaml.SafeDumper):

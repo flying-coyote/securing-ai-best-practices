@@ -11,19 +11,19 @@ revalidate-by: 2027-04-10
 status: EMERGING
 measurement-claims:
   - claim: "Per million billed tokens, coding tier, Parquet with zstd at its default level 1: metadata only about 1.1 KB, metadata plus prompt and response hashes about 2.6 KB, delta text 26 to 32 KB, full prompt as sent about 0.2 MB to 0.9 MB, roughly 180 to 800 times the metadata footprint, with the top of that range from a single-seed exploratory probe"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 agent-telemetry-retention/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df agent-telemetry-retention/RESULTS.md:27-39, :57, :83-90"
     date: 2026-11-09
     revalidate: 2027-05-10
   - claim: "Full prompt text for 1,000 coding users at the documented average volume costs $20 to $79 a month on S3 Standard on the pre-registered grid ($19 to $89 including the exploratory probe), against an inference bill of roughly $2.4M a year; AWS us-east-1 list prices of 2026-06-10"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 agent-telemetry-retention/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df agent-telemetry-retention/RESULTS.md:15-16, :34-43"
     date: 2026-11-09
     revalidate: 2027-01-10
   - claim: "Raw JSON at ingest is about 100 GB per active day per 1,000 coding users for full-context text, against about 3.3 GB for delta text and 0.6 GB for metadata"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 agent-telemetry-retention/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df agent-telemetry-retention/RESULTS.md:44-46"
     date: 2026-11-09
     revalidate: 2027-05-10
   - claim: "Claude Code 2.1.321 OpenTelemetry export at documented defaults delivers 8 of 12 fields and withholds the four content fields as lengths or <REDACTED>; all 12 arrive only with the content gates on"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 t2-platform-telemetry/RESULTS.md"
+    source: "sdw-lab-benchmarks@91e44df t2-platform-telemetry/RESULTS.md:32-38"
     date: 2026-11-09
     revalidate: 2027-03-10
 ---
@@ -61,7 +61,7 @@ The default state of the platforms is already metadata. The content channel is a
 
 ### Five capture tiers and what each costs
 
-The tiers below are the five the interview asks about, and they map one-to-one onto the four arms of the lab's retention run (R6) plus "none". The run wrote synthetic OCSF 1.9.0 `ai_operation` records for coding-agent and chat sessions each way, measured the bytes per million billed tokens, and priced a year of retention from those bytes, in Parquet with pyarrow 24.0.0, zstd at its default level 1 (the codec was set explicitly, since pyarrow defaults to snappy) (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09, agent-telemetry-retention, VERIFIED-WITH-FIXES: every measured number reproduced byte for byte, two hypothesis verdicts were restated, and the real-text corpora reproduce only from the stored files because the prose pool was not snapshotted).
+The tiers below are the five the interview asks about, and they map one-to-one onto the four arms of the lab's retention run (R6) plus "none". The run wrote synthetic OCSF 1.9.0 `ai_operation` records for coding-agent and chat sessions each way, measured the bytes per million billed tokens, and priced a year of retention from those bytes, in Parquet with pyarrow 24.0.0, zstd at its default level 1 (the codec was set explicitly, since pyarrow defaults to snappy) (Tier B, sdw-lab-benchmarks@91e44df agent-telemetry-retention/RESULTS.md:19-32, :57, VERIFIED-WITH-FIXES: every measured number reproduced byte for byte, two hypothesis verdicts were restated, and the real-text corpora reproduce only from the stored files because the prose pool was not snapshotted).
 
 | Tier | What it holds | Bytes per million billed tokens (coding, session-sorted to random) | Raw ingest per active day, 1,000 coding users |
 |---|---|---|---|
@@ -85,7 +85,7 @@ Prompt and response text is the record of intent, and nearly every other securit
 
 Two cases bound the claim from either side. Anthropic's November 2025 GTG-1002 report describes a campaign whose tasks each "appeared legitimate when evaluated in isolation", caught by "the sustained nature of the attack" and content classifiers at the provider (Tier B, the vendor describing its own detection), which I read as the strongest argument for classifier verdicts in the always-on record and a weak one for a deployer keeping every word. The Nx "s1ngularity" compromise of 2025 went the other way, since Wiz's published indicators were GitHub audit events and repository names, and no prompt log was needed to detect, scope or remediate it (Tier B, wiz.io, 2025-09-03).
 
-The academic record supports the split for known patterns and qualifies it for agent misuse. A 2026 preprint found metadata and OpenTelemetry-shaped views detect 99.5% to 100% of synthetic faults while localising at most 0.5% of their origins (Tier B, preprint, arXiv 2608.07899), which is "detect on the facts, find the cause in the words" stated as a benchmark. Another found that adding tool results and agent reasoning lifted the strongest monitor's recall on goal-directed agent misuse from 0.52 to 0.94 in one generator panel, with smaller gains in two more and none at all in the fourth (Tier B, preprint, synthetic setting, arXiv 2609.06966), so for misuse hidden in routine agent work, content read by a monitor seems to help detection too. I take that as a reason to run classifiers over the content and keep their verdicts, rather than a reason to retain all text. Two other limits hold whichever tier you choose. An agent's own account of what it did is generated text, not a log, and model explanations can omit the real cause of an answer (Tier A, Turpin et al., NeurIPS 2023). And the cause of a tool failure may never leave the server: the lab saw one MCP Python SDK server return the same `Error executing tool <name>` for three different failures (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09, agent-toolcall-schemas, one SDK version), so the server's stderr belongs beside the tool-call facts.
+The academic record supports the split for known patterns and qualifies it for agent misuse. A 2026 preprint found metadata and OpenTelemetry-shaped views detect 99.5% to 100% of synthetic faults while localising at most 0.5% of their origins (Tier B, preprint, arXiv 2608.07899), which is "detect on the facts, find the cause in the words" stated as a benchmark. Another found that adding tool results and agent reasoning lifted the strongest monitor's recall on goal-directed agent misuse from 0.52 to 0.94 in one generator panel, with smaller gains in two more and none at all in the fourth (Tier B, preprint, synthetic setting, arXiv 2609.06966), so for misuse hidden in routine agent work, content read by a monitor seems to help detection too. I take that as a reason to run classifiers over the content and keep their verdicts, rather than a reason to retain all text. Two other limits hold whichever tier you choose. An agent's own account of what it did is generated text, not a log, and model explanations can omit the real cause of an answer (Tier A, Turpin et al., NeurIPS 2023). And the cause of a tool failure may never leave the server: the lab saw one MCP Python SDK server return the same `Error executing tool <name>` for three different failures (Tier B, sdw-lab-benchmarks@91e44df agent-toolcall-schemas/RESULTS.md:44-47, one SDK version), so the server's stderr belongs beside the tool-call facts.
 
 ### The metadata tier is not content-free
 
@@ -133,7 +133,7 @@ Tier A
 - Turpin, Michael, Perez, Bowman, "Language Models Don't Always Say What They Think", NeurIPS 2023, 10.52202/075280-3275.
 
 Tier B
-- SDW lab, R6 agent-telemetry retention, sdw-lab-benchmarks branch hub/ai-research-2026-11-09, agent-telemetry-retention/RESULTS.md and VERIFICATION.md, 2026-11-09 (pre-registration frozen by the run agent before the run, independently re-run; single host; synthetic records with real public code and prose).
+- SDW lab, R6 agent-telemetry retention, sdw-lab-benchmarks@91e44df agent-telemetry-retention/RESULTS.md and VERIFICATION.md (lab master), 2026-11-09 (pre-registration frozen by the run agent before the run, independently re-run; single host; synthetic records with real public code and prose).
 - SDW lab, T2 platform telemetry, same branch, t2-platform-telemetry/RESULTS.md, 2026-11-09 (one host, three trials per configuration).
 - SDW lab, R2 tool-call schemas, same branch, agent-toolcall-schemas/RESULTS.md, 2026-11-09 (one SDK, one host).
 - EDPB Guidelines 1/2024 on Article 6(1)(f), version 1.0 for consultation, 8 October 2024, paras. 126 to 128.

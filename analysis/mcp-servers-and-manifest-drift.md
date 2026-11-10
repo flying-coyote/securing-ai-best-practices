@@ -15,31 +15,31 @@ revalidate-by: 2027-03-10
 status: EMERGING
 measurement-claims:
   - claim: "Snapshotting tools/list from three static MCP servers produced 0 drift events across 51 consecutive snapshot pairs (17 per server, 2 of each server's 17 across process restarts), under both raw and canonical hashing; one host, three servers on protocol 2025-06-18"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ 91e44df mcp-manifest-drift/RESULTS.md:62"
+    source: "sdw-lab-benchmarks@91e44df mcp-manifest-drift/RESULTS.md:62"
     date: 2026-11-09
     revalidate: 2027-03-10
   - claim: "Under raw json.dumps hashing a pure key reorder emitted 34 Update events (every tool on every server); canonical hashing (sorted keys, compact separators) emitted none"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ 91e44df mcp-manifest-drift/RESULTS.md:77"
+    source: "sdw-lab-benchmarks@91e44df mcp-manifest-drift/RESULTS.md:77"
     date: 2026-11-09
     revalidate: 2027-03-10
   - claim: "An OCSF-native any-drift rule fired on 9 of 9 authored poisoned mutations and 12 of 15 authored benign ones; a body-aware composite over producer-computed fields fired on 9 of 9 and 0 of 15, on a corpus where the same agent wrote the mutations and the rules and the real-release arm did not run, so 0 of 15 is an upper bound and not a false-positive rate"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ 91e44df mcp-manifest-drift/RESULTS.md:35-56,81-96"
+    source: "sdw-lab-benchmarks@91e44df mcp-manifest-drift/RESULTS.md:35-56,81-96"
     date: 2026-11-09
     revalidate: 2027-03-10
   - claim: "tools/list round trips after initialize had medians of 2.04, 3.44 and 7.65 ms on the three servers (verifier re-run 2.26, 5.36 and 9.52 ms), with single snapshots spiking to about 20 to 37 ms"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ 91e44df mcp-manifest-drift/RESULTS.md:127-148"
+    source: "sdw-lab-benchmarks@91e44df mcp-manifest-drift/RESULTS.md:127-148"
     date: 2026-11-09
     revalidate: 2027-03-10
   - claim: "On the same SDK (mcp 2.3.0), moving from revision 2025-11-25 to 2026-07-28 removed Mcp-Session-Id (from 11 of 12 POSTs to 0), added Mcp-Method on 11 of 11 POSTs and Mcp-Name on 6 of 6 tools/call, and dropped in-protocol log notifications from 2 to 0 by default; one fixture server, both transports, three repeats"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ 91e44df t8a-mcp-before-after/RESULTS.md:42-66,95-105,136"
+    source: "sdw-lab-benchmarks@91e44df t8a-mcp-before-after/RESULTS.md:42-66,95-105,136"
     date: 2026-11-10
     revalidate: 2027-03-10
   - claim: "On the same revision (2025-11-25), moving the SDK from mcp 1.30.0 to 2.3.0 moved a raising tool's failure cause from the client-visible error text to a server stderr traceback, dropped the per-request server stderr line (10 to 0) and added OpenTelemetry spans (0 to 11 client and 12 server), which export nothing unless the operator configures a tracer provider"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ 91e44df t8a-mcp-before-after/RESULTS.md:60-66,106,134"
+    source: "sdw-lab-benchmarks@91e44df t8a-mcp-before-after/RESULTS.md:60-66,106,134"
     date: 2026-11-10
     revalidate: 2027-03-10
   - claim: "Recording one MCP tools/call, OCSF main with the ai_operation profile typed 24 of 33 facts, the OCSF #1754 draft class 22, OpenTelemetry GenAI plus MCP 19 and OWASP AOS on OCSF 11; the SDK server returned the same text for three different tool failures, so the cause never left the server process"
-    source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 @ 91e44df agent-toolcall-schemas/RESULTS.md:43-47,57"
+    source: "sdw-lab-benchmarks@91e44df agent-toolcall-schemas/RESULTS.md:44-47,49,57"
     date: 2026-11-09
     revalidate: 2027-03-10
 ---
@@ -94,7 +94,7 @@ All rows Tier B, vendor documentation; the AgentCore default-deny statement came
 
 ## Manifest drift: what a snapshot-and-diff separates and what it cannot
 
-The MCP 2026-07-28 revision says servers "SHOULD return tools from `tools/list` in a deterministic order to enable client-side caching" and requires a `ttlMs` freshness hint and a `cacheScope` field on `tools/list` and the other list results (SEP-2549), so the tool list is now a document the specification expects clients to cache and re-fetch (Tier A, MCP changelog), which is most of the way to a snapshot-and-diff detector. I ran one over three servers, the lab's own and the reference `server-everything` and `server-filesystem` at 2026.8.31, with three poisoned changes (a rug-pull rewrite of a description, an appended hidden instruction, a widened input schema) and five benign ones (a wording fix, a clarifying sentence, a new tool, a narrowed schema, a key reorder), emitting OCSF Application Lifecycle Update events carrying `ai_capability` and running five pre-registered Sigma rules over them (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09 at 91e44df, `mcp-manifest-drift/RESULTS.md`; one host, servers on protocol 2025-06-18, pre-registration frozen by the agent and not reviewed by the maintainer, verdict VERIFIED-WITH-FIXES).
+The MCP 2026-07-28 revision says servers "SHOULD return tools from `tools/list` in a deterministic order to enable client-side caching" and requires a `ttlMs` freshness hint and a `cacheScope` field on `tools/list` and the other list results (SEP-2549), so the tool list is now a document the specification expects clients to cache and re-fetch (Tier A, MCP changelog), which is most of the way to a snapshot-and-diff detector. I ran one over three servers, the lab's own and the reference `server-everything` and `server-filesystem` at 2026.8.31, with three poisoned changes (a rug-pull rewrite of a description, an appended hidden instruction, a widened input schema) and five benign ones (a wording fix, a clarifying sentence, a new tool, a narrowed schema, a key reorder), emitting OCSF Application Lifecycle Update events carrying `ai_capability` and running five pre-registered Sigma rules over them (Tier B, sdw-lab-benchmarks@91e44df `mcp-manifest-drift/RESULTS.md:35-56`; one host, servers on protocol 2025-06-18, pre-registration frozen by the agent and not reviewed by the maintainer, verdict VERIFIED-WITH-FIXES).
 
 Two results came before any rule ran, and both argue for doing this. Static servers produced no drift noise at all, 0 events over 51 consecutive snapshot pairs, and a verifier's second session returned byte-identical tool lists, so on this sample a server that is not changing does not look like it is. And canonical hashing mattered more than I expected, since raw `json.dumps` hashing turned a pure key reorder into 34 Update events, one for every tool on every server, while sorted-key compact hashing produced none; the OCSF attribute text already points at JCS serialization, and this is a concrete reason to follow it. The snapshot costs a few milliseconds per server at the median, so cost is not what limits the interval.
 
@@ -118,7 +118,7 @@ Where a server runs decides who can see it and which controls apply, and the spl
 
 ## What each layer logs
 
-The 2026-07-28 revision deprecated the protocol's Logging feature with the note "log to `stderr` (stdio) or use OpenTelemetry instead of Logging" (SEP-2577), removed sessions and `Mcp-Session-Id` (SEP-2567) and the `initialize` handshake (SEP-2575), and requires `Mcp-Method` and `Mcp-Name` headers on Streamable HTTP POSTs (SEP-2243) (Tier A, MCP changelog). In a lab run against one fixture server I separated what the revision moved from what the SDK upgrade moved (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09 at 91e44df, `t8a-mcp-before-after/RESULTS.md`; one host under contention so no latency claim, verdict VERIFIED-WITH-FIXES). On the same SDK, the newer revision removed the session id, added the method and tool-name headers and silenced in-protocol log lines by default. On the same revision, the SDK upgrade moved a raising tool's failure cause from the client's error text to a server stderr traceback and added OpenTelemetry spans that export nothing until the operator configures a tracer provider. A team that upgrades the SDK but pins the older revision gets the second list and not the first, which is why `mcp-spec-pre-2026-07` asks for the revision and [revalidation-and-pins.md](revalidation-and-pins.md) asks for both values.
+The 2026-07-28 revision deprecated the protocol's Logging feature with the note "log to `stderr` (stdio) or use OpenTelemetry instead of Logging" (SEP-2577), removed sessions and `Mcp-Session-Id` (SEP-2567) and the `initialize` handshake (SEP-2575), and requires `Mcp-Method` and `Mcp-Name` headers on Streamable HTTP POSTs (SEP-2243) (Tier A, MCP changelog). In a lab run against one fixture server I separated what the revision moved from what the SDK upgrade moved (Tier B, sdw-lab-benchmarks@91e44df `t8a-mcp-before-after/RESULTS.md:42-69`; one host under contention so no latency claim, verdict VERIFIED-WITH-FIXES). On the same SDK, the newer revision removed the session id, added the method and tool-name headers and silenced in-protocol log lines by default. On the same revision, the SDK upgrade moved a raising tool's failure cause from the client's error text to a server stderr traceback and added OpenTelemetry spans that export nothing until the operator configures a tracer provider. A team that upgrades the SDK but pins the older revision gets the second list and not the first, which is why `mcp-spec-pre-2026-07` asks for the revision and [revalidation-and-pins.md](revalidation-and-pins.md) asks for both values.
 
 | Layer | What it carries | What it misses | Default | last-checked |
 |---|---|---|---|---|
@@ -146,7 +146,7 @@ It does not mean the allowlist is pointless, since a URL- or command-keyed allow
 
 ## Notes
 
-- 2026-11-10: lab citations point at commit 91e44df on branch hub/ai-research-2026-11-09, the branch head on that date; the R2, R5 and T8a files are unchanged from `e0aaadc`, which other documents in this repo cite, and both will be swapped to master hashes when the branch merges.
+- 2026-11-10: lab citations point at lab master `91e44df`, where the research branch merged at the same commit; the R2, R5 and T8a RESULTS.md files are unchanged from `e0aaadc`, and the R2 row's range was tightened to 44-47, 49 and 57 so it names the 33-fact inventory line.
 - 2026-11-10: R2 reported that the SDK 2.3.0 client negotiated 2025-11-25 by default; T8a traced that to R2's low-level `ClientSession.initialize()`, while the high-level `Client` adopts 2026-07-28 when the server answers `server/discover`. A collection plan should still expect older revisions for a while.
 - 2026-11-10: the practice order in the summary and the hosted and local split are my judgement (Tier D).
 - 2026-11-10: the allowlist table records "not described" or "not read" where a page did not say, rather than inferring a feature.
@@ -188,6 +188,6 @@ Tier B, vendor documentation of what a feature does (all read 2026-11-09)
 
 Tier B, first-party lab work and preprints
 
-- sdw-lab-benchmarks, branch hub/ai-research-2026-11-09 at 91e44df, `mcp-manifest-drift/` (R5), `t8a-mcp-before-after/` (T8a) and `agent-toolcall-schemas/` (R2), RESULTS.md and VERIFICATION.md each, https://github.com/flying-coyote/sdw-lab-benchmarks/tree/hub/ai-research-2026-11-09; one host, pre-registrations frozen by the agent and not reviewed by the maintainer, each verdict VERIFIED-WITH-FIXES.
+- sdw-lab-benchmarks@91e44df (lab master), `mcp-manifest-drift/` (R5), `t8a-mcp-before-after/` (T8a) and `agent-toolcall-schemas/` (R2), RESULTS.md and VERIFICATION.md each, https://github.com/flying-coyote/sdw-lab-benchmarks/tree/91e44df; one host, pre-registrations frozen by the agent and not reviewed by the maintainer, each verdict VERIFIED-WITH-FIXES.
 - Wang et al., "MCPTox", arXiv 2508.14925, preprint.
 - Sharma, Jiang, Chen and Lin, "Ajar: Measuring Open Privilege in Agent Defenses", arXiv 2609.26900, preprint (Table 6).

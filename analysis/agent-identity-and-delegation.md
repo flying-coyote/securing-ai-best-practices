@@ -15,31 +15,31 @@ revalidate-by: 2027-03-10
 status: EMERGING
 measurement-claims:
   - claim: "Every Keycloak 26.8.1 TOKEN_EXCHANGE event named the client the subject token was issued to (subject_token_client_id, 72 of 72 successful exchanges in the default arm and 15 of 15 exchange events in the delegation arm) and none named the subject token's own id (0 of 78 and 0 of 15 hops), so the chain is explicit at client granularity and only implicit at token granularity; one host, one IdP version, synthetic realm"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t7-idp-delegation-logging/RESULTS.md:28-31, :57"
+    source: "sdw-lab-benchmarks@91e44df t7-idp-delegation-logging/RESULTS.md:28-31, :57"
     date: 2026-11-10
     revalidate: 2027-05-10
   - claim: "With one user token exchanged by three agent instances in one session, a nearest-earlier attribution rule linked 5 of 15 hop-2 events to the right hop 1, a figure the harness design fixes because every hop 1 was issued before any hop 2 and no event field could disambiguate them; a scope-equality heuristic scored 15 of 15 only because the fixture gave each chain a distinct scope set"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t7-idp-delegation-logging/RESULTS.md:32-36, :59"
+    source: "sdw-lab-benchmarks@91e44df t7-idp-delegation-logging/RESULTS.md:32-36, :59"
     date: 2026-11-10
     revalidate: 2027-05-10
   - claim: "Keycloak dropped a scope the user had no role for in 8 of 8 attempts and recorded the requested scope in no event field; with the downscope enforcer policy on, its 6 refusals carried the attempted scope only inside client_policy_error_detail and carried no userId, sessionId, username or subject_token_client_id; switching the policy on and off produced zero admin events on REST and in the INFO log"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t7-idp-delegation-logging/RESULTS.md:41-49, :60-61, :91-94"
+    source: "sdw-lab-benchmarks@91e44df t7-idp-delegation-logging/RESULTS.md:41-49, :60-61, :91-94"
     date: 2026-11-10
     revalidate: 2027-05-10
   - claim: "Keycloak's RFC 8693 delegation preview put the actor into the token (act, 9 of 9) and the event (actor, actor_id, actor_type), dropped sid from 9 of 9 delegated tokens and sessionId from the delegated exchange events, refused a second actor hop 3 of 3, and granted a delegated re-exchange with data:write that the subject token did not hold 3 of 3"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t7-idp-delegation-logging/RESULTS.md:58, :62, :84"
+    source: "sdw-lab-benchmarks@91e44df t7-idp-delegation-logging/RESULTS.md:58, :62, :84"
     date: 2026-11-10
     revalidate: 2027-05-10
   - claim: "Mapped to OCSF 1.9.0, an IdP-events-only producer filled delegation.uid, issuer_uid and created_time on every exchange hop and parent_uid on 0 of 81; scopes and audience exist on OCSF main only; a producer holding the subject token (the agent's own record) filled parent_uid on every hop"
-    source: "sdw-lab-benchmarks@e568f5b (branch hub/ai-research-2026-11-09) t7-idp-delegation-logging/RESULTS.md:64, :143-153"
+    source: "sdw-lab-benchmarks@91e44df t7-idp-delegation-logging/RESULTS.md:64, :143-153"
     date: 2026-11-10
     revalidate: 2027-05-10
   - claim: "Over synthetic delegation-shaped records at 1e5 to 1e7 rows and chain depths 2 to 12, the recursive walk, a one-join parent check and a write-time materialized filter each returned exactly the planted escalation set in 18 of 18 cells in both engines and both runs, while a root-only check missed every reacquire plant (31,758 chains per run) and nothing else"
-    source: "sdw-lab-benchmarks@7301388 (branch hub/ai-research-2026-11-09) delegation-chain-query/RESULTS.md:31-39, :66"
+    source: "sdw-lab-benchmarks@91e44df delegation-chain-query/RESULTS.md:31-39, :66"
     date: 2026-11-09
     revalidate: 2027-05-09
   - claim: "At 1e7 rows and depth 12 the recursive walk ran in a median 1.56 to 1.70 s in DuckDB 1.5.3 and 0.87 to 0.99 s in chDB 4.4.0, the one-join check in 0.28 to 0.41 s and the materialized filter in 20 to 27 ms, on one shared host under a load average of 7.5 to 26; within-cell ratios are the defensible output"
-    source: "sdw-lab-benchmarks@7301388 (branch hub/ai-research-2026-11-09) delegation-chain-query/RESULTS.md:40-50, :73-79"
+    source: "sdw-lab-benchmarks@91e44df delegation-chain-query/RESULTS.md:11, :16, :40-50, :73-79"
     date: 2026-11-09
     revalidate: 2027-05-09
 ---
@@ -68,7 +68,7 @@ The logging gap is the part I find most interesting, because it is structural ra
 
 ## Token exchange, delegation and what an IdP actually records
 
-Lab run T7 put an OAuth 2.0 Token Exchange chain (user, then agent A, then agent B, then a tool API) through Keycloak 26.8.1 in two arms, the default feature set and the RFC 8693 delegation preview, and read every event, token and admin record back (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09, folder t7-idp-delegation-logging, one host, synthetic realm, pre-registration frozen by an agent and not owner-reviewed, verdict VERIFIED-WITH-FIXES with every scored number reproduced by a full independent re-run). The findings, each a Keycloak 26.8.1 result that another IdP may well not share:
+Lab run T7 put an OAuth 2.0 Token Exchange chain (user, then agent A, then agent B, then a tool API) through Keycloak 26.8.1 in two arms, the default feature set and the RFC 8693 delegation preview, and read every event, token and admin record back (Tier B, sdw-lab-benchmarks@91e44df t7-idp-delegation-logging/RESULTS.md:26-64, one host, synthetic realm, pre-registration frozen by an agent and not owner-reviewed, verdict VERIFIED-WITH-FIXES with every scored number reproduced by a full independent re-run). The findings, each a Keycloak 26.8.1 result that another IdP may well not share:
 
 - Every successful exchange event, and each refusal in the delegation arm, named the client the subject token was issued to (`subject_token_client_id`), and each successful one also named the id of the token it issued (`token_id`, equal to the new token's `jti`), but none named the subject token's own id, so the chain is explicit at client granularity and implicit, by session and time order, at token granularity.
 - When three agent instances exchanged one user token in one session, nothing linked a hop 2 to its hop 1, and the pre-registered nearest-earlier rule attributed 5 of 15 correctly, which is the one-in-three the harness design guarantees when the events carry no disambiguating field rather than an accuracy rate. A scope-matching heuristic would have scored 15 of 15, but only because each planted chain had a distinct scope set, which real traffic does not guarantee.
@@ -80,7 +80,7 @@ The academic record lines up with this without adding an independent measurement
 
 ## Why chain-aware evaluation, and what it costs
 
-Lab run R7 asked what it costs to evaluate scope across a delegation chain at query time (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09, folder delegation-chain-query, synthetic integer-keyed records, one shared host, agent-frozen pre-registration, VERIFIED-WITH-FIXES). It planted one escalation in 1% of chains and compared four checks. The recursive walk, a one-join check of each hop against its parent and a filter on a write-time materialized parent-scope column each returned exactly the planted set in 18 of 18 cells, in DuckDB 1.5.3 and chDB 4.4.0 and in both runs, while the root-only check, which compares each hop with the human root's authority, missed every `reacquire` plant and nothing else. A hop that re-grants authority an intermediate agent had already dropped stays inside the root's authority, so a root-only check cannot see it, and T7 restated the same result on real Keycloak fields (5 of 5 re-grants caught chain-aware, 0 of 5 root-only). The per-cell recall of the root-only check (0.55 to 0.67 in the larger cells) is set by the generator's plant mix, so it shows the blind spot exists and says nothing about how often re-grants happen in real agent traffic.
+Lab run R7 asked what it costs to evaluate scope across a delegation chain at query time (Tier B, sdw-lab-benchmarks@91e44df delegation-chain-query/RESULTS.md:31-56, synthetic integer-keyed records, one shared host, agent-frozen pre-registration, VERIFIED-WITH-FIXES). It planted one escalation in 1% of chains and compared four checks. The recursive walk, a one-join check of each hop against its parent and a filter on a write-time materialized parent-scope column each returned exactly the planted set in 18 of 18 cells, in DuckDB 1.5.3 and chDB 4.4.0 and in both runs, while the root-only check, which compares each hop with the human root's authority, missed every `reacquire` plant and nothing else. A hop that re-grants authority an intermediate agent had already dropped stays inside the root's authority, so a root-only check cannot see it, and T7 restated the same result on real Keycloak fields (5 of 5 re-grants caught chain-aware, 0 of 5 root-only). The per-cell recall of the root-only check (0.55 to 0.67 in the larger cells) is set by the generator's plant mix, so it shows the blind spot exists and says nothing about how often re-grants happen in real agent traffic.
 
 The cost side favours not walking. At 1e7 rows and depth 12 the walk took a median 1.56 to 1.70 s in DuckDB and 0.87 to 0.99 s in chDB, the one-join check 0.28 to 0.41 s, and the materialized filter 20 to 27 ms, which is answer-identical to the walk. Those absolute numbers were taken under a load average of 7.5 to 26 from other work on the host, the pre-registered depth hypothesis was falsified for DuckDB, and the cost of looking up the parent's scope at ingest was not measured, so the defensible reading is the within-cell ratio and the design consequence: the cheap checks are exact only when each hop's record carries its own granted scopes and a pointer to its parent. Monotonic attenuation at each hop is old and peer-reviewed as a property, being the defining property of macaroons (Tier A, Birgisson et al., NDSS 2014, largely Google-authored), but I should say plainly that asking for per-hop scopes plus a parent pointer goes beyond what RFC 8693 asks for, and a vendor that follows the RFC to the letter has a documented reason not to evaluate the chain in access decisions.
 
@@ -156,8 +156,8 @@ Tier A
 
 Tier B
 
-- sdw-lab-benchmarks, branch hub/ai-research-2026-11-09, folder t7-idp-delegation-logging (RESULTS.md, VERIFICATION.md), commit e568f5b, run 2026-11-10, https://github.com/flying-coyote/sdw-lab-benchmarks.
-- sdw-lab-benchmarks, branch hub/ai-research-2026-11-09, folder delegation-chain-query (RESULTS.md, VERIFICATION.md), commit 7301388, run 2026-11-09, same repository.
+- sdw-lab-benchmarks@91e44df t7-idp-delegation-logging (RESULTS.md, VERIFICATION.md; lab master), run 2026-11-10, https://github.com/flying-coyote/sdw-lab-benchmarks/tree/91e44df/t7-idp-delegation-logging.
+- sdw-lab-benchmarks@91e44df delegation-chain-query (RESULTS.md, VERIFICATION.md; lab master), run 2026-11-09, same repository.
 - Yeboah-Duako, Datta, "Permissions on the Loose: Measuring Overprivilege in Real-World Serverless Applications", preprint, 2026, https://arxiv.org/abs/2607.02875.
 - Nian et al., "Auditable Agents", preprint, 2026, https://arxiv.org/abs/2604.05485.
 - Prakash, "AIP: Agent Identity Protocol for Verifiable Delegation Across MCP and A2A", preprint, 2026, https://arxiv.org/abs/2603.24775.

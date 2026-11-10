@@ -3,16 +3,19 @@
 # AUDIT-CONTEXT.md's routing section is rendered from this file by
 # scripts/render-audit-context.py, and CI fails when the two disagree.
 # scripts/route.py reads an Answers Block (and any reducer output) with this
-# file and prints the branch, the ranked actions, the doc list and the Question
+# file and the sequence-order block in analysis/decision-sequence.md, and prints
+# the branch, the ranked actions, the doc list and the Question
 # Packets, so anyone can check an agent's routing against the table; CI holds it
 # to the three golden fixtures in fixtures/.
 #
+# pre-release:start (the release script's stamp step rewrites the text between these markers)
 # State: pre-release. Every signal key in the design is present with its
 # question, collection method, weight, priority and target docs. The target
 # docs are being written one at a time, and the routing-coverage check requires
 # each shipped doc's applies-to-signals to match the rows that route to it.
 # The factor scores and the surface-to-signal "enables" lists are the author's
 # initial judgement (Tier D) and are expected to move after the dry runs.
+# pre-release:end
 #
 # Machine-readable fields beside the prose, so scripts/route.py and the
 # rendered AUDIT-CONTEXT section read the same data and cannot drift:

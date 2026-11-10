@@ -22,24 +22,18 @@ surfaces-not-checked: []
 derived:
 - profile-own-heavy
 top-actions:
-- agent-kill-switch-absent
 - pickle-formats-present
 - inference-runtime-default-bind
-- containment-pre-authorized-broad
+- agent-kill-switch-absent
 - ai-analyst-ungraded
 - model-store-unscanned
+- containment-pre-authorized-broad
 - mapping-treated-as-coverage
 actions:
-- key: agent-kill-switch-absent
-  weight: PROBLEM
-  band: High
-  factor-sum: 6
-  confidence: owner-stated
-  docs:
-  - analysis/stubs/ai-incident-response.md
 - key: pickle-formats-present
   weight: PROBLEM
   band: High
+  sequence-group: 6
   factor-sum: 6
   confidence: owner-stated
   docs:
@@ -47,22 +41,24 @@ actions:
 - key: inference-runtime-default-bind
   weight: PROBLEM
   band: High
+  sequence-group: 6
   factor-sum: 4
   confidence: owner-stated
   docs:
   - analysis/models-you-hold.md
   escalated: true
-- key: containment-pre-authorized-broad
+- key: agent-kill-switch-absent
   weight: PROBLEM
-  band: Medium
+  band: High
+  sequence-group: 7
   factor-sum: 6
-  confidence: believed
+  confidence: owner-stated
   docs:
-  - analysis/evaluating-ai-in-the-soc.md
-  capped-by-belief: true
+  - analysis/stubs/ai-incident-response.md
 - key: ai-analyst-ungraded
   weight: PROBLEM
   band: Medium
+  sequence-group: 6
   factor-sum: 4
   confidence: owner-stated
   docs:
@@ -70,13 +66,24 @@ actions:
 - key: model-store-unscanned
   weight: PROBLEM
   band: Medium
+  sequence-group: 6
   factor-sum: 3
   confidence: owner-stated
   docs:
   - analysis/models-you-hold.md
+- key: containment-pre-authorized-broad
+  weight: PROBLEM
+  band: Medium
+  sequence-group: 7
+  factor-sum: 6
+  confidence: believed
+  docs:
+  - analysis/evaluating-ai-in-the-soc.md
+  capped-by-belief: true
 - key: mapping-treated-as-coverage
   weight: PROBLEM
   band: Medium
+  sequence-group: 8
   factor-sum: 3
   confidence: owner-stated
   docs:
@@ -85,6 +92,7 @@ review:
 - key: record-in-agent-reach
   weight: REVIEW
   band: Medium
+  sequence-group: 5
   factor-sum: 4
   confidence: owner-stated
   docs:
@@ -92,6 +100,7 @@ review:
 - key: telemetry-into-llm
   weight: REVIEW
   band: Medium
+  sequence-group: 5
   factor-sum: 4
   confidence: owner-stated
   docs:
@@ -99,6 +108,7 @@ review:
 - key: fine-tuned-models
   weight: REVIEW
   band: Medium
+  sequence-group: 6
   factor-sum: 4
   confidence: owner-stated
   docs:
@@ -106,20 +116,15 @@ review:
 - key: training-record-absent
   weight: REVIEW
   band: Medium
+  sequence-group: 6
   factor-sum: 3
   confidence: owner-stated
   docs:
   - analysis/fine-tuned-model-is-a-data-store.md
-- key: custom-build-planned
-  weight: REVIEW
-  band: Medium
-  factor-sum: 3
-  confidence: owner-stated
-  docs:
-  - analysis/build-buy-and-the-high-priest.md
 - key: ai-playbook-absent
   weight: REVIEW
   band: Medium
+  sequence-group: 7
   factor-sum: 3
   confidence: owner-stated
   docs:
@@ -127,21 +132,48 @@ review:
 - key: model-rollback-untested
   weight: REVIEW
   band: Medium
+  sequence-group: 7
   factor-sum: 3
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+- key: custom-build-planned
+  weight: REVIEW
+  band: Medium
+  sequence-group: 8
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/build-buy-and-the-high-priest.md
 - key: profile-own-heavy
   weight: REVIEW
   band: Low
+  sequence-group: 1
   factor-sum: 2
   confidence: derived
   docs:
   - analysis/rent-or-own-sized-to-the-org.md
   - analysis/models-you-hold.md
+- key: coverage-view-absent
+  weight: REVIEW
+  band: Low
+  sequence-group: 2
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/incumbent-tool-coverage.md
+- key: delegation-record-absent
+  weight: REVIEW
+  band: Low
+  sequence-group: 4
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/agent-identity-and-delegation.md
 - key: content-channel-off
   weight: REVIEW
   band: Low
+  sequence-group: 5
   factor-sum: 2
   confidence: owner-stated
   docs:
@@ -150,27 +182,15 @@ review:
 - key: content-lands-vendor
   weight: REVIEW
   band: Low
+  sequence-group: 5
   factor-sum: 2
   confidence: owner-stated
   docs:
   - analysis/telemetry-by-surface.md
-- key: delegation-record-absent
-  weight: REVIEW
-  band: Low
-  factor-sum: 2
-  confidence: owner-stated
-  docs:
-  - analysis/agent-identity-and-delegation.md
-- key: coverage-view-absent
-  weight: REVIEW
-  band: Low
-  factor-sum: 2
-  confidence: owner-stated
-  docs:
-  - analysis/incumbent-tool-coverage.md
 - key: prompt-capture-tier-metadata
   weight: REVIEW
   band: Low
+  sequence-group: 5
   factor-sum: 1
   confidence: owner-stated
   docs:
@@ -181,8 +201,8 @@ docs:
 - analysis/surface-ownability.md
 - analysis/revalidation-and-pins.md
 - analysis/decision-sequence.md
-- analysis/stubs/ai-incident-response.md
 - analysis/models-you-hold.md
+- analysis/stubs/ai-incident-response.md
 - analysis/evaluating-ai-in-the-soc.md
 - analysis/frameworks-and-what-they-reach.md
 - analysis/tamper-evident-record.md
@@ -190,10 +210,10 @@ docs:
 - analysis/fine-tuned-model-is-a-data-store.md
 - analysis/build-buy-and-the-high-priest.md
 - analysis/rent-or-own-sized-to-the-org.md
+- analysis/incumbent-tool-coverage.md
+- analysis/agent-identity-and-delegation.md
 - analysis/telemetry-by-surface.md
 - analysis/what-to-log-and-what-it-costs.md
-- analysis/agent-identity-and-delegation.md
-- analysis/incumbent-tool-coverage.md
 - analysis/prompt-capture-and-the-law.md
 question-packets:
   SOC manager:
@@ -219,5 +239,5 @@ clean:
 - sensitivity-labels-absent
 - restricted-search-unset
 conflicts: []
-ordering: band, then factor sum descending, then routing.yaml row order (stand-in until decision-sequence.md carries a sequence)
+ordering: band, then sequence group from the sequence-order block in analysis/decision-sequence.md (row-overrides first, else the row's family), then factor sum descending, then routing.yaml row order
 questionnaire-only: true
