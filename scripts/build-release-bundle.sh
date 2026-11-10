@@ -8,11 +8,13 @@
 #              routing.yaml's `release:` field, and retire every pre-release
 #              statement so a stamped tree does not argue with itself: remove
 #              AUDIT-CONTEXT's pre-release banner, rewrite the pre-release
-#              paragraph in ONE-LINE-PROMPT.md and routing.yaml's header comment
-#              (each between pre-release:start and pre-release:end markers,
-#              which stay so the next release's stamp finds them), and
-#              rewrite the `Release:` line in analysis/revalidation-and-pins.md.
-#              Every one of the five must match exactly once or nothing is
+#              paragraph in ONE-LINE-PROMPT.md, routing.yaml's header comment
+#              and README.md's status banner (each between pre-release:start
+#              and pre-release:end markers, which stay so the next release's
+#              stamp finds them), and rewrite the `Release:` line in
+#              analysis/revalidation-and-pins.md. Every one of these seven
+#              edits, the release header and `release:` field included,
+#              must match exactly once or nothing is
 #              written. Then commit and tag that commit.
 #   2. bundle: from the tagged commit, concatenate the release files into one
 #              offline bundle, compute its SHA-256, and add the release row to
@@ -87,6 +89,11 @@ sub("routing.yaml", r"(# pre-release:start[^\n]*\n).*?(# pre-release:end\n)",
                "# \"enables\" lists are the author's judgement (Tier D) and may move between\n"
                "# releases.\n") + m.group(2),
     "pre-release header comment between markers", re.S)
+sub("README.md", r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -->\n)",
+    lambda m: m.group(1) + (f"> Status: release {tag}, stamped {date}. The blocks below still carry the `<release-sha>` "
+               "and `<vYYYY.MM>` placeholders until the default branch is bumped to the tagged commit, so take the "
+               "release's full commit SHA, its tag and the SHA-256 of the offline bundle from `RELEASES.md`.\n") + m.group(2),
+    "pre-release status banner between markers", re.S)
 sub("analysis/revalidation-and-pins.md", r"Release: [^;\n]+; pins last verified",
     lambda m: f"Release: {tag}; pins last verified", "'Release: ...; pins last verified' line")
 if errors:

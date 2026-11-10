@@ -14,6 +14,10 @@ interview question and the why for each row stay
 in routing.yaml, which the review fetches beside this file, so the rendered
 section stays small enough to sit in an agent's context.
 
+It also writes routing.yaml's `priority-rubric.ordering` between the
+`ordering:start` and `ordering:end` markers in the Priority rubric, so the
+ordering rule the data file states and the one the agent reads are one text.
+
 Usage:
     python scripts/render-audit-context.py            # rewrite the section in place
     python scripts/render-audit-context.py --check    # exit 1 if the file is stale
@@ -34,6 +38,10 @@ import yaml
 START = "<!-- routing:start (rendered from routing.yaml by scripts/render-audit-context.py; do not edit by hand) -->"
 END = "<!-- routing:end -->"
 START_PREFIX = "<!-- routing:start"
+ORDER_START = ("<!-- ordering:start (rendered from routing.yaml priority-rubric.ordering by "
+               "scripts/render-audit-context.py; do not edit by hand) -->")
+ORDER_END = "<!-- ordering:end -->"
+ORDER_PREFIX = "<!-- ordering:start"
 
 
 def cell(text: str) -> str:
@@ -115,6 +123,24 @@ def splice(doc: str, rendered: str) -> str:
     return doc[:i] + rendered + doc[j + len(END):]
 
 
+def splice_ordering(doc: str, data: dict) -> str:
+    """Write routing.yaml's priority-rubric.ordering into the Priority rubric, so the data
+    file and the text the agent reads state one ordering rule and cannot drift apart."""
+    ordering = ((data.get("priority-rubric") or {}).get("ordering") or "").strip()
+    if not ordering:
+        raise ValueError("routing.yaml has no priority-rubric.ordering")
+    i = doc.find(ORDER_PREFIX)
+    j = doc.find(ORDER_END)
+    if i < 0 or j < 0 or j < i:
+        raise ValueError("AUDIT-CONTEXT.md has no ordering:start / ordering:end markers")
+    return doc[:i] + ORDER_START + "\n" + ordering + "\n" + doc[j:]
+
+
+def apply(doc: str, data: dict) -> str:
+    """Both generated parts of AUDIT-CONTEXT.md: the routing section and the ordering rule."""
+    return splice_ordering(splice(doc, render(data)), data)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--root", default=".")
@@ -125,15 +151,15 @@ def main() -> int:
     ac = root / "AUDIT-CONTEXT.md"
     doc = ac.read_text(encoding="utf-8")
     try:
-        new = splice(doc, render(data))
+        new = apply(doc, data)
     except ValueError as e:
         print(f"ERROR: {e}")
         return 2
     if args.check:
         if new != doc:
-            print("FAIL AUDIT-CONTEXT.md routing section is stale; run python scripts/render-audit-context.py")
+            print("FAIL AUDIT-CONTEXT.md routing section or ordering rule is stale; run python scripts/render-audit-context.py")
             return 1
-        print(f"PASS AUDIT-CONTEXT.md routing section matches routing.yaml ({len(data['signals'])} rows)")
+        print(f"PASS AUDIT-CONTEXT.md routing section and ordering rule match routing.yaml ({len(data['signals'])} rows)")
         return 0
     if new != doc:
         ac.write_text(new, encoding="utf-8")

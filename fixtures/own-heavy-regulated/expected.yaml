@@ -179,14 +179,6 @@ review:
   docs:
   - analysis/telemetry-by-surface.md
   - analysis/what-to-log-and-what-it-costs.md
-- key: content-lands-vendor
-  weight: REVIEW
-  band: Low
-  sequence-group: 5
-  factor-sum: 2
-  confidence: owner-stated
-  docs:
-  - analysis/telemetry-by-surface.md
 - key: prompt-capture-tier-metadata
   weight: REVIEW
   band: Low

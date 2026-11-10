@@ -54,7 +54,7 @@ These figures will be measured on the three synthetic fixtures before each relea
 
 ## Structured Output Format
 
-The agent writes the review as one markdown document in this shape. Internal identifiers such as lab run IDs appear only inside links into the cited doc, never in the review's prose, and surfaces are named in words above the appendix rather than by number. `docs-fetched` lists only the docs actually read in this session, never a doc that was queued but not read; a routed doc the release does not hold goes in `docs-not-available` instead, and its actions say the backing doc is absent. Docs are linked by repo-relative path (`analysis/<name>.md`) only, never by a local file URI or a path on the practitioner's machine, because the transcript is shared like a penetration-test report and a local path leaks the practitioner's environment.
+The agent writes the review as one markdown document in this shape. Internal identifiers such as lab run IDs appear only inside links into the cited doc, never in the review's prose, and surfaces are named in words above the appendix rather than by number. `docs-fetched` lists only the docs actually read in this session, never a doc that was queued but not read; a routed doc the release does not hold goes in `docs-not-available` instead, and its actions say the backing doc is absent. Docs are linked by bare repo-relative path (`analysis/<name>.md`) only, with no `file://` scheme and no leading slash, never by a local file URI or a path on the practitioner's machine, because the transcript is shared like a penetration-test report and a local path leaks the practitioner's environment. Keep the frontmatter field names below exactly as written, renaming none of them, because a parser reads the review by those names.
 
 ```markdown
 ---
@@ -74,7 +74,7 @@ sequence-variant: <default | small-org | own-by-mandate | ...>
 
 ## Next 30 days
 
-This is the half-page, and the review opens with it: nothing comes between the title and this section, and it runs to about 300 words at most.
+This is the half-page, and the review opens with it: nothing comes between the title and this section, and it runs to about 400 words at most.
 
 - The five top actions (seven on the full branch), in the order the Priority rubric gives, one sentence each, with effort, hours for the security lead and confidence. Only PROBLEM rows take these slots; a REVIEW row never does, even at High.
 - The three most important things that could not be checked, and who to ask.
@@ -149,4 +149,4 @@ Three synthetic organizations, each an Answers Block with the output the referen
 | C | Vendor claims about how well a feature works, how fast it is or how it compares, and marketing, with the bias flagged |
 | D | One author's judgement, or a model with stated assumptions, labelled as such |
 
-Tier is confidence and never priority; the full rubric is in `analysis/evidence-tiers.md` once it is written.
+Tier is confidence and never priority; the full rubric is in [`analysis/evidence-tiers.md`](analysis/evidence-tiers.md).

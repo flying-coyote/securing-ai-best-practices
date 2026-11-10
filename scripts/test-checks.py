@@ -17,7 +17,9 @@ check meaningful whether the working tree is a bare skeleton or a release
 candidate.
 
 Covered: check-prompt-blocks.py, check-routing-coverage.py,
-render-audit-context.py, route.py (including its reading of the sequence-order
+render-audit-context.py (including the ordering rule it renders from
+routing.yaml into the Priority rubric, held to route.py's sort keys),
+route.py (including its reading of the sequence-order
 block in analysis/decision-sequence.md), check-exclusions.py, check-pins.py and
 build-release-bundle.sh (including the stamp step retiring every pre-release
 statement and the bundle refusing a missing routed doc).
@@ -42,7 +44,8 @@ COPY = ["README.md", "ONE-LINE-PROMPT.md", "AUDIT-CONTEXT.md", "routing.yaml", "
 results: list[tuple[bool, str]] = []
 # results appended directly rather than through expect(), printed in the summary
 DIRECT = {"bundle: AUDIT-CONTEXT header stamped",
-          "bundle: stamp retires the banner, the prompt paragraph, the routing comment and the pins Release line",
+          "bundle: stamp retires the banner, the prompt paragraph, the routing comment, the README banner and the pins Release line",
+          "render: routing.yaml ordering names the mapper's keys in its sort order, with no tier or effort key",
           "bundle: RELEASES.md row carries the commit and the bundle's real SHA-256",
           "bundle: contains routing.yaml under its file header",
           "bundle: holds every routed doc",
@@ -163,6 +166,36 @@ def main() -> int:
         expect("render --check passes after rendering", run(["render-audit-context.py", "--root", str(r), "--check"], r), True)
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
+        edit(r / "routing.yaml", "then factor sum, highest first,", "then the backing doc's evidence tier, then factor sum, highest first,")
+        expect("render --check fails when routing.yaml's ordering rule changes", run(["render-audit-context.py", "--root", str(r), "--check"], r), False, "ordering rule is stale")
+        expect("routing coverage fails when the ordering rule drifts", run(["check-routing-coverage.py", "--root", str(r)], r), False, "stale")
+        expect("render rewrites the ordering rule", run(["render-audit-context.py", "--root", str(r)], r), True)
+        results.append(("then the backing doc's evidence tier, then factor sum" in (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8"),
+                        "render: the ordering rule in AUDIT-CONTEXT is the one routing.yaml states"))
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        ac = r / "AUDIT-CONTEXT.md"
+        text = ac.read_text(encoding="utf-8")
+        i = text.index("<!-- ordering:end -->")
+        ac.write_text(text[:i] + "For a small organization, rank effort S above M within a band.\n" + text[i:], encoding="utf-8")
+        expect("render --check fails on a hand edit inside the ordering rule", run(["render-audit-context.py", "--root", str(r), "--check"], r), False, "stale")
+    # the ordering rule routing.yaml states (and AUDIT-CONTEXT renders) names route.py's sort keys in order
+    ordering = (yaml.safe_load((ROOT / "routing.yaml").read_text(encoding="utf-8"))["priority-rubric"]["ordering"])
+    route_src = (SCRIPTS / "route.py").read_text(encoding="utf-8")
+    m = re.search(r'^ORDERING = \((.*?)\)\n', route_src, re.S | re.M)
+    mapper = "".join(re.findall(r'"([^"]*)"', m.group(1))) if m else ""
+    def in_order(text, needles):
+        pos = [text.find(n) for n in needles]
+        return all(p >= 0 for p in pos) and pos == sorted(pos)
+    sort_key = re.search(r"def sort_items.*?key=lambda t: \((.*?)\)\)", route_src, re.S)
+    results.append((in_order(ordering, ["Within a band", "sequence group", "factor sum, highest first", "`#`"])
+                    and in_order(mapper, ["band", "sequence group", "factor sum descending", "routing.yaml row order"])
+                    and bool(sort_key) and in_order(sort_key.group(1), ["BAND_RANK", "sequence-group", "factor-sum", "t[0]"])
+                    and "Tier does not break ties" in ordering and "never sort by it" in ordering
+                    and not re.search(r"evidence tier as the tie-breaker", ordering),
+                    "render: routing.yaml ordering names the mapper's keys in its sort order, with no tier or effort key"))
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
         doc = r / "analysis" / "tamper-evident-record.md"
         doc.write_text("---\nevidence-tier: B\nconvergence: single-source\napplies-to-signals: [not-a-key]\n"
                        "status: EMERGING\n---\n\n# Stub\n", encoding="utf-8")
@@ -265,12 +298,15 @@ def main() -> int:
         olp = (r / "ONE-LINE-PROMPT.md").read_text(encoding="utf-8")
         ry = (r / "routing.yaml").read_text(encoding="utf-8")
         pins = (r / "analysis" / "revalidation-and-pins.md").read_text(encoding="utf-8")
+        readme = (r / "README.md").read_text(encoding="utf-8")
         results.append(("> Pre-release." not in ac and "should stop and say the repo is unreleased" not in ac
                         and "has not cut a release yet" not in olp and "release v2026.12, stamped 2026-12-01" in olp
                         and "State: pre-release" not in ry and "# State: release v2026.12, stamped 2026-12-01." in ry
                         and "release: v2026.12\n" in ry
-                        and "Release: unreleased" not in pins and "Release: v2026.12; pins last verified" in pins,
-                        "bundle: stamp retires the banner, the prompt paragraph, the routing comment and the pins Release line"))
+                        and "Release: unreleased" not in pins and "Release: v2026.12; pins last verified" in pins
+                        and "Status: pre-release" not in readme and "> Status: release v2026.12, stamped 2026-12-01." in readme
+                        and "<!-- pre-release:start" in readme and "<!-- pre-release:end -->" in readme,
+                        "bundle: stamp retires the banner, the prompt paragraph, the routing comment, the README banner and the pins Release line"))
         held = always_fetch(r)[0]
         body = (r / held).read_bytes()
         unwrite(r, held)
@@ -317,6 +353,13 @@ def main() -> int:
                run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), False, "nothing written")
         results.append(((r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8") == before,
                         "bundle: a refused stamp leaves AUDIT-CONTEXT unstamped"))
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        env = {"ROOT": str(r)}
+        before = (r / "README.md").read_text(encoding="utf-8")
+        edit(r / "README.md", "<!-- pre-release:end -->\n", "")
+        expect("bundle: stamp refuses when the README banner marker is missing",
+               run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), False, "README.md: expected exactly one")
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
         env = {"ROOT": str(r), "ALLOW_MISSING": "1"}

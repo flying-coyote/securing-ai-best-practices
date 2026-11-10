@@ -21,8 +21,8 @@ depends on. The checks:
      routing keys or special keys in applies-to-signals, and lists every key
      whose row routes to it.
   7. The four Always Fetch docs are named in routing.yaml.
-  8. AUDIT-CONTEXT.md's rendered routing section matches routing.yaml
-     (render-audit-context.py --check).
+  8. AUDIT-CONTEXT.md's rendered routing section and Priority rubric ordering
+     rule match routing.yaml (render-audit-context.py --check).
 
 Docs a row names that are not written yet are counted and printed, and do not
 fail the run until --release is given, because the repo is built one doc at a
@@ -197,8 +197,8 @@ def main() -> int:
     try:
         renderer = load_renderer(root)
         ac = (root / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
-        if renderer.splice(ac, renderer.render(data)) != ac:
-            errors.append("AUDIT-CONTEXT.md routing section is stale; run python scripts/render-audit-context.py")
+        if renderer.apply(ac, data) != ac:
+            errors.append("AUDIT-CONTEXT.md routing section or ordering rule is stale; run python scripts/render-audit-context.py")
     except Exception as e:  # noqa: BLE001
         errors.append(f"could not check the rendered routing section: {e}")
 

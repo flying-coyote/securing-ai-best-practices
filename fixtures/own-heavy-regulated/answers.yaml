@@ -49,7 +49,6 @@ signals:
   ai-analyst-ungraded: {value: true, confidence: owner-stated}
   containment-pre-authorized-broad: {value: true, confidence: believed}
   telemetry-into-llm: {value: true, confidence: owner-stated}
-  content-lands-vendor: {value: true, confidence: owner-stated}
   prompt-capture-tier-metadata: {value: true, confidence: owner-stated}
   jurisdiction-uk: {value: true, confidence: owner-stated}
   dpia-absent: {value: false, confidence: owner-stated}

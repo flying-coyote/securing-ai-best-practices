@@ -224,8 +224,6 @@ question-packets:
   - key: cloud-trail-default-only
     why: not checked
   logging or security operations owner:
-  - key: content-lands-vendor
-    why: not checked
   - key: record-in-agent-reach
     why: not checked
   risk or compliance owner:

@@ -256,7 +256,8 @@ This is not legal advice; these dossiers record what was read, not what it means
 | `t5-model-artifact-scanning` | modelscan 0.8.8, picklescan 1.0.5 and fickling 0.1.12 on picklescan's bypass set and 18 benign files, including renames (T5) | models-you-hold | `91e44df` |
 | `d3fend-ocsf-ai-alignment` | D3FEND AI artifact nouns against OCSF `ai_*` objects, a desk analysis of pinned definitions rather than a measurement (R8) | models-you-hold, landing-ai-events-in-ocsf, incumbent-tool-coverage, fine-tuned-model-is-a-data-store | `91e44df` |
 | `t8b-telemetry-injection` | a planted instruction in adversary-controlled fields of an OCSF-shaped DuckDB store, visible and as tag characters, read by two local models under several renderings (T8b) | telemetry-is-an-injection-surface | `91e44df` |
-| `t6-finetune-memorization` | planted-canary memorization in a LoRA fine-tune by insertion count and decoding setting (T6) | fine-tuned-model-is-a-data-store | `91e44df` |
+| `t6-finetune-memorization` | planted-canary memorization in a LoRA fine-tune by insertion count and decoding setting (T6) | fine-tuned-model-is-a-data-store, rent-or-own-sized-to-the-org | `91e44df` |
+| `t3-guardrail-adaptive` | three open prompt-injection and jailbreak classifiers on public attack and benign sets under seven published input transforms, with Wilson and paired-bootstrap intervals (T3) | reading-vendor-claims | `91e44df` |
 | `m1-r1-blind-regrade` | a blind re-grade of R1's artifact-to-OCSF grades by one model, partial (M1) | frameworks-and-what-they-reach | `91e44df` |
 | `t4-interdiction` | how many mapped incident steps the top burn-down controls catch (T4) | frameworks-and-what-they-reach | `91e44df` |
 | `t8c-trifecta-detection` | thirteen detection rules over planted agent exfiltration chains and benign lookalikes in a synthetic OCSF 1.9.0 store (T8c) | evaluating-ai-in-the-soc | `91e44df` |

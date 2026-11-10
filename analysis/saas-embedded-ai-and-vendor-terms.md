@@ -107,7 +107,7 @@ Question 3 matters more than it looks, because Microsoft's Copilot settings sepa
 
 ## What this does not mean
 
-A default of "on" is not evidence of harm, and a contractual no-training promise is not evidence the vendor breaks it; neither can be checked from the customer's side beyond reading the terms and the attestation scope, which is why this document treats them as a record to keep current and not as a finding to escalate on their own. The routing rows that send a review here are Medium priority for that reason, and the training opt-out row scores higher on reversibility only because data that has been trained on is hard to recall, which the planned `fine-tuned-model-is-a-data-store.md` (scheduled for v0.2) will discuss from the research side.
+A default of "on" is not evidence of harm, and a contractual no-training promise is not evidence the vendor breaks it; neither can be checked from the customer's side beyond reading the terms and the attestation scope, which is why this document treats them as a record to keep current and not as a finding to escalate on their own. The routing rows that send a review here are Medium priority for that reason, and the training opt-out row scores higher on reversibility only because data that has been trained on is hard to recall, which `analysis/fine-tuned-model-is-a-data-store.md` discusses from the research side.
 
 The table is not a vendor comparison. The products in it are the ones the forthcoming ai-config-pointers set covers, and a vendor that looks better here may simply document more, so reading the rows as a ranking would get it wrong.
 

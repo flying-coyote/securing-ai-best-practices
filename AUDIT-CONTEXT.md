@@ -6,7 +6,7 @@ Release: unreleased (pre-v0.1). Date: not stamped.
 This is the file the one-line review fetches first. It tells the agent how to interview the practitioner, how to read what they paste, how to turn answers into a list of documents, how to rank what it finds, and what the review must contain. The practitioner never edits it. If you are a person reading it, `routing.yaml` holds the same routing as data, and the review's output format is in `ONE-LINE-PROMPT.md`.
 
 <!-- pre-release:start (the release script's stamp step empties the text between these markers) -->
-> Pre-release. The interview, the routing section (rendered from `routing.yaml`), the Answers Block shape and the rubric are complete, and `scripts/route.py` reproduces the routing for three synthetic fixtures in `fixtures/`; the v0.1 analysis documents and stubs are drafted but not yet independently verified, and some documents the routing points at are planned for later releases and not written yet. An agent fetching this file before the first release should stop and say the repo is unreleased.
+> Pre-release. The interview, the routing section (rendered from `routing.yaml`), the Answers Block shape and the rubric are complete, and `scripts/route.py` reproduces the routing for three synthetic fixtures in `fixtures/`; every document the routing points at is written, and a cross-provider verification leg has checked the three most consequential claims in 25 of the 26 analysis documents (`analysis/VERIFICATION-LOG.md`), while every other claim carries only its drafting session's check. An agent fetching this file before the first release should stop and say the repo is unreleased.
 <!-- pre-release:end -->
 
 ## Boundaries
@@ -84,7 +84,7 @@ Question Packets for this family go to: IT administrator.
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
 | 5 | `surface-S1` | I/E | INVENTORY | enables `saas-ai-toggles-unreviewed`, `vendor-training-optout-unknown`, `ai-subprocessor-review-absent`, `oauth-grants-unreviewed`, `grounding-permissions-unreviewed` | `analysis/surface-ownability.md` |
-| 6 | `surface-S2` | I/E | INVENTORY | enables `audit-log-off-<platform>`, `content-channel-off`, `plan-tier-below-audit`, `vendor-training-optout-unknown`, `grounding-permissions-unreviewed`, `sensitivity-labels-absent`, `restricted-search-unset` | `analysis/surface-ownability.md` |
+| 6 | `surface-S2` | I/E | INVENTORY | enables `audit-log-off-<platform>`, `content-channel-off`, `content-channel-on`, `plan-tier-below-audit`, `vendor-training-optout-unknown`, `grounding-permissions-unreviewed`, `sensitivity-labels-absent`, `restricted-search-unset` | `analysis/surface-ownability.md` |
 | 7 | `surface-S3` | I/E | INVENTORY | enables `shadow-ai-method-none`, `shadow-ai-method-network-only`, `tenant-restriction-absent` | `analysis/surface-ownability.md` |
 | 8 | `surface-S4` | I/E | INVENTORY | enables `coding-agent-managed-tier-absent`, `hook-fail-open`, `hooks-user-disableable`, `mcp-allowlist-absent`, `agent-static-secrets` | `analysis/surface-ownability.md` |
 | 9 | `surface-S5` | I/E | INVENTORY | enables `mcp-allowlist-absent`, `mcp-unpinned`, `mcp-remote`, `mcp-manifest-snapshot-absent`, `agent-static-secrets`, `nhi-inventory-absent` | `analysis/surface-ownability.md` |
@@ -106,9 +106,9 @@ Question Packets for this family go to: logging or security operations owner.
 | 20 | `audit-log-off-<platform>` | I/E | PROBLEM, Medium (1+1+1+1=4); escalates: High when the surface is internet-reachable and handles regulated data [when `surface-internet-reachable` and `regulated-data-in-scope`] | platform values: office-suite-assistant, managed-model-platform, coding-agent, mcp-host, browser, identity-platform, data-governance-platform | `analysis/telemetry-by-surface.md` |
 | 21 | `content-channel-off` | I | REVIEW, Low (0+1+0+1=2) |  | `analysis/telemetry-by-surface.md`, `analysis/what-to-log-and-what-it-costs.md` |
 | 22 | `content-channel-on` | I | REVIEW, Low (0+2+0+0=2) |  | `analysis/telemetry-by-surface.md`, `analysis/what-to-log-and-what-it-costs.md` |
-| 23 | `content-lands-vendor` | I | REVIEW, Low (1+1+0+0=2) |  | `analysis/telemetry-by-surface.md` |
-| 24 | `content-lands-own-cloud` | I | REVIEW, Low (0+1+0+0=1) |  | `analysis/telemetry-by-surface.md` |
-| 25 | `content-lands-laptop` | I | REVIEW, Low (0+1+1+0=2) |  | `analysis/telemetry-by-surface.md` |
+| 23 | `content-lands-vendor` | I | REVIEW, Low (1+1+0+0=2) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
+| 24 | `content-lands-own-cloud` | I | REVIEW, Low (0+1+0+0=1) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
+| 25 | `content-lands-laptop` | I | REVIEW, Low (0+1+1+0=2) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
 | 26 | `schema-none` | I/E | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
 | 27 | `schema-vendor-json` | I/E | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
 | 28 | `schema-otel` | I/E | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
@@ -323,7 +323,7 @@ The matching rules, which `scripts/route.py` implements so a practitioner can ch
 
 ## Anti-Bloat Rule
 
-Apply the fetch budget per surface family pass, then run one final merge pass that applies the priority rubric across all families, so an organization running many surfaces is not cut to a handful of documents by a single global cap. When a family pass is over budget, drop in this order: overlapping rows (keep the more specific), then adjacent docs. Never drop the four Always Fetch docs, and never drop an unsure answer; an unsure answer routes to a Question Packet instead.
+Apply the fetch budget per surface family pass, then run one final merge pass that applies the priority rubric across all families, so an organization running many surfaces is not cut to a handful of documents by a single global cap. When a family pass is over budget, drop in this order: overlapping rows (keep the more specific), then adjacent docs. Never drop the four Always Fetch docs, and never drop an unsure answer; an unsure answer routes to a Question Packet instead. Only selected PROBLEM and REVIEW rows queue docs, beside the four Always Fetch docs, which is what the reference mapper does: a row answered clean queues nothing and is reported under What's working well, and a row answered unsure or not answered queues nothing and goes to a Question Packet.
 
 ## Priority rubric
 
@@ -336,13 +336,17 @@ Priority is how bad the condition is if it is true, and it is published per sign
 | Reversibility | reversible by changing a setting | reversible with effort | not reversible once it happens |
 | Blast radius | one user or system | one team or surface | organization-wide |
 
-A sum of 6 to 8 is High, 3 to 5 is Medium, and 0 to 2 is Low. A row's escalation applies only when its condition was observed. A `believed` observation caps the band at Medium and adds a confirm-with role. Confidence is a separate axis: print the backing doc's frontmatter `evidence-tier` and `convergence` beside every action, and the specific claim's tier where the doc is Mixed. Within a band, order actions by three keys in turn, which is exactly what the reference mapper does: the sequence group from the `sequence-order` block in `analysis/decision-sequence.md` (a row named under `row-overrides` takes that group, any other row takes its family's group, and groups run in the order the block lists them), then factor sum, highest first, then the row's `#` in the routing tables above, lowest first. Tier does not break ties, because it is confidence and never priority. Order REVIEW rows the same way, in their own list after the PROBLEM rows. The ordering perspectives are the author's practitioner judgement at Tier D; they order actions and never raise one.
+A sum of 6 to 8 is High, 3 to 5 is Medium, and 0 to 2 is Low. A row's escalation applies only when its condition was observed. A `believed` observation caps the band at Medium and adds a confirm-with role. Confidence is a separate axis: print the backing doc's frontmatter `evidence-tier` and `convergence` beside every action, and the specific claim's tier where the doc is Mixed.
 
-For a small organization, rank actions an administrator can do alone inside a week (effort S) above multi-team work (M) within the same band.
+<!-- ordering:start (rendered from routing.yaml priority-rubric.ordering by scripts/render-audit-context.py; do not edit by hand) -->
+Within a band, order actions by three keys in turn, which is exactly what the reference mapper does and is the whole ordering rule: the sequence group from the `sequence-order` block in `analysis/decision-sequence.md` (a row named under `row-overrides` takes that group, any other row takes its family's group, and groups run in the order the block lists them), then factor sum, highest first, then the row's `#` (its position in `routing.yaml`, shown in the routing tables), lowest first. Tier does not break ties, because it is confidence and never priority, and effort does not either: print each action's effort (S, M or L) beside it as information for whoever schedules the work, and never sort by it, whatever the organization's size. Order REVIEW rows the same way, in their own list after the PROBLEM rows.
+<!-- ordering:end -->
+
+The ordering perspectives are the author's practitioner judgement at Tier D; they order actions and never raise one.
 
 ## Output Requirement
 
-Write the review in the Structured Output Format in `ONE-LINE-PROMPT.md`, opening with the Next 30 days half-page and keeping it to about 300 words; notes about the run itself (bundle integrity, how the boundaries were applied, the release state) go in Notes on this run near the end, never ahead of the half-page. Anything the practitioner could not supply is "not checked", never clean, and becomes a Question Packet. Where state is held by the vendor, say so in the record-of-what-exists appendix. When `questionnaire-only` holds, say that nothing was read from a system. When `jurisdiction-us` is the only jurisdiction, say that the law doc is EU-first and name what it does not answer. Close with the transcript sentence and the not-legal-advice sentence.
+Write the review in the Structured Output Format in `ONE-LINE-PROMPT.md`, opening with the Next 30 days half-page and keeping it to about 400 words; notes about the run itself (bundle integrity, how the boundaries were applied, the release state) go in Notes on this run near the end, never ahead of the half-page. Anything the practitioner could not supply is "not checked", never clean, and becomes a Question Packet. Where state is held by the vendor, say so in the record-of-what-exists appendix. When `questionnaire-only` holds, say that nothing was read from a system. When `jurisdiction-us` is the only jurisdiction, say that the law doc is EU-first and name what it does not answer. Keep the template's frontmatter field names exactly as written there (`review-date`, `release`, `docs-fetched` and the rest), because a parser reads them by name, and link every doc as a bare repo-relative path such as `analysis/<name>.md`, with no `file://` scheme and no leading slash. Close with the transcript sentence and the not-legal-advice sentence.
 
 ## Convergence gate
 

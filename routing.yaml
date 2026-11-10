@@ -41,7 +41,7 @@ always-fetch:
 
 weights:
   PROBLEM: "Produces an action in the output."
-  REVIEW: "Listed with the matched answer quoted; becomes an action only where its band and the doc support one."
+  REVIEW: "Listed under Prioritized actions after the PROBLEM rows, with the matched answer quoted; never takes a top-action slot, even at High, and becomes a PROBLEM only where its escalation sets escalate-weight."
   INVENTORY: "A count or a fact that enables other rows; never adds a fetch on its own."
 
 methods:
@@ -85,7 +85,7 @@ priority-rubric:
   caps:
     - "A believed observation caps the band at Medium."
     - "A Tier D perspective orders actions within a band and never raises one."
-  ordering: "Priority band first, then the order in analysis/decision-sequence.md within a band, then the backing doc's evidence tier as the tie-breaker."
+  ordering: "Within a band, order actions by three keys in turn, which is exactly what the reference mapper does and is the whole ordering rule: the sequence group from the `sequence-order` block in `analysis/decision-sequence.md` (a row named under `row-overrides` takes that group, any other row takes its family's group, and groups run in the order the block lists them), then factor sum, highest first, then the row's `#` (its position in `routing.yaml`, shown in the routing tables), lowest first. Tier does not break ties, because it is confidence and never priority, and effort does not either: print each action's effort (S, M or L) beside it as information for whoever schedules the work, and never sort by it, whatever the organization's size. Order REVIEW rows the same way, in their own list after the PROBLEM rows."
 
 interview-branches:
   first-questions: [org-size-small-mid, profile-rent-heavy]
@@ -218,7 +218,7 @@ signals:
     question: "Does the organization run enterprise assistants (the office-suite assistant or a licensed chat assistant)? (yes, no, or not sure)"
     method: [I, E]
     weight: INVENTORY
-    enables: [audit-log-off-<platform>, content-channel-off, plan-tier-below-audit, vendor-training-optout-unknown, grounding-permissions-unreviewed, sensitivity-labels-absent, restricted-search-unset]
+    enables: [audit-log-off-<platform>, content-channel-off, content-channel-on, plan-tier-below-audit, vendor-training-optout-unknown, grounding-permissions-unreviewed, sensitivity-labels-absent, restricted-search-unset]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S2 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S3
@@ -372,6 +372,7 @@ signals:
     family: record
     question: "Where does captured content land: with the vendor, in your own cloud, or on laptops? (vendor selects this key.)"
     method: [I]
+    requires: [content-channel-on]
     weight: REVIEW
     priority:
       band: Low
@@ -382,6 +383,7 @@ signals:
     family: record
     question: "Where does captured content land: with the vendor, in your own cloud, or on laptops? (own-cloud selects this key.)"
     method: [I]
+    requires: [content-channel-on]
     weight: REVIEW
     priority:
       band: Low
@@ -392,6 +394,7 @@ signals:
     family: record
     question: "Where does captured content land: with the vendor, in your own cloud, or on laptops? (laptop selects this key.)"
     method: [I]
+    requires: [content-channel-on]
     weight: REVIEW
     priority:
       band: Low
