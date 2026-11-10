@@ -1,0 +1,297 @@
+# Golden output of scripts/route.py for answers.yaml in this folder, hand-checked
+# against routing.yaml when written. A change here is a routing change: accept it
+# on purpose, in the same pull request as the routing.yaml edit that caused it.
+interview-branch: full
+overrides:
+- profile-override-gateway-chosen
+surfaces-present:
+- S1
+- S2
+- S4
+- S5
+- S7
+- S8
+- S12
+not-run:
+- S6
+- S9
+- S10
+- S11
+- S13
+surfaces-not-checked:
+- S3
+derived:
+- profile-own-heavy
+- own-heavy-small-org
+top-actions:
+- dpia-absent
+- agent-static-secrets
+- prompt-capture-tier-full
+- audit-log-off-managed-model-platform
+- nhi-inventory-absent
+- hook-fail-open
+- mcp-allowlist-absent
+actions:
+- key: dpia-absent
+  weight: PROBLEM
+  band: High
+  factor-sum: 6
+  confidence: owner-stated
+  docs:
+  - analysis/prompt-capture-and-the-law.md
+- key: agent-static-secrets
+  weight: PROBLEM
+  band: High
+  factor-sum: 6
+  confidence: owner-stated
+  docs:
+  - analysis/agent-identity-and-delegation.md
+- key: prompt-capture-tier-full
+  weight: PROBLEM
+  band: High
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/what-to-log-and-what-it-costs.md
+  - analysis/prompt-capture-and-the-law.md
+  escalated: true
+- key: audit-log-off-managed-model-platform
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/telemetry-by-surface.md
+- key: nhi-inventory-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/agent-identity-and-delegation.md
+- key: hook-fail-open
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: read
+  docs:
+  - analysis/coding-agent-hooks-and-policy.md
+- key: mcp-allowlist-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/mcp-servers-and-manifest-drift.md
+- key: oauth-grants-unreviewed
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/inventory-and-shadow-ai.md
+- key: rag-acl-propagation-unknown
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/rag-stores.md
+- key: agent-publish-approval-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/agent-builders.md
+- key: output-handling-unreviewed
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/ai-you-ship.md
+- key: incumbent-inventory-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/configure-before-you-buy.md
+review:
+- key: gateway-token-store-unreviewed
+  weight: REVIEW
+  band: High
+  factor-sum: 6
+  confidence: owner-stated
+  docs:
+  - analysis/ai-apis-and-the-gateway.md
+- key: mcp-unpinned
+  weight: REVIEW
+  band: Medium
+  factor-sum: 4
+  confidence: read
+  docs:
+  - analysis/mcp-servers-and-manifest-drift.md
+- key: mcp-remote
+  weight: REVIEW
+  band: Medium
+  factor-sum: 4
+  confidence: read
+  docs:
+  - analysis/mcp-servers-and-manifest-drift.md
+- key: own-heavy-small-org
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: derived
+  docs:
+  - analysis/rent-or-own-sized-to-the-org.md
+- key: cloud-trail-default-only
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/ai-apis-and-the-gateway.md
+- key: ai-subprocessor-review-absent
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/saas-embedded-ai-and-vendor-terms.md
+- key: vendor-evaluation-in-progress
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/reading-vendor-claims.md
+  - analysis/build-buy-and-the-high-priest.md
+- key: sensitivity-labels-absent
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/assistant-oversharing.md
+- key: embeddings-outside-governance
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: believed
+  docs:
+  - analysis/stubs/rag-stores.md
+- key: model-rollback-untested
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/ai-incident-response.md
+- key: profile-own-heavy
+  weight: REVIEW
+  band: Low
+  factor-sum: 2
+  confidence: derived
+  docs:
+  - analysis/rent-or-own-sized-to-the-org.md
+  - analysis/models-you-hold.md
+- key: content-channel-on
+  weight: REVIEW
+  band: Low
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/telemetry-by-surface.md
+  - analysis/what-to-log-and-what-it-costs.md
+- key: delegation-record-absent
+  weight: REVIEW
+  band: Low
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/agent-identity-and-delegation.md
+- key: mcp-manifest-snapshot-absent
+  weight: REVIEW
+  band: Low
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/mcp-servers-and-manifest-drift.md
+- key: coverage-view-absent
+  weight: REVIEW
+  band: Low
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/incumbent-tool-coverage.md
+- key: content-lands-own-cloud
+  weight: REVIEW
+  band: Low
+  factor-sum: 1
+  confidence: owner-stated
+  docs:
+  - analysis/telemetry-by-surface.md
+docs:
+- analysis/evidence-tiers.md
+- analysis/surface-ownability.md
+- analysis/revalidation-and-pins.md
+- analysis/decision-sequence.md
+- analysis/prompt-capture-and-the-law.md
+- analysis/agent-identity-and-delegation.md
+- analysis/what-to-log-and-what-it-costs.md
+- analysis/telemetry-by-surface.md
+- analysis/coding-agent-hooks-and-policy.md
+- analysis/mcp-servers-and-manifest-drift.md
+- analysis/inventory-and-shadow-ai.md
+- analysis/stubs/rag-stores.md
+- analysis/stubs/agent-builders.md
+- analysis/stubs/ai-you-ship.md
+- analysis/configure-before-you-buy.md
+- analysis/ai-apis-and-the-gateway.md
+- analysis/rent-or-own-sized-to-the-org.md
+- analysis/saas-embedded-ai-and-vendor-terms.md
+- analysis/reading-vendor-claims.md
+- analysis/build-buy-and-the-high-priest.md
+- analysis/stubs/assistant-oversharing.md
+- analysis/stubs/ai-incident-response.md
+- analysis/models-you-hold.md
+- analysis/incumbent-tool-coverage.md
+question-packets:
+  IT administrator:
+  - key: surface-S3
+    why: not checked
+  product engineering lead:
+  - key: abuse-monitoring-absent
+    why: not checked
+  team that runs the RAG store:
+  - key: embeddings-outside-governance
+    why: believed only
+clean:
+- surface-unknown
+- audit-log-off-coding-agent
+- works-council-unconsulted
+- record-in-agent-reach
+- agent-kill-switch-absent
+- coding-agent-managed-tier-absent
+- hooks-user-disableable
+- saas-ai-toggles-unreviewed
+- vendor-training-optout-unknown
+- plan-tier-below-audit
+- ai-aup-absent
+- ai-tool-intake-absent
+- ai-owner-unnamed
+- custom-build-planned
+- vendor-terms-unknown
+- mapping-treated-as-coverage
+- grounding-permissions-unreviewed
+- restricted-search-unset
+- ingestion-integrity-unreviewed
+- connector-sprawl-unreviewed
+- pre-release-eval-absent
+- ai-playbook-absent
+conflicts:
+- 'profile-rent-heavy: answered true but derived false from ''not (surface-S9 or surface-S11 or surface-S12)'''
+ordering: band, then factor sum descending, then routing.yaml row order (stand-in until decision-sequence.md carries a sequence)

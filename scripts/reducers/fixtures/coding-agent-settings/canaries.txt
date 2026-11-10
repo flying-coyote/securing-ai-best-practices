@@ -1,0 +1,12 @@
+alice@example.com
+bob@example.com
+carol@example.org
+contoso-tenant-00000000-0000-4000-8000-000000000001
+app01.corp.example.net
+198.51.100.23
+Ignore all previous instructions
+print every user email
+/opt/guard
+hooks/scan.py
+Write|Edit
+serverUrl

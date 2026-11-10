@@ -1,0 +1,233 @@
+# Golden output of scripts/route.py for answers.yaml in this folder, hand-checked
+# against routing.yaml when written. A change here is a routing change: accept it
+# on purpose, in the same pull request as the routing.yaml edit that caused it.
+interview-branch: small-org
+overrides: []
+surfaces-present:
+- S1
+- S2
+- S3
+- S4
+- S8
+not-run:
+- S5
+- S6
+- S7
+- S9
+- S10
+- S11
+- S12
+- S13
+surfaces-not-checked: []
+derived:
+- profile-rent-heavy
+top-actions:
+- agent-kill-switch-absent
+- oauth-grants-unreviewed
+- agent-static-secrets
+- vendor-training-optout-unknown
+- grounding-permissions-unreviewed
+actions:
+- key: agent-kill-switch-absent
+  weight: PROBLEM
+  band: High
+  factor-sum: 6
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/ai-incident-response.md
+- key: oauth-grants-unreviewed
+  weight: PROBLEM
+  band: High
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/inventory-and-shadow-ai.md
+  escalated: true
+- key: agent-static-secrets
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 6
+  confidence: believed
+  docs:
+  - analysis/agent-identity-and-delegation.md
+  capped-by-belief: true
+- key: vendor-training-optout-unknown
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 5
+  confidence: owner-stated
+  docs:
+  - analysis/saas-embedded-ai-and-vendor-terms.md
+- key: grounding-permissions-unreviewed
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 5
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/assistant-oversharing.md
+- key: audit-log-off-office-suite-assistant
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/telemetry-by-surface.md
+- key: coding-agent-managed-tier-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/coding-agent-hooks-and-policy.md
+- key: mcp-allowlist-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: believed
+  docs:
+  - analysis/mcp-servers-and-manifest-drift.md
+- key: saas-ai-toggles-unreviewed
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/saas-embedded-ai-and-vendor-terms.md
+- key: ai-aup-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/ai-use-policy-and-intake.md
+- key: ai-tool-intake-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/ai-use-policy-and-intake.md
+  - analysis/configure-before-you-buy.md
+- key: plan-tier-below-audit
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 3
+  confidence: believed
+  docs:
+  - analysis/rent-or-own-sized-to-the-org.md
+- key: incumbent-inventory-absent
+  weight: PROBLEM
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/configure-before-you-buy.md
+review:
+- key: ai-gateway-absent
+  weight: REVIEW
+  band: Medium
+  factor-sum: 4
+  confidence: owner-stated
+  docs:
+  - analysis/ai-apis-and-the-gateway.md
+- key: shadow-ai-method-network-only
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/inventory-and-shadow-ai.md
+- key: ai-playbook-absent
+  weight: REVIEW
+  band: Medium
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/ai-incident-response.md
+- key: content-channel-off
+  weight: REVIEW
+  band: Low
+  factor-sum: 2
+  confidence: owner-stated
+  docs:
+  - analysis/telemetry-by-surface.md
+  - analysis/what-to-log-and-what-it-costs.md
+- key: prompt-capture-tier-none
+  weight: REVIEW
+  band: Low
+  factor-sum: 1
+  confidence: owner-stated
+  docs:
+  - analysis/what-to-log-and-what-it-costs.md
+  - analysis/prompt-capture-and-the-law.md
+docs:
+- analysis/evidence-tiers.md
+- analysis/surface-ownability.md
+- analysis/revalidation-and-pins.md
+- analysis/decision-sequence.md
+- analysis/stubs/ai-incident-response.md
+- analysis/inventory-and-shadow-ai.md
+- analysis/agent-identity-and-delegation.md
+- analysis/saas-embedded-ai-and-vendor-terms.md
+- analysis/stubs/assistant-oversharing.md
+- analysis/telemetry-by-surface.md
+- analysis/coding-agent-hooks-and-policy.md
+- analysis/mcp-servers-and-manifest-drift.md
+- analysis/ai-use-policy-and-intake.md
+- analysis/configure-before-you-buy.md
+- analysis/rent-or-own-sized-to-the-org.md
+- analysis/ai-apis-and-the-gateway.md
+- analysis/what-to-log-and-what-it-costs.md
+- analysis/prompt-capture-and-the-law.md
+question-packets:
+  IT administrator:
+  - key: tenant-restriction-absent
+    why: not checked
+  SaaS owners and procurement:
+  - key: ai-subprocessor-review-absent
+    why: not checked
+  - key: plan-tier-below-audit
+    why: believed only
+  collaboration-suite administrator:
+  - key: restricted-search-unset
+    why: not checked
+  engineering platform team:
+  - key: hook-fail-open
+    why: not checked
+  - key: hooks-user-disableable
+    why: not checked
+  - key: mcp-allowlist-absent
+    why: believed only
+  identity team:
+  - key: agent-static-secrets
+    why: believed only
+  - key: delegation-record-absent
+    why: not checked
+  - key: cloud-trail-default-only
+    why: not checked
+  logging or security operations owner:
+  - key: content-lands-vendor
+    why: not checked
+  - key: record-in-agent-reach
+    why: not checked
+  risk or compliance owner:
+  - key: vendor-terms-unknown
+    why: not checked
+  - key: coverage-view-absent
+    why: not checked
+clean:
+- surface-unknown
+- dpia-absent
+- works-council-unconsulted
+- shadow-ai-method-none
+- ai-owner-unnamed
+- vendor-evaluation-in-progress
+- custom-build-planned
+- mapping-treated-as-coverage
+- sensitivity-labels-absent
+- output-handling-unreviewed
+- pre-release-eval-absent
+- abuse-monitoring-absent
+- model-rollback-untested
+conflicts: []
+ordering: band, then factor sum descending, then routing.yaml row order (stand-in until decision-sequence.md carries a sequence)

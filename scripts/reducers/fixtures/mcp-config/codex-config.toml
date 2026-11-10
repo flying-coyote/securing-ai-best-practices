@@ -1,0 +1,9 @@
+[mcp_servers.search]
+command = "npx"
+args = ["@example/search-mcp"]
+[mcp_servers.search.env]
+SEARCH_API_KEY = "$SEARCH_API_KEY"
+
+[mcp_servers.db]
+command = "pnpm"
+args = ["dlx", "@example/db-mcp@2.0.0", "--api-key", "EXAMPLE-DB-KEY-bob"]

@@ -1,0 +1,76 @@
+# Synthetic fixture: a 300-person SaaS company, no sector regulator, about one
+# and a half people on security. It rents every AI surface it uses: the
+# office-suite assistant, AI features in SaaS it already pays for, browser AI,
+# two coding agents and a product team calling a model API directly. Nothing
+# here describes a real organization.
+#
+# What this fixture exercises: the small-org branch (five top actions); a
+# derived profile key (profile-rent-heavy computed from three surfaces answered
+# no); an escalation whose condition is observed (oauth-grants-unreviewed rises
+# to High on the consent-grant count) and one whose condition is not
+# (audit-log-off-office-suite-assistant stays Medium); the believed cap
+# (agent-static-secrets, High by its factors, capped to Medium); unsure and
+# missing answers becoming Question Packets; surfaces answered no batched into
+# one how-do-you-know line; and a pattern-key instance.
+answers-block: 1
+interview-branch: small-org
+overrides: []
+observations:
+  # as the consent-grant and coding-agent settings reducers would print them
+  ai-apps-with-grants: {value: 4, confidence: read}
+  ai-grants-mail-or-file-scope: {value: 2, confidence: read}
+  managed-tier-seen: {value: false, confidence: read}
+signals:
+  org-size-small-mid: {value: true, confidence: owner-stated}
+  surface-unknown: {value: false, confidence: owner-stated}
+  surface-S1: {value: true, confidence: owner-stated}
+  surface-S2: {value: true, confidence: owner-stated}
+  surface-S3: {value: true, confidence: owner-stated}
+  surface-S4: {value: true, confidence: owner-stated}
+  surface-S5: {value: false, confidence: owner-stated}
+  surface-S6: {value: false, confidence: owner-stated}
+  surface-S7: {value: false, confidence: owner-stated}
+  surface-S8: {value: true, confidence: owner-stated}
+  surface-S9: {value: false, confidence: owner-stated}
+  surface-S10: {value: false, confidence: owner-stated}
+  surface-S11: {value: false, confidence: owner-stated}
+  surface-S12: {value: false, confidence: owner-stated}
+  surface-S13: {value: false, confidence: owner-stated}
+  # S1 and S2
+  saas-ai-toggles-unreviewed: {value: true, confidence: owner-stated}
+  vendor-training-optout-unknown: {value: true, confidence: owner-stated}
+  ai-subprocessor-review-absent: {value: unsure, confidence: believed}
+  oauth-grants-unreviewed: {value: true, confidence: owner-stated}
+  plan-tier-below-audit: {value: true, confidence: believed}
+  audit-log-off-office-suite-assistant: {value: true, confidence: owner-stated}
+  content-channel-off: {value: true, confidence: owner-stated}
+  grounding-permissions-unreviewed: {value: true, confidence: owner-stated}
+  sensitivity-labels-absent: {value: false, confidence: owner-stated}
+  # S3
+  shadow-ai-method-none: {value: false, confidence: owner-stated}
+  shadow-ai-method-network-only: {value: true, confidence: owner-stated}
+  # S4
+  coding-agent-managed-tier-absent: {value: true, confidence: owner-stated}
+  mcp-allowlist-absent: {value: true, confidence: believed}
+  agent-static-secrets: {value: true, confidence: believed}
+  # S8
+  ai-gateway-absent: {value: true, confidence: owner-stated}
+  output-handling-unreviewed: {value: false, confidence: owner-stated}
+  pre-release-eval-absent: {value: false, confidence: owner-stated}
+  abuse-monitoring-absent: {value: false, confidence: owner-stated}
+  # record, governance and incident response
+  prompt-capture-tier-none: {value: true, confidence: owner-stated}
+  jurisdiction-us: {value: true, confidence: owner-stated}
+  dpia-absent: {value: false, confidence: owner-stated}
+  works-council-unconsulted: {value: false, confidence: owner-stated}
+  ai-aup-absent: {value: true, confidence: owner-stated}
+  ai-tool-intake-absent: {value: true, confidence: owner-stated}
+  ai-owner-unnamed: {value: false, confidence: owner-stated}
+  incumbent-inventory-absent: {value: true, confidence: owner-stated}
+  vendor-evaluation-in-progress: {value: false, confidence: owner-stated}
+  custom-build-planned: {value: false, confidence: owner-stated}
+  vendor-terms-unknown: {value: unsure, confidence: believed}
+  agent-kill-switch-absent: {value: true, confidence: owner-stated}
+  ai-playbook-absent: {value: true, confidence: owner-stated}
+  model-rollback-untested: {value: false, confidence: owner-stated}
+  mapping-treated-as-coverage: {value: false, confidence: owner-stated}

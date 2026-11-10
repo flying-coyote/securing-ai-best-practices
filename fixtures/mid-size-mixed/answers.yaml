@@ -1,0 +1,90 @@
+# Synthetic fixture: an 800-person software and services company with no
+# sector regulator, staff in the EU and the US, that rents most of its AI but
+# runs one RAG store over its support knowledge base. It uses a managed model
+# platform in one cloud, coding agents with MCP servers, and has already chosen
+# an AI gateway. Nothing here describes a real organization.
+#
+# What this fixture exercises: the full branch (seven top actions) for an
+# organization under the size line, because it is own-heavy; both derived
+# profile keys (profile-own-heavy, and own-heavy-small-org from it); an answer
+# that contradicts its derivation (the practitioner said rent-heavy, but the
+# RAG store makes it own-heavy), reported under conflicts; the
+# prompt-capture escalation that changes weight as well as band; a row
+# reachable only through `requires` (gateway-token-store-unreviewed);
+# reducer counts selecting MCP keys; a surface answered unsure; two pattern
+# instances, one yes and one no; and a profile override.
+answers-block: 1
+overrides: [profile-override-gateway-chosen]
+observations:
+  mcp-server-count: {value: 9, confidence: read}
+  mcp-unpinned-count: {value: 3, confidence: read}
+  mcp-remote-count: {value: 2, confidence: read}
+signals:
+  org-size-small-mid: {value: true, confidence: owner-stated}
+  profile-rent-heavy: {value: true, confidence: believed}
+  surface-unknown: {value: false, confidence: owner-stated}
+  surface-S1: {value: true, confidence: owner-stated}
+  surface-S2: {value: true, confidence: owner-stated}
+  surface-S3: {value: unsure, confidence: believed}
+  surface-S4: {value: true, confidence: owner-stated}
+  surface-S5: {value: true, confidence: owner-stated}
+  surface-S6: {value: false, confidence: owner-stated}
+  surface-S7: {value: true, confidence: owner-stated}
+  surface-S8: {value: true, confidence: owner-stated}
+  surface-S9: {value: false, confidence: owner-stated}
+  surface-S10: {value: false, confidence: owner-stated}
+  surface-S11: {value: false, confidence: owner-stated}
+  surface-S12: {value: true, confidence: owner-stated}
+  surface-S13: {value: false, confidence: owner-stated}
+  saas-ai-toggles-unreviewed: {value: false, confidence: owner-stated}
+  vendor-training-optout-unknown: {value: false, confidence: owner-stated}
+  ai-subprocessor-review-absent: {value: true, confidence: owner-stated}
+  oauth-grants-unreviewed: {value: true, confidence: owner-stated}
+  plan-tier-below-audit: {value: false, confidence: owner-stated}
+  audit-log-off-managed-model-platform: {value: true, confidence: owner-stated}
+  audit-log-off-coding-agent: {value: false, confidence: read}
+  content-channel-on: {value: true, confidence: owner-stated}
+  grounding-permissions-unreviewed: {value: false, confidence: owner-stated}
+  sensitivity-labels-absent: {value: true, confidence: owner-stated}
+  restricted-search-unset: {value: false, confidence: owner-stated}
+  coding-agent-managed-tier-absent: {value: false, confidence: read}
+  hook-fail-open: {value: true, confidence: read}
+  hooks-user-disableable: {value: false, confidence: read}
+  mcp-allowlist-absent: {value: true, confidence: owner-stated}
+  mcp-unpinned: {value: 3, confidence: read}
+  mcp-remote: {value: 2, confidence: read}
+  mcp-manifest-snapshot-absent: {value: true, confidence: owner-stated}
+  agent-static-secrets: {value: true, confidence: owner-stated}
+  nhi-inventory-absent: {value: true, confidence: owner-stated}
+  agent-publish-approval-absent: {value: true, confidence: owner-stated}
+  connector-sprawl-unreviewed: {value: false, confidence: owner-stated}
+  cloud-trail-default-only: {value: true, confidence: owner-stated}
+  ai-gateway-present: {value: true, confidence: owner-stated}
+  gateway-token-store-unreviewed: {value: true, confidence: owner-stated}
+  output-handling-unreviewed: {value: true, confidence: owner-stated}
+  pre-release-eval-absent: {value: false, confidence: owner-stated}
+  abuse-monitoring-absent: {value: unsure, confidence: believed}
+  rag-acl-propagation-unknown: {value: true, confidence: owner-stated}
+  ingestion-integrity-unreviewed: {value: false, confidence: owner-stated}
+  embeddings-outside-governance: {value: true, confidence: believed}
+  content-lands-own-cloud: {value: true, confidence: owner-stated}
+  prompt-capture-tier-full: {value: true, confidence: owner-stated}
+  jurisdiction-eu: {value: true, confidence: owner-stated}
+  jurisdiction-us: {value: true, confidence: owner-stated}
+  dpia-absent: {value: true, confidence: owner-stated}
+  works-council-unconsulted: {value: false, confidence: owner-stated}
+  record-in-agent-reach: {value: false, confidence: owner-stated}
+  delegation-record-absent: {value: true, confidence: owner-stated}
+  agent-kill-switch-absent: {value: false, confidence: owner-stated}
+  ai-playbook-absent: {value: false, confidence: owner-stated}
+  model-rollback-untested: {value: true, confidence: owner-stated}
+  ai-aup-absent: {value: false, confidence: owner-stated}
+  ai-tool-intake-absent: {value: false, confidence: owner-stated}
+  ai-owner-unnamed: {value: false, confidence: owner-stated}
+  incumbent-inventory-absent: {value: true, confidence: owner-stated}
+  vendor-evaluation-in-progress: {value: true, confidence: owner-stated}
+  custom-build-planned: {value: false, confidence: owner-stated}
+  vendor-terms-unknown: {value: false, confidence: owner-stated}
+  coverage-view-absent: {value: true, confidence: owner-stated}
+  mapping-treated-as-coverage: {value: false, confidence: owner-stated}
+  framework-claimed-iso-42001: {value: true, confidence: owner-stated}

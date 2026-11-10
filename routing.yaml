@@ -1,0 +1,1213 @@
+# routing.yaml: the signal-to-document routing table, as data.
+#
+# AUDIT-CONTEXT.md's routing section is rendered from this file by
+# scripts/render-audit-context.py, and CI fails when the two disagree.
+# scripts/route.py reads an Answers Block (and any reducer output) with this
+# file and prints the branch, the ranked actions, the doc list and the Question
+# Packets, so anyone can check an agent's routing against the table; CI holds it
+# to the three golden fixtures in fixtures/.
+#
+# State: pre-release. Every signal key in the design is present with its
+# question, collection method, weight, priority and target docs. The target
+# docs are being written one at a time, and the routing-coverage check requires
+# each shipped doc's applies-to-signals to match the rows that route to it.
+# The factor scores and the surface-to-signal "enables" lists are the author's
+# initial judgement (Tier D) and are expected to move after the dry runs.
+#
+# Machine-readable fields beside the prose, so scripts/route.py and the
+# rendered AUDIT-CONTEXT section read the same data and cannot drift:
+#   escalate-if     every name listed must be observed (a signal key selected,
+#                   or an observation above zero) before the escalation applies;
+#                   the band then becomes High
+#   escalate-weight the weight the row takes when the escalation applies
+#   requires        signal keys that must all be selected before the row is
+#                   eligible at all
+#   owner           overrides the family's owning role for Question Packets
+# scripts/check-routing-coverage.py fails when an escalation has no
+# escalate-if, when a name in escalate-if or requires is neither a key nor a
+# declared observation, and when a row's factors do not fold into its band.
+
+version: 0
+release: unreleased
+
+always-fetch:
+  - analysis/evidence-tiers.md
+  - analysis/surface-ownability.md
+  - analysis/revalidation-and-pins.md
+  - analysis/decision-sequence.md
+
+weights:
+  PROBLEM: "Produces an action in the output."
+  REVIEW: "Listed with the matched answer quoted; becomes an action only where its band and the doc support one."
+  INVENTORY: "A count or a fact that enables other rows; never adds a fetch on its own."
+
+methods:
+  I: "Interview: asked of the practitioner, recorded with observation confidence (read, owner-stated, believed)."
+  E: "Export: read from a local reducer's output, or from a raw export the practitioner accepts sending."
+  D: "Derived: computed from other keys by the stated predicate; never asked."
+
+observation-confidence:
+  read: "From a reducer or an export."
+  owner-stated: "The practitioner has it from the team that owns the system."
+  believed: "The person answering thinks so. Caps priority at Medium and adds a confirm-with role."
+
+# Priority is how bad the condition is if it is true. It is separate from
+# confidence, which is the backing doc's evidence-tier and convergence and is
+# printed beside every action. Each PROBLEM or REVIEW row scores four factors
+# from 0 to 2 and the sum folds into a band. An escalation names the condition
+# under which the band rises; it is applied only when that condition was
+# observed, never assumed.
+priority-rubric:
+  factors:
+    reach:
+      0: "internal-only"
+      1: "reachable by a vendor, partner or other tenant"
+      2: "internet-reachable"
+    stakes:
+      0: "no sensitive data or credentials"
+      1: "business data"
+      2: "credentials, secrets or regulated personal data"
+    reversibility:
+      0: "reversible by changing a setting"
+      1: "reversible with effort"
+      2: "not reversible once it happens (data disclosed, trained on or acted on)"
+    blast:
+      0: "one user or one system"
+      1: "one team or one surface"
+      2: "organization-wide"
+  bands:
+    High: "sum 6 to 8"
+    Medium: "sum 3 to 5"
+    Low: "sum 0 to 2"
+  caps:
+    - "A believed observation caps the band at Medium."
+    - "A Tier D perspective orders actions within a band and never raises one."
+  ordering: "Priority band first, then the order in analysis/decision-sequence.md within a band, then the backing doc's evidence tier as the tie-breaker."
+
+interview-branches:
+  first-questions: [org-size-small-mid, profile-rent-heavy]
+  small-org:
+    selected-when: "org-size-small-mid and profile-rent-heavy"
+    families: [S1, S2, S3, S4, S8]
+    target: "about twelve questions and fifteen minutes; remaining families offered as one 'anything else?' question; negative guards batched into one line"
+  full:
+    selected-when: "any other combination"
+    target: "about five questions per surface family present"
+  top-actions: {small-org: 5, full: 7}
+
+# The role a Question Packet is addressed to, per routing family. A row's
+# `owner` field overrides it. Author's judgement (Tier D).
+family-owners:
+  profile: "security lead"
+  surface: "IT administrator"
+  record: "logging or security operations owner"
+  identity: "identity team"
+  incident-response: "incident response lead"
+  coding-agent: "engineering platform team"
+  mcp: "engineering platform team"
+  shadow-ai: "IT administrator"
+  saas: "SaaS owners and procurement"
+  artifacts: "ML platform team"
+  governance: "risk or compliance owner"
+  frameworks: "risk or compliance owner"
+  soc: "SOC manager"
+  assistant-oversharing: "collaboration-suite administrator"
+  rag: "team that runs the RAG store"
+  agent-builders: "low-code platform administrator"
+  ai-you-ship: "product engineering lead"
+
+# Observations: counts and facts that are not routing keys themselves but that
+# reducers print or the interview records, and that escalations read. A
+# reducer may print only names declared here or signal keys; its tests check
+# that. Every value is an integer of zero or more, or true or false.
+observations:
+  # interview facts that escalations depend on
+  surface-internet-reachable: {from: interview, meaning: "The surface in question is reachable from the internet."}
+  regulated-data-in-scope: {from: interview, meaning: "The surface handles regulated personal data."}
+  runtime-internet-reachable: {from: interview, meaning: "A self-hosted inference runtime is reachable from the internet."}
+  # consent-grant reducers (Entra, Google Workspace)
+  ai-apps-with-grants: {from: "entra-consent-grants, google-workspace-oauth", meaning: "Distinct AI-category apps holding at least one OAuth grant."}
+  ai-grants-mail-or-file-scope: {from: "entra-consent-grants, google-workspace-oauth", meaning: "AI-category grants whose scopes reach mail or files."}
+  ai-grants-user-consented: {from: "entra-consent-grants, google-workspace-oauth", meaning: "AI-category grants a user consented to."}
+  ai-grants-admin-consented: {from: entra-consent-grants, meaning: "AI-category grants an administrator consented to for the whole tenant."}
+  grant-rows-unparsed: {from: "entra-consent-grants, google-workspace-oauth", meaning: "Rows the reducer could not read; non-zero means the counts are a floor."}
+  # IdP app-list reducer (Okta)
+  ai-apps-in-idp: {from: okta-apps, meaning: "Distinct AI-category apps in the IdP app list."}
+  ai-apps-federated: {from: okta-apps, meaning: "AI-category apps signing in through SAML, OIDC or WS-Federation."}
+  ai-apps-not-federated: {from: okta-apps, meaning: "AI-category apps on a bookmark, password vaulting or other non-federated sign-on mode."}
+  ai-apps-inactive: {from: okta-apps, meaning: "AI-category apps the list marks inactive."}
+  # browser extension reducer (Chrome Enterprise, Intune)
+  ai-extensions-total: {from: browser-extensions, meaning: "Distinct AI-category extensions installed anywhere in the report."}
+  ai-extensions-force-installed: {from: browser-extensions, meaning: "AI-category extensions the administrator force-installs."}
+  ai-extensions-admin-allowed: {from: browser-extensions, meaning: "AI-category extensions on an administrator allowlist and installed by users."}
+  ai-extensions-user-installed: {from: browser-extensions, meaning: "AI-category extensions users installed with no administrator action."}
+  ai-extensions-mode-unknown: {from: browser-extensions, meaning: "AI-category extensions whose install mode the report does not state."}
+  # expense reducer
+  ai-vendors-in-spend: {from: expense-ai-vendors, meaning: "Distinct AI vendors appearing in card or expense lines."}
+  ai-spend-lines: {from: expense-ai-vendors, meaning: "Card or expense lines matched to an AI vendor."}
+  ai-spend-lines-personal-card: {from: expense-ai-vendors, meaning: "Matched lines the export marks as reimbursed personal spend."}
+  # MCP config reducer
+  mcp-server-count: {from: mcp-config, meaning: "MCP servers declared across the config files given."}
+  mcp-local-count: {from: mcp-config, meaning: "Servers started as a local process."}
+  mcp-remote-count: {from: mcp-config, meaning: "Servers reached by URL."}
+  mcp-unpinned-count: {from: mcp-config, meaning: "Local servers started from a package runner with no exact version."}
+  mcp-pinned-count: {from: mcp-config, meaning: "Local servers started from a package runner with an exact version."}
+  mcp-inline-secret-count: {from: mcp-config, meaning: "Secret-looking values written inline in env, headers, args or URLs (values never printed)."}
+  # coding-agent settings reducer
+  settings-files-read: {from: coding-agent-settings, meaning: "Settings or hooks files the reducer parsed."}
+  managed-tier-seen: {from: coding-agent-settings, meaning: "A managed (administrator) tier file was among the inputs."}
+  hooks-configured: {from: coding-agent-settings, meaning: "Hook commands configured across the inputs."}
+  hooks-fail-closed: {from: coding-agent-settings, meaning: "Hook commands configured to block when the hook fails or times out."}
+  hooks-outside-managed: {from: coding-agent-settings, meaning: "Hook commands configured in user, project or local scope."}
+  deny-rules: {from: coding-agent-settings, meaning: "Permission deny rules across the inputs."}
+  disable-all-hooks-set: {from: coding-agent-settings, meaning: "Files that set the switch that turns every hook off."}
+  managed-locks-set: {from: coding-agent-settings, meaning: "Managed lock settings present (managed-only hooks, managed-only permission rules, bypass mode disabled)."}
+
+
+signals:
+
+  # --- profile ---
+  - key: org-size-small-mid
+    family: profile
+    question: "Roughly how many people work at the organization, and does a sector regulator (financial, health, energy, public sector) supervise how it handles data? (Answer with a band: under about 1,000 people and no sector regulator selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/build-buy-and-the-high-priest.md]
+    why: "Selects the small-org interview branch. Sizing comes first because the rent-or-own judgement and the effort ranking both depend on staff and regulatory load."
+  - key: org-size-large-regulated
+    family: profile
+    question: "Same question as org-size-small-mid; about 1,000 people or more, or any sector regulator, selects this key."
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/build-buy-and-the-high-priest.md]
+    why: "Selects the full interview branch."
+  - key: profile-rent-heavy
+    family: profile
+    question: "Does the organization run any of these itself: self-hosted model serving, fine-tuned models, or a RAG or vector store it operates? (No to all three selects this key.)"
+    method: [I, D]
+    predicate: "not (surface-S9 or surface-S11 or surface-S12)"
+    weight: INVENTORY
+    docs: [analysis/rent-or-own-sized-to-the-org.md]
+    why: "None of the three surfaces where the organization owns every CoSAI component it instantiates is present, so effort goes to identity, the enforcement point, configuration and exported logs."
+  - key: profile-own-heavy
+    family: profile
+    question: "Same question as profile-rent-heavy; yes to any of the three selects this key, confirmed later by the surface keys."
+    method: [I, D]
+    predicate: "surface-S9 or surface-S11 or surface-S12"
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 0, reversibility: 1, blast: 1}
+    docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/models-you-hold.md]
+    why: "At least one fully owned surface is present, which brings its patching, logging, identity and detection with it."
+
+  # --- surface ---
+  - key: surface-S1
+    family: surface
+    question: "Does the organization run AI features inside SaaS applications you already pay for? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [saas-ai-toggles-unreviewed, vendor-training-optout-unknown, ai-subprocessor-review-absent, oauth-grants-unreviewed, grounding-permissions-unreviewed]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S1 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S2
+    family: surface
+    question: "Does the organization run enterprise assistants (the office-suite assistant or a licensed chat assistant)? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [audit-log-off-<platform>, content-channel-off, plan-tier-below-audit, vendor-training-optout-unknown, grounding-permissions-unreviewed, sensitivity-labels-absent, restricted-search-unset]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S2 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S3
+    family: surface
+    question: "Does the organization run AI in the browser (built-in assistants and extensions)? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [shadow-ai-method-none, shadow-ai-method-network-only, tenant-restriction-absent]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S3 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S4
+    family: surface
+    question: "Does the organization run IDE and coding agents? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [coding-agent-managed-tier-absent, hook-fail-open, hooks-user-disableable, mcp-allowlist-absent, agent-static-secrets]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S4 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S5
+    family: surface
+    question: "Does the organization run MCP servers and agent tools? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [mcp-allowlist-absent, mcp-unpinned, mcp-remote, mcp-manifest-snapshot-absent, agent-static-secrets, nhi-inventory-absent]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S5 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S6
+    family: surface
+    question: "Does the organization run low-code agent and workflow builders? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed, nhi-inventory-absent]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S6 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S7
+    family: surface
+    question: "Does the organization run managed AI build platforms in a cloud account? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [agent-publish-approval-absent, connector-sprawl-unreviewed, audit-log-off-<platform>, cloud-trail-default-only]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S7 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S8
+    family: surface
+    question: "Does the organization run direct model API use and AI gateways? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [ai-gateway-absent, gateway-token-store-unreviewed, cloud-trail-default-only, agent-static-secrets, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S8 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S9
+    family: surface
+    question: "Does the organization run self-hosted model serving? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [inference-runtime-default-bind, model-store-unscanned, pickle-formats-present]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S9 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S10
+    family: surface
+    question: "Does the organization run local on-device open-weight models? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [inference-runtime-default-bind, model-store-unscanned, pickle-formats-present]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S10 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S11
+    family: surface
+    question: "Does the organization run fine-tuned models and their pipelines? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [fine-tuned-models, training-record-absent, model-store-unscanned]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S11 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S12
+    family: surface
+    question: "Does the organization run RAG pipelines and vector stores? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [rag-acl-propagation-unknown, ingestion-integrity-unreviewed, embeddings-outside-governance]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S12 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+  - key: surface-S13
+    family: surface
+    question: "Does the organization run AI inside security tools (an AI analyst or agent in the SOC)? (yes, no, or not sure)"
+    method: [I, E]
+    weight: INVENTORY
+    enables: [ai-analyst-ungraded, containment-pre-authorized-broad, telemetry-into-llm]
+    docs: [analysis/surface-ownability.md]
+    why: "Enables the S13 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
+
+  # --- profile ---
+  - key: own-heavy-small-org
+    family: profile
+    question: "Derived: no question asked."
+    method: [D]
+    predicate: "profile-own-heavy and org-size-small-mid"
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/rent-or-own-sized-to-the-org.md]
+    why: "A small organization owning a surface takes on the full operating load of it; the review names that cost beside any recommendation to keep owning it."
+  - key: surface-unknown
+    family: profile
+    question: "Can you say which of the thirteen surfaces the organization runs? (No, or not for most of them, selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: High
+      factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
+    docs: [analysis/inventory-and-shadow-ai.md]
+    why: "Every later control assumes an inventory; without one the review cannot say what is in scope, so discovery is the first action."
+
+  # --- record ---
+  - key: audit-log-off-<platform>
+    family: record
+    pattern: "audit-log-off-<platform>"
+    values: [office-suite-assistant, managed-model-platform, coding-agent, mcp-host, browser, identity-platform, data-governance-platform]
+    question: "For each platform in use (from the closed list), is the per-interaction audit record turned on, and do you know where it lands?"
+    method: [I, E]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+      escalation: "High when the surface is internet-reachable and handles regulated data"
+      escalate-if: [surface-internet-reachable, regulated-data-in-scope]
+    docs: [analysis/telemetry-by-surface.md]
+    why: "The platform's own audit log is the record the organization can hold for a rented surface; the vendor's admin documentation says what it captures and whether it is on by default."
+  - key: content-channel-off
+    family: record
+    question: "Is prompt, tool-call and answer text captured anywhere for this surface? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/telemetry-by-surface.md, analysis/what-to-log-and-what-it-costs.md]
+    why: "The content half of the record is off by default on most sanctioned platforms; whether that is right depends on the capture tier and the law, so it is reviewed rather than flagged."
+  - key: content-channel-on
+    family: record
+    question: "Same question as content-channel-off; yes selects this key."
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 2, reversibility: 0, blast: 0}
+    docs: [analysis/telemetry-by-surface.md, analysis/what-to-log-and-what-it-costs.md]
+    why: "Captured content is a store of whatever users typed, with the retention, access and erasure duties that brings."
+  - key: content-lands-vendor
+    family: record
+    question: "Where does captured content land: with the vendor, in your own cloud, or on laptops? (vendor selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 1, stakes: 1, reversibility: 0, blast: 0}
+    docs: [analysis/telemetry-by-surface.md]
+    why: "Content held by the vendor is retained on the vendor's terms and reachable only through its export."
+  - key: content-lands-own-cloud
+    family: record
+    question: "Where does captured content land: with the vendor, in your own cloud, or on laptops? (own-cloud selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 0}
+    docs: [analysis/telemetry-by-surface.md]
+    why: "Content in the organization's own cloud is under its own retention and access controls."
+  - key: content-lands-laptop
+    family: record
+    question: "Where does captured content land: with the vendor, in your own cloud, or on laptops? (laptop selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 0}
+    docs: [analysis/telemetry-by-surface.md]
+    why: "Content on endpoints is scattered, hard to retain consistently and hard to erase."
+  - key: schema-none
+    family: record
+    question: "What format is the AI audit record emitted in: none, the vendor's own JSON, OpenTelemetry, or OCSF? (none selects this key.)"
+    method: [I, E]
+    weight: INVENTORY
+    docs: [analysis/landing-ai-events-in-ocsf.md]
+    why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
+  - key: schema-vendor-json
+    family: record
+    question: "What format is the AI audit record emitted in: none, the vendor's own JSON, OpenTelemetry, or OCSF? (vendor-json selects this key.)"
+    method: [I, E]
+    weight: INVENTORY
+    docs: [analysis/landing-ai-events-in-ocsf.md]
+    why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
+  - key: schema-otel
+    family: record
+    question: "What format is the AI audit record emitted in: none, the vendor's own JSON, OpenTelemetry, or OCSF? (otel selects this key.)"
+    method: [I, E]
+    weight: INVENTORY
+    docs: [analysis/landing-ai-events-in-ocsf.md]
+    why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
+  - key: schema-ocsf
+    family: record
+    question: "What format is the AI audit record emitted in: none, the vendor's own JSON, OpenTelemetry, or OCSF? (ocsf selects this key.)"
+    method: [I, E]
+    weight: INVENTORY
+    docs: [analysis/landing-ai-events-in-ocsf.md]
+    why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
+  - key: prompt-capture-tier-none
+    family: record
+    question: "Which prompt-capture tier is in place: none, metadata only, hashes, deltas, or full text? (none selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 0, reversibility: 0, blast: 1}
+    docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
+  - key: prompt-capture-tier-metadata
+    family: record
+    question: "Which prompt-capture tier is in place: none, metadata only, hashes, deltas, or full text? (metadata selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 0}
+    docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
+  - key: prompt-capture-tier-hash
+    family: record
+    question: "Which prompt-capture tier is in place: none, metadata only, hashes, deltas, or full text? (hash selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 0}
+    docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
+  - key: prompt-capture-tier-delta
+    family: record
+    question: "Which prompt-capture tier is in place: none, metadata only, hashes, deltas, or full text? (delta selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 0}
+    docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
+  - key: prompt-capture-tier-full
+    family: record
+    question: "Which prompt-capture tier is in place: none, metadata only, hashes, deltas, or full text? (full selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 2, reversibility: 0, blast: 0}
+      escalation: "PROBLEM, High when jurisdiction-eu and dpia-absent also hold"
+      escalate-if: [jurisdiction-eu, dpia-absent]
+      escalate-weight: PROBLEM
+    docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
+  - key: jurisdiction-eu
+    family: record
+    question: "Where do the people whose prompts would be captured work? (Select every region that applies; eu selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/prompt-capture-and-the-law.md]
+    why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named."
+  - key: jurisdiction-us
+    family: record
+    question: "Where do the people whose prompts would be captured work? (Select every region that applies; us selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/prompt-capture-and-the-law.md]
+    why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named. A us-only answer triggers the sentence saying the law doc is EU-first and naming what it does not answer."
+  - key: jurisdiction-uk
+    family: record
+    question: "Where do the people whose prompts would be captured work? (Select every region that applies; uk selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/prompt-capture-and-the-law.md]
+    why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named."
+  - key: jurisdiction-other
+    family: record
+    question: "Where do the people whose prompts would be captured work? (Select every region that applies; other selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/prompt-capture-and-the-law.md]
+    why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named."
+  - key: dpia-absent
+    family: record
+    owner: "privacy or legal counsel"
+    question: "Where prompt content is captured and EU staff are in scope, has a data protection impact assessment been done for that capture? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: High
+      factors: {reach: 0, stakes: 2, reversibility: 2, blast: 2}
+    docs: [analysis/prompt-capture-and-the-law.md]
+    why: "GDPR Article 35 requires a DPIA for processing likely to result in high risk, which systematic monitoring of employees' text usually is. Not legal advice."
+  - key: works-council-unconsulted
+    family: record
+    owner: "privacy or legal counsel"
+    question: "Where capture is on and a works council or employee representative body exists, has it been consulted? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: High
+      factors: {reach: 0, stakes: 2, reversibility: 2, blast: 2}
+    docs: [analysis/prompt-capture-and-the-law.md]
+    why: "Co-determination law in several EU states (Germany's Works Constitution Act, section 87(1) no. 6, for example) gives the works council a say over technical monitoring of employees. Not legal advice."
+  - key: record-in-agent-reach
+    family: record
+    question: "Can the agent or harness that produced the telemetry also write to or delete from where it is stored? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 2, blast: 1}
+    docs: [analysis/tamper-evident-record.md]
+    why: "A record the actor can edit is not evidence; OCSF carries integrity fields for exactly this."
+  - key: telemetry-into-llm
+    family: record
+    question: "Does any SOC tool or analyst agent read raw event text with a language model? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/telemetry-is-an-injection-surface.md]
+    why: "Event text carries attacker-controlled strings, so a model reading it is exposed to prompt injection, which OWASP's Top 10 for LLM Applications names as a risk class."
+
+  # --- identity ---
+  - key: nhi-inventory-absent
+    family: identity
+    question: "Is there an inventory of agent identities, borrowed workload identities, static secrets and delegated grants? (No selects this key.)"
+    method: [I, E]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 2, reversibility: 0, blast: 1}
+    docs: [analysis/agent-identity-and-delegation.md]
+    why: "Identity controls start from an inventory of non-human identities; the agent usually borrows a human or workload identity rather than holding its own."
+  - key: agent-static-secrets
+    family: identity
+    question: "Do agents hold long-lived API keys rather than short-lived credentials minted by a broker? (Yes selects this key; an MCP-config reducer can report an inline-secret count, never values.)"
+    method: [I, E]
+    weight: PROBLEM
+    priority:
+      band: High
+      factors: {reach: 2, stakes: 2, reversibility: 1, blast: 1}
+    docs: [analysis/agent-identity-and-delegation.md]
+    why: "Long-lived secrets in agent configuration are the credential-theft path; short-lived, scoped credentials are the standard replacement."
+  - key: delegation-record-absent
+    family: identity
+    question: "Is there a record that joins agent, user, tool and scope for each action? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/agent-identity-and-delegation.md]
+    why: "Low priority because no production source carries the full join today; the doc says what can be assembled meanwhile."
+  - key: ai-gateway-absent
+    family: identity
+    question: "Does model and tool traffic pass through an enforcement point the organization owns (a gateway or proxy)? (No selects this key; suppressed when surface-S8 is absent.)"
+    method: [I, E]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 0, blast: 2}
+    docs: [analysis/ai-apis-and-the-gateway.md]
+    why: "An owned enforcement point is where policy, logging and key custody can be applied independent of each client."
+  - key: ai-gateway-present
+    family: identity
+    question: "Same question as ai-gateway-absent; yes selects this key."
+    method: [I, E]
+    weight: INVENTORY
+    docs: [analysis/ai-apis-and-the-gateway.md]
+    why: "A gateway present enables the token-store question."
+  - key: gateway-token-store-unreviewed
+    family: identity
+    requires: [ai-gateway-present]
+    question: "Where a gateway is present, is its credential cache treated and monitored as a crown-jewel store? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: High
+      factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
+    docs: [analysis/ai-apis-and-the-gateway.md]
+    why: "The gateway holds every upstream key, so compromising it compromises every route behind it."
+  - key: cloud-trail-default-only
+    family: identity
+    question: "Is model-API usage visible only through the cloud provider's default audit trail, with no data-event or invocation logging added? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/ai-apis-and-the-gateway.md]
+    why: "Default management-plane trails differ by provider in whether model invocations appear at all; the cloud provider's logging documentation is the primary."
+
+  # --- incident-response ---
+  - key: agent-kill-switch-absent
+    family: incident-response
+    question: "Is there a tested way to revoke an agent's credentials, disable a model route or roll back a model version? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: High
+      factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
+    docs: [analysis/stubs/ai-incident-response.md]
+    why: "Incident response needs a containment step for each AI surface; the organization's existing IR standard is extended rather than replaced."
+
+  # --- coding-agent ---
+  - key: coding-agent-managed-tier-absent
+    family: coding-agent
+    question: "For each coding agent in use, is there a managed policy tier that users cannot override? (No selects this key.)"
+    method: [I, E]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 2, reversibility: 0, blast: 1}
+    docs: [analysis/coding-agent-hooks-and-policy.md]
+    why: "Vendors document a managed settings tier for exactly this; without it every control is a user preference."
+  - key: hook-fail-open
+    family: coding-agent
+    question: "Where hooks enforce policy, do they run on the vendor's default failure behaviour? (A settings reducer reports this; yes selects this key.)"
+    method: [E, I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/coding-agent-hooks-and-policy.md]
+    why: "Failure defaults differ by vendor and several fail open, so a crashed hook allows the action it was meant to stop."
+  - key: hooks-user-disableable
+    family: coding-agent
+    question: "Does enforcement rest on hooks that a user setting can switch off, rather than on deny rules? (A settings reducer reports this; yes selects this key.)"
+    method: [E, I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 0, blast: 1}
+    docs: [analysis/coding-agent-hooks-and-policy.md]
+    why: "Deny rules held where hooks were switched off in the lab run the doc cites."
+
+  # --- mcp ---
+  - key: mcp-allowlist-absent
+    family: mcp
+    question: "Is there an allowlist of MCP servers, and does the vendor document it as enforceable? (No allowlist, or one documented as bypassable, selects this key.)"
+    method: [I, E]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 2, reversibility: 0, blast: 1}
+    docs: [analysis/mcp-servers-and-manifest-drift.md]
+    why: "The MCP specification's security best practices and the client vendor's managed allowlist are the controls; an allowlist that can be bypassed is an inventory, not a control."
+  - key: mcp-unpinned
+    family: mcp
+    question: "How many MCP servers start from an unpinned package (npx or uvx without a version)? (An MCP-config reducer reports the count; any selects this key.)"
+    method: [E, I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/mcp-servers-and-manifest-drift.md]
+    why: "An unpinned package runs whatever the registry serves at start time, which is a software supply-chain exposure."
+  - key: mcp-remote
+    family: mcp
+    question: "How many MCP servers are remote rather than local? (An MCP-config reducer reports the count; any selects this key.)"
+    method: [E, I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/mcp-servers-and-manifest-drift.md]
+    why: "A remote server's tool list and behaviour can change without any local change."
+  - key: mcp-manifest-snapshot-absent
+    family: mcp
+    question: "Is the tools/list output of each MCP server snapshotted and diffed over time? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 1, stakes: 0, reversibility: 0, blast: 1}
+    docs: [analysis/mcp-servers-and-manifest-drift.md]
+    why: "Tool-description changes show up as a diff once the manifest is deterministic; low priority because it detects rather than prevents."
+  - key: mcp-spec-pre-2026-07
+    family: mcp
+    question: "Do any MCP clients or servers negotiate a protocol revision earlier than 2026-07-28? (A config reducer or version inventory reports this.)"
+    method: [E, I]
+    weight: INVENTORY
+    docs: [analysis/landing-ai-events-in-ocsf.md, analysis/mcp-servers-and-manifest-drift.md]
+    why: "Logging and security behaviour differ across MCP specification revisions, and the docs are pinned to the 2026-07-28 revision."
+
+  # --- shadow-ai ---
+  - key: shadow-ai-method-none
+    family: shadow-ai
+    question: "What method, if any, finds AI use that was never approved? (None selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/inventory-and-shadow-ai.md]
+    why: "Discovery is an inventory join across several sources; without any method the approved list is the only list."
+  - key: shadow-ai-method-network-only
+    family: shadow-ai
+    question: "Does discovery rest on CASB categories, DNS or egress logs alone? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/inventory-and-shadow-ai.md]
+    why: "Network methods alone found a small share of planted cases in the lab run the doc cites; identity and endpoint sources fill the rest."
+  - key: oauth-grants-unreviewed
+    family: shadow-ai
+    question: "Is there a periodic query over OAuth consent grants for AI applications in the identity platform? (No selects this key; a consent-grant reducer reports counts.)"
+    method: [I, E]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+      escalation: "High when any AI-category grant carries mail or file scopes"
+      escalate-if: [ai-grants-mail-or-file-scope]
+    docs: [analysis/inventory-and-shadow-ai.md]
+    why: "OAuth consent is how most AI SaaS reaches mail and files; the identity platform's own grant report is the source."
+  - key: tenant-restriction-absent
+    family: shadow-ai
+    question: "Are tenant-restriction headers applied at the egress point for the AI services you sanction? (No selects this key.)"
+    method: [I, E]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 1, stakes: 1, reversibility: 0, blast: 0}
+    docs: [analysis/inventory-and-shadow-ai.md]
+    why: "Tenant restrictions stop personal accounts on a sanctioned service; the vendor and SSE documentation describe the header."
+
+  # --- saas ---
+  - key: saas-ai-toggles-unreviewed
+    family: saas
+    question: "Has anyone reviewed which paid SaaS products have turned AI features on, and what each does with your data? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    why: "Vendors switch AI features on inside products already approved; the admin console and the vendor's AI terms are the primary sources."
+  - key: vendor-training-optout-unknown
+    family: saas
+    question: "For each SaaS product or assistant with AI features, do you know whether a training-on-your-data opt-out exists and whether it is set? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 2, blast: 1}
+    docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    why: "Data used for training cannot be recalled, so the opt-out is checked in the contract and the console, not assumed."
+  - key: ai-subprocessor-review-absent
+    family: saas
+    question: "Is there a review of sub-processor, retention and residency changes that AI features bring? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 0}
+    docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    why: "AI features often add a model provider as a sub-processor; the vendor's sub-processor list and DPA are the sources."
+  - key: plan-tier-below-audit
+    family: saas
+    question: "Are any AI seats on a consumer or business tier that lacks SSO enforcement, an audit log or a contractual training opt-out? (Yes selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/rent-or-own-sized-to-the-org.md]
+    why: "For a renter the plan tier decides more of the record than any setting; the vendor's plan comparison page is the source, dated."
+
+  # --- artifacts ---
+  - key: model-artifacts-held
+    family: artifacts
+    question: "Does the organization hold model weights, adapters or model files on infrastructure it runs? (Yes selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/models-you-hold.md]
+    why: "Enables the artifact rows below."
+  - key: model-store-unscanned
+    family: artifacts
+    question: "Are held model artifacts scanned by a model-file scanner, or is SBOM tooling assumed to see them? (Not scanned, or assumed, selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/models-you-hold.md]
+    why: "General SBOM tooling did not recognise most model artifacts as AI in the lab run the doc cites; a model-file scanner is the control."
+  - key: pickle-formats-present
+    family: artifacts
+    question: "Are serialization formats that execute code on load (pickle and formats built on it) in use? (Yes selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: High
+      factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
+    docs: [analysis/models-you-hold.md]
+    why: "Loading such a file can run arbitrary code on the host; safer formats exist and the doc names them."
+  - key: inference-runtime-default-bind
+    family: artifacts
+    question: "Is any self-hosted inference runtime on its documented default (no API authentication, management endpoints open)? (Yes selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 2, reversibility: 0, blast: 1}
+      escalation: "High when the runtime is internet-reachable"
+      escalate-if: [runtime-internet-reachable]
+    docs: [analysis/models-you-hold.md]
+    why: "The runtime's own documentation describes its default bind and authentication, so the default is checkable rather than assumed; an internet-reachable default is the worst case."
+  - key: fine-tuned-models
+    family: artifacts
+    question: "Has any model been fine-tuned on organization data? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 2, blast: 0}
+    docs: [analysis/fine-tuned-model-is-a-data-store.md]
+    why: "Peer-reviewed work shows fine-tuned models can memorize and reproduce training records, so the model is a data store."
+  - key: training-record-absent
+    family: artifacts
+    question: "Is there a record linking each fine-tuned model to the rows it was trained on? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 2, blast: 0}
+    docs: [analysis/fine-tuned-model-is-a-data-store.md]
+    why: "Without the link, erasure and incident scoping cannot reach the model."
+
+  # --- governance ---
+  - key: ai-aup-absent
+    family: governance
+    question: "Is there an acceptable-use policy and an approved-tools list for AI? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 2}
+    docs: [analysis/ai-use-policy-and-intake.md]
+    why: "NIST AI RMF 1.0 (Govern) and ISO/IEC 42001 both start from policy and accountability; for most organizations these come before telemetry."
+  - key: ai-tool-intake-absent
+    family: governance
+    question: "Is there an intake path that a new AI tool goes through before use, including a check of what the organization already owns? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 2}
+    docs: [analysis/ai-use-policy-and-intake.md, analysis/configure-before-you-buy.md]
+    why: "An intake path is the point where the configure-first check runs."
+  - key: ai-owner-unnamed
+    family: governance
+    question: "Is there a named accountable owner, or a risk-register entry, for AI use? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 0, reversibility: 1, blast: 2}
+    docs: [analysis/ai-use-policy-and-intake.md]
+    why: "NIST AI RMF 1.0 (Govern) assigns accountability; without an owner, findings have nowhere to go."
+  - key: incumbent-inventory-absent
+    family: governance
+    question: "Is there a per-platform list of the AI governance features the organization is entitled to, which are available, and which are enabled? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
+    docs: [analysis/configure-before-you-buy.md]
+    why: "Configuring what is already paid for comes before buying; the list is the starting point."
+  - key: vendor-evaluation-in-progress
+    family: governance
+    question: "Is a new AI-security product under evaluation or recently bought? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/reading-vendor-claims.md, analysis/build-buy-and-the-high-priest.md]
+    why: "Vendor efficacy claims are Tier C; the doc gives the written questions to ask before relying on one."
+  - key: custom-build-planned
+    family: governance
+    question: "Is a custom AI-security tool planned or being built? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/build-buy-and-the-high-priest.md]
+    why: "Every custom system needs people to keep it running for as long as it lives; maintenance is most of a system's lifecycle cost in the literature the doc cites."
+  - key: vendor-terms-unknown
+    family: governance
+    question: "For each AI platform, are its training, retention, sub-processor and residency terms known? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    why: "The vendor's terms and DPA are the primary sources; unknown terms are a contract question, not a configuration one."
+  - key: coverage-view-absent
+    family: governance
+    question: "Is there a view of which AI components the current security tooling can see? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Low
+      factors: {reach: 0, stakes: 0, reversibility: 0, blast: 2}
+    docs: [analysis/incumbent-tool-coverage.md]
+    why: "Mapping tooling onto the CoSAI component map shows where coverage sits; low priority because it informs rather than protects."
+
+  # --- frameworks ---
+  - key: framework-claimed-atlas
+    family: frameworks
+    question: "Which AI security or governance frameworks does the organization align to? (MITRE ATLAS selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "The frameworks doc says what MITRE ATLAS reaches and what it does not."
+  - key: framework-claimed-owasp
+    family: frameworks
+    question: "Which AI security or governance frameworks does the organization align to? (OWASP Top 10 for LLM Applications selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "The frameworks doc says what OWASP Top 10 for LLM Applications reaches and what it does not."
+  - key: framework-claimed-nist-ai-rmf
+    family: frameworks
+    question: "Which AI security or governance frameworks does the organization align to? (NIST AI RMF selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "The frameworks doc says what NIST AI RMF reaches and what it does not."
+  - key: framework-claimed-iso-42001
+    family: frameworks
+    question: "Which AI security or governance frameworks does the organization align to? (ISO/IEC 42001 selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "The frameworks doc says what ISO/IEC 42001 reaches and what it does not."
+  - key: framework-claimed-cosai
+    family: frameworks
+    question: "Which AI security or governance frameworks does the organization align to? (CoSAI selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "The frameworks doc says what CoSAI reaches and what it does not."
+  - key: framework-claimed-eu-ai-act
+    family: frameworks
+    question: "Which AI security or governance frameworks does the organization align to? (the EU AI Act selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "The frameworks doc says what the EU AI Act reaches and what it does not."
+  - key: framework-claimed-scf
+    family: frameworks
+    question: "Which AI security or governance frameworks does the organization align to? (the Secure Controls Framework selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "The frameworks doc says what the Secure Controls Framework reaches and what it does not."
+  - key: mapping-treated-as-coverage
+    family: frameworks
+    question: "Is a control or framework mapping cited as evidence of detection coverage? (Yes selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
+    docs: [analysis/frameworks-and-what-they-reach.md]
+    why: "A mapping says a control is relevant, not that anything is detected; the frameworks doc shows where the chain is weak."
+  - key: owasp-ids-2025
+    family: frameworks
+    question: "Do internal controls reference OWASP LLM Top 10 entries by their 2025 IDs? (A document grep reports this.)"
+    method: [E, I]
+    weight: INVENTORY
+    docs: [analysis/frameworks-and-what-they-reach.md, analysis/revalidation-and-pins.md]
+    why: "The OWASP project has announced a 2026 edition of the list, so controls keyed to 2025 IDs are flagged for a re-check against whichever edition the pins doc records."
+
+  # --- soc ---
+  - key: ai-in-soc-present
+    family: soc
+    question: "Does the SOC run an AI analyst or agent? (Yes selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/evaluating-ai-in-the-soc.md]
+    why: "Enables the SOC evaluation rows."
+  - key: ai-analyst-ungraded
+    family: soc
+    question: "Was the AI analyst evaluated against planted truth or in shadow mode before it was trusted, and is it re-evaluated on each model change? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/evaluating-ai-in-the-soc.md]
+    why: "Grade the AI analyst the way a detection is graded, and never let it grade itself."
+  - key: containment-pre-authorized-broad
+    family: soc
+    question: "Can an AI agent take containment actions beyond scoped, reversible ones without a human approving? (Yes selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: High
+      factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
+    docs: [analysis/evaluating-ai-in-the-soc.md]
+    why: "A wrong containment at machine speed has organization-wide blast radius; scoped and reversible actions are the line."
+
+  # --- assistant-oversharing ---
+  - key: grounding-permissions-unreviewed
+    family: assistant-oversharing
+    question: "Before the assistant was given access to company content, were the permissions on that content reviewed? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 1, blast: 2}
+    docs: [analysis/stubs/assistant-oversharing.md]
+    why: "An assistant grounded on company content surfaces whatever the user can technically reach; the assistant vendor's governance guidance (Tier B) and CoSAI data-governance controls are the sources."
+  - key: sensitivity-labels-absent
+    family: assistant-oversharing
+    question: "Is sensitive content labelled so the assistant and DLP can act on it? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 0, blast: 1}
+    docs: [analysis/stubs/assistant-oversharing.md]
+    why: "Labels are what the vendor's assistant controls read; the vendor documentation is the source."
+  - key: restricted-search-unset
+    family: assistant-oversharing
+    question: "Is the assistant's search scope restricted while permissions are cleaned up? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
+    docs: [analysis/stubs/assistant-oversharing.md]
+    why: "Vendors document scope restriction as the interim control during a permissions review."
+
+  # --- rag ---
+  - key: rag-acl-propagation-unknown
+    family: rag
+    question: "Do the access controls on source documents carry through into the RAG or vector store, so retrieval respects them? (No or not sure selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 1, blast: 1}
+    docs: [analysis/stubs/rag-stores.md]
+    why: "CoSAI controls and the OWASP LLM Top 10 retrieval entries describe the failure; the stub points at both."
+  - key: ingestion-integrity-unreviewed
+    family: rag
+    question: "Is what gets ingested into the RAG store reviewed or restricted to trusted sources? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/stubs/rag-stores.md]
+    why: "Poisoned or attacker-authored content in the store reaches every answer that retrieves it."
+  - key: embeddings-outside-governance
+    family: rag
+    question: "Are embeddings and vector indexes covered by the same retention and access policy as their source data? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 1, blast: 0}
+    docs: [analysis/stubs/rag-stores.md]
+    why: "Embeddings derived from sensitive data carry some of it; the stub names the standards that say so."
+
+  # --- agent-builders ---
+  - key: agent-publish-approval-absent
+    family: agent-builders
+    question: "Does publishing an agent built on a low-code or managed platform require approval? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/stubs/agent-builders.md]
+    why: "The platform's own governance controls (Tier B) and CoSAI agent controls are the sources."
+  - key: maker-credential-agents
+    family: agent-builders
+    question: "Do built agents run with the credentials of the person who made them? (Yes selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 0, blast: 1}
+    docs: [analysis/stubs/agent-builders.md]
+    why: "An agent on its maker's credentials acts with the maker's full access for every user."
+  - key: agent-external-sharing-unreviewed
+    family: agent-builders
+    question: "Can built agents be shared outside the organization, and is that reviewed? (Shareable and unreviewed selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 1, reversibility: 0, blast: 0}
+    docs: [analysis/stubs/agent-builders.md]
+    why: "External sharing makes an internal agent internet-reachable."
+  - key: connector-sprawl-unreviewed
+    family: agent-builders
+    question: "Is the set of connectors agents may use reviewed and limited? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
+    docs: [analysis/stubs/agent-builders.md]
+    why: "Each connector widens what an agent can reach; the platform's connector policy is the control."
+
+  # --- ai-you-ship ---
+  - key: output-handling-unreviewed
+    family: ai-you-ship
+    question: "For AI features the organization ships to its own customers, is model output validated before it reaches other systems or users? (No selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/stubs/ai-you-ship.md]
+    why: "OWASP's Top 10 for LLM Applications carries an output-handling entry, and NIST AI 600-1 profiles generative-AI risks for organizations that build and deploy these systems."
+  - key: pre-release-eval-absent
+    family: ai-you-ship
+    question: "Is each release of a shipped AI feature evaluated for security and misuse before it goes out? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 0, reversibility: 0, blast: 1}
+    docs: [analysis/stubs/ai-you-ship.md]
+    why: "NIST AI 600-1 and, where in scope, the EU AI Act set evaluation expectations for providers."
+  - key: abuse-monitoring-absent
+    family: ai-you-ship
+    question: "Is use of the shipped AI feature monitored for abuse? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
+    docs: [analysis/stubs/ai-you-ship.md]
+    why: "A public AI feature is an internet-reachable surface with its own abuse patterns."
+
+  # --- incident-response ---
+  - key: ai-playbook-absent
+    family: incident-response
+    question: "Does the incident-response plan have a playbook for AI incidents (prompt injection, data exposure through an assistant, a compromised agent)? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/stubs/ai-incident-response.md]
+    why: "Extend the existing IR standard; CoSAI is the AI-specific source the stub points at."
+  - key: model-rollback-untested
+    family: incident-response
+    question: "Has rolling back to a previous model version or route been tested? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 0, reversibility: 1, blast: 2}
+    docs: [analysis/stubs/ai-incident-response.md]
+    why: "A rollback that has never run is a hope, and model changes are frequent on rented surfaces."
+
+special-keys:
+  - key: "audit-always-fetch"
+    effect: "Marks the four Always Fetch docs, which every review reads and the Anti-Bloat Rule never drops."
+  - key: "questionnaire-only"
+    effect: "Recorded in output frontmatter when nothing was read from a system; the review says so."
+  - key: "not-checked"
+    effect: "An unsupplied signal; reported as not checked, never as clean, and routed to a Question Packet."
+  - key: "family-not-run-<family>"
+    effect: "A family the practitioner says the organization does not run; suppresses its rows and emits one how-do-you-know question."
+  - key: "question-packet"
+    effect: "A category-level question for the owning role, produced for every not-checked or believed-only signal."
+  - key: "profile-override-<reason>"
+    effect: "A stated override of the sizing perspective (own-by-mandate, gateway-chosen, and similar); recorded in output frontmatter and changes which variant of the decision sequence is applied."
+  - key: "contributing-new-analysis"
+    effect: "Used only by analysis/CANONICAL-DOC-TEMPLATE.md; routes nothing."

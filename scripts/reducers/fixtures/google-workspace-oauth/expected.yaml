@@ -1,0 +1,9 @@
+# google-workspace-oauth reducer v1: signal keys and counts only; nothing from the input is printed.
+reducer: google-workspace-oauth
+version: 1
+observations:
+  ai-apps-with-grants: 3
+  ai-grants-mail-or-file-scope: 2
+  ai-grants-user-consented: 4
+  grant-rows-unparsed: 1
+signals: {}

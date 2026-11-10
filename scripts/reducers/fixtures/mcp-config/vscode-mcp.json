@@ -1,0 +1,18 @@
+{
+ "servers": {
+  "fetch": {
+   "type": "stdio",
+   "command": "uvx",
+   "args": [
+    "mcp-server-fetch@latest"
+   ]
+  },
+  "tickets": {
+   "type": "sse",
+   "url": "https://198.51.100.23/sse",
+   "headers": {
+    "X-Api-Key": "EXAMPLE-KEY-carol@example.org"
+   }
+  }
+ }
+}

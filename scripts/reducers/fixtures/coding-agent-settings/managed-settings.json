@@ -1,0 +1,28 @@
+{
+ "allowManagedHooksOnly": false,
+ "allowManagedPermissionRulesOnly": true,
+ "permissions": {
+  "disableBypassPermissionsMode": "disable",
+  "deny": []
+ },
+ "allowManagedMcpServersOnly": true,
+ "allowedMcpServers": [
+  {
+   "serverUrl": "https://mcp.app01.corp.example.net/*"
+  }
+ ],
+ "hooks": {
+  "PreToolUse": [
+   {
+    "matcher": "Bash",
+    "hooks": [
+     {
+      "type": "command",
+      "command": "/opt/guard/check.sh --notify alice@example.com",
+      "onFailure": "block"
+     }
+    ]
+   }
+  ]
+ }
+}

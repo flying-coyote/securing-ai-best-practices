@@ -1,0 +1,10 @@
+# entra-consent-grants reducer v1: signal keys and counts only; nothing from the input is printed.
+reducer: entra-consent-grants
+version: 1
+observations:
+  ai-apps-with-grants: 4
+  ai-grants-admin-consented: 1
+  ai-grants-mail-or-file-scope: 3
+  ai-grants-user-consented: 4
+  grant-rows-unparsed: 1
+signals: {}

@@ -1,0 +1,71 @@
+# Synthetic fixture: a regulated financial-services organization of about
+# 8,000 people that serves its own open-weight models, fine-tunes on its own
+# records, lets developers run models locally, and runs an AI analyst in the
+# SOC. The answers come from the interview alone. Nothing here describes a real
+# organization.
+#
+# What this fixture exercises: the full branch for a large regulated
+# organization; profile-own-heavy derived from the surfaces with no profile
+# answer given; an interview observation that fires an escalation
+# (inference-runtime-default-bind to High); the believed cap on a High row
+# (containment-pre-authorized-broad); and questionnaire-only, since nothing
+# was read from a system.
+answers-block: 1
+overrides: []
+observations:
+  runtime-internet-reachable: {value: true, confidence: owner-stated}
+signals:
+  org-size-large-regulated: {value: true, confidence: owner-stated}
+  surface-unknown: {value: false, confidence: owner-stated}
+  surface-S1: {value: true, confidence: owner-stated}
+  surface-S2: {value: true, confidence: owner-stated}
+  surface-S3: {value: false, confidence: owner-stated}
+  surface-S4: {value: false, confidence: owner-stated}
+  surface-S5: {value: false, confidence: owner-stated}
+  surface-S6: {value: false, confidence: owner-stated}
+  surface-S7: {value: false, confidence: owner-stated}
+  surface-S8: {value: false, confidence: owner-stated}
+  surface-S9: {value: true, confidence: owner-stated}
+  surface-S10: {value: true, confidence: owner-stated}
+  surface-S11: {value: true, confidence: owner-stated}
+  surface-S12: {value: false, confidence: owner-stated}
+  surface-S13: {value: true, confidence: owner-stated}
+  saas-ai-toggles-unreviewed: {value: false, confidence: owner-stated}
+  vendor-training-optout-unknown: {value: false, confidence: owner-stated}
+  ai-subprocessor-review-absent: {value: false, confidence: owner-stated}
+  oauth-grants-unreviewed: {value: false, confidence: owner-stated}
+  plan-tier-below-audit: {value: false, confidence: owner-stated}
+  audit-log-off-office-suite-assistant: {value: false, confidence: owner-stated}
+  content-channel-off: {value: true, confidence: owner-stated}
+  grounding-permissions-unreviewed: {value: false, confidence: owner-stated}
+  sensitivity-labels-absent: {value: false, confidence: owner-stated}
+  restricted-search-unset: {value: false, confidence: owner-stated}
+  inference-runtime-default-bind: {value: true, confidence: owner-stated}
+  model-store-unscanned: {value: true, confidence: owner-stated}
+  pickle-formats-present: {value: true, confidence: owner-stated}
+  fine-tuned-models: {value: true, confidence: owner-stated}
+  training-record-absent: {value: true, confidence: owner-stated}
+  ai-analyst-ungraded: {value: true, confidence: owner-stated}
+  containment-pre-authorized-broad: {value: true, confidence: believed}
+  telemetry-into-llm: {value: true, confidence: owner-stated}
+  content-lands-vendor: {value: true, confidence: owner-stated}
+  prompt-capture-tier-metadata: {value: true, confidence: owner-stated}
+  jurisdiction-uk: {value: true, confidence: owner-stated}
+  dpia-absent: {value: false, confidence: owner-stated}
+  works-council-unconsulted: {value: false, confidence: owner-stated}
+  record-in-agent-reach: {value: true, confidence: owner-stated}
+  delegation-record-absent: {value: true, confidence: owner-stated}
+  agent-kill-switch-absent: {value: true, confidence: owner-stated}
+  ai-playbook-absent: {value: true, confidence: owner-stated}
+  model-rollback-untested: {value: true, confidence: owner-stated}
+  ai-aup-absent: {value: false, confidence: owner-stated}
+  ai-tool-intake-absent: {value: false, confidence: owner-stated}
+  ai-owner-unnamed: {value: false, confidence: owner-stated}
+  incumbent-inventory-absent: {value: false, confidence: owner-stated}
+  vendor-evaluation-in-progress: {value: false, confidence: owner-stated}
+  custom-build-planned: {value: true, confidence: owner-stated}
+  vendor-terms-unknown: {value: false, confidence: owner-stated}
+  coverage-view-absent: {value: true, confidence: owner-stated}
+  mapping-treated-as-coverage: {value: true, confidence: owner-stated}
+  framework-claimed-nist-ai-rmf: {value: true, confidence: owner-stated}
+  framework-claimed-iso-42001: {value: true, confidence: owner-stated}

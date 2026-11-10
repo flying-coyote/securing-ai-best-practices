@@ -1,0 +1,17 @@
+# coding-agent-settings reducer v1: signal keys and counts only; nothing from the input is printed.
+reducer: coding-agent-settings
+version: 1
+observations:
+  deny-rules: 0
+  disable-all-hooks-set: 1
+  hooks-configured: 5
+  hooks-fail-closed: 2
+  hooks-outside-managed: 4
+  managed-locks-set: 2
+  managed-tier-seen: true
+  settings-files-read: 4
+signals:
+  coding-agent-managed-tier-absent: {value: false, confidence: read}
+  hook-fail-open: {value: true, confidence: read}
+  hooks-user-disableable: {value: true, confidence: read}
+  mcp-allowlist-absent: {value: false, confidence: read}

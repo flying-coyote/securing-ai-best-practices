@@ -1,0 +1,16 @@
+{
+ "version": 1,
+ "hooks": {
+  "beforeShellExecution": [
+   {
+    "command": "/opt/guard/cursor-check.sh",
+    "failClosed": true
+   }
+  ],
+  "beforeMCPExecution": [
+   {
+    "command": "/opt/guard/mcp-log.sh 198.51.100.23"
+   }
+  ]
+ }
+}

@@ -1,0 +1,9 @@
+# okta-apps reducer v1: signal keys and counts only; nothing from the input is printed.
+reducer: okta-apps
+version: 1
+observations:
+  ai-apps-federated: 2
+  ai-apps-in-idp: 4
+  ai-apps-inactive: 1
+  ai-apps-not-federated: 2
+signals: {}

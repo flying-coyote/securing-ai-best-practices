@@ -1,0 +1,8 @@
+# expense-ai-vendors reducer v1: signal keys and counts only; nothing from the input is printed.
+reducer: expense-ai-vendors
+version: 1
+observations:
+  ai-spend-lines: 5
+  ai-spend-lines-personal-card: 2
+  ai-vendors-in-spend: 4
+signals: {}

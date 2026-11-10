@@ -1,0 +1,159 @@
+name: checks
+
+# The two deterministic jobs that branch protection requires on the default
+# branch: `check-internal-links` and `test-instruments`. Both are adapted from
+# claude-code-project-best-practices (MIT), whose workflow taught the lessons
+# written into the comments below.
+#
+# Three further jobs are planned for this file and are not here yet, on
+# purpose, because each needs something the skeleton does not have:
+#   markdown-lint               comment-only, never fails a PR; needs a pinned
+#                               linter config
+#   check-links                 external links, scheduled, cannot fail a PR,
+#                               updates ONE standing issue in place and never
+#                               files a new one
+#   check-source-accessibility  scheduled probe of the pinned ATLAS, CoSAI,
+#                               OCSF, MCP specification and OWASP release pages,
+#                               writing into the same standing issue
+# They need a pinned linter config and a standing-issue updater that do not
+# exist yet, and none of them will ever be a required check. check-pins.py is
+# deliberately absent: it runs in the weekly review, where its count belongs,
+# and fails only for the pins doc.
+
+on:
+  # No `paths:` filter on pull_request, deliberately. A required check whose
+  # workflow is filtered out never reports, so GitHub holds the PR at
+  # "Expected" forever; a LICENSE-only or workflow-only PR would be unmergeable.
+  # Running on every PR is the simplest way to guarantee the required checks
+  # always report, and both jobs finish in well under a minute.
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-internal-links:
+    runs-on: ubuntu-latest
+    outputs:
+      dangling_live: ${{ steps.internal.outputs.dangling_live }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Fails closed. A crash, a renamed script or an unparseable report is an
+      # error, never a silent zero: a check that reports clean when its
+      # instrument is broken manufactures the evidence that nothing is wrong.
+      #
+      # The awk reads the FIRST row whose first field is exactly "dangling".
+      # The instrument prints a second line starting with "dangling" (the detail
+      # header) only when a live doc has a broken link, so a looser /^dangling/
+      # match parses the healthy case and breaks in the one case the gate exists
+      # for. scripts/test-measure-link-reachability.py extracts this exact awk
+      # from this file and tests it against both cases, so keep the DANGLING
+      # line byte-for-byte or update the test with it.
+      - name: Check internal links (deterministic)
+        id: internal
+        run: |
+          set -euo pipefail
+          python3 scripts/measure-link-reachability.py --links > /tmp/links.txt
+          cat /tmp/links.txt
+          DANGLING=$(awk '$1=="dangling"{print $2; exit}' /tmp/links.txt)
+          if ! [[ "$DANGLING" =~ ^[0-9]+$ ]]; then
+            echo "::error::instrument produced no parseable 'dangling' row (got: '${DANGLING}'), refusing to report a count."
+            exit 1
+          fi
+          echo "dangling_live=${DANGLING}" >> "$GITHUB_OUTPUT"
+
+      # Fails on every event, not only on pull requests, so a broken link that
+      # reached the default branch some other way shows red there too.
+      - name: Fail on any dangling internal link
+        if: steps.internal.outputs.dangling_live != '0'
+        run: |
+          echo "::error::${{ steps.internal.outputs.dangling_live }} dangling internal link(s) in the live docs."
+          echo "Run: python3 scripts/measure-link-reachability.py --links"
+          exit 1
+
+  test-instruments:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so the expiry check can diff the PR against its base.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install the one dependency
+        run: python -m pip install --quiet 'PyYAML==6.0.2'
+
+      # Determinism across hash seeds, mode and entry-tier monotonicity, and the
+      # gate's own awk parsed against a clean and a deliberately broken corpus.
+      - name: Test the link-reachability instrument
+        run: python scripts/test-measure-link-reachability.py
+
+      # README and ONE-LINE-PROMPT carry one block; it must be byte-identical
+      # in both, and after a release it must pin the newest tag's commit. The
+      # script never runs git, so the tag is resolved here. On the tagged
+      # commit itself the blocks still carry the placeholder (a commit cannot
+      # hold its own SHA), so the SHA comparison starts on the commit that
+      # bumps them.
+      - name: Prompt blocks identical and pinned to the newest release
+        run: |
+          set -euo pipefail
+          TAG=$(git tag --list 'v[0-9][0-9][0-9][0-9].[0-9][0-9]' --sort=-v:refname | head -n1)
+          if [ -z "$TAG" ]; then
+            python scripts/check-prompt-blocks.py
+          else
+            TAG_COMMIT=$(git rev-list -n1 "$TAG")
+            if [ "$TAG_COMMIT" = "$(git rev-parse HEAD)" ]; then
+              python scripts/check-prompt-blocks.py
+            else
+              python scripts/check-prompt-blocks.py --tag "$TAG" --tag-commit "$TAG_COMMIT"
+            fi
+          fi
+
+      # Every shipped doc routed, every key asked, every applies-to-signals
+      # entry a key, factors folding into bands, escalations machine-readable,
+      # and AUDIT-CONTEXT's rendered routing section equal to routing.yaml.
+      - name: Routing coverage
+        run: python scripts/check-routing-coverage.py
+
+      # The reference mapper against the three golden fixtures.
+      - name: Route the fixtures
+        run: python scripts/route.py --check-fixtures
+
+      - name: Greppable exclusions
+        run: python scripts/check-exclusions.py
+
+      # Each check passes on the tree and fails on a planted defect, and the
+      # release bundle builds deterministically, all on temporary copies.
+      - name: Test the checks against planted defects
+        run: python scripts/test-checks.py
+
+      # Reducers print only declared names with counts or enums: exact goldens,
+      # no input string (emails, hostnames, identifiers, secret-shaped values,
+      # an injected instruction in plain and hidden text) in their output.
+      - name: Test the reducers, including the injected-instruction and identifier-leak cases
+        run: python scripts/test-reducers.py
+
+      # Scoped expiry. On a pull request it fails only when an expired
+      # measurement claim sits in a doc that PR touches, so the gate never
+      # blocks the PR that fixes an expiry or any unrelated work. On every
+      # other event it prints the full count and does not fail; the weekly
+      # review reads that count.
+      - name: Check for expired measurement claims (scoped to changed files)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            mapfile -t CHANGED < <(git diff --name-only "origin/${BASE_REF}...HEAD")
+            python scripts/check-measurement-expiry.py --changed-files "${CHANGED[@]}"
+          else
+            python scripts/check-measurement-expiry.py --changed-files
+          fi

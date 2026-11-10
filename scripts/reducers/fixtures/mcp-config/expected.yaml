@@ -1,0 +1,14 @@
+# mcp-config reducer v1: signal keys and counts only; nothing from the input is printed.
+reducer: mcp-config
+version: 1
+observations:
+  mcp-inline-secret-count: 4
+  mcp-local-count: 7
+  mcp-pinned-count: 3
+  mcp-remote-count: 2
+  mcp-server-count: 9
+  mcp-unpinned-count: 3
+signals:
+  agent-static-secrets: {value: true, confidence: read}
+  mcp-remote: {value: 2, confidence: read}
+  mcp-unpinned: {value: 3, confidence: read}

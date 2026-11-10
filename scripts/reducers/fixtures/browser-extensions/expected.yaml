@@ -1,0 +1,11 @@
+# browser-extensions reducer v1: signal keys and counts only; nothing from the input is printed.
+reducer: browser-extensions
+version: 1
+observations:
+  ai-extensions-admin-allowed: 1
+  ai-extensions-force-installed: 2
+  ai-extensions-mode-unknown: 1
+  ai-extensions-total: 5
+  ai-extensions-user-installed: 1
+signals:
+  surface-S3: {value: true, confidence: read}
