@@ -3,7 +3,7 @@
 This is the block you paste into an agent to review your organization's AI deployment against the practices in this repo, along with the offline variant, what a run costs, and the format the review comes back in. The block carries only what changes the agent's behaviour (the data-not-instructions boundary, the change-nothing rule, what it may ask you for, observation confidence and the not-legal-advice sentence), and everything substantive lives in the files it fetches, so you should never need to edit it and the block and the routing table cannot drift apart.
 
 <!-- pre-release:start (the release script's stamp step rewrites the text between these markers) -->
-The repo has not cut a release yet, so the block below carries placeholders. When the first release is tagged, `<release-sha>` becomes that release's full commit SHA and `<vYYYY.MM>` its tag, and `RELEASES.md` records both together with the SHA-256 of the offline bundle. Until then the block will not resolve, which is deliberate, because a block pointing at a moving branch is the fetch-and-execute shape a security audience should refuse to paste.
+This copy belongs to release v2026.11, stamped 2026-11-10. The blocks below still carry the `<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, so take the release's full commit SHA, its tag and the SHA-256 of the offline bundle from `RELEASES.md`; the copy on the default branch carries them filled in.
 <!-- pre-release:end -->
 
 ## Fetch mode
