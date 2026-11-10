@@ -9,6 +9,13 @@ fresh copy of the repo (it must pass) and once on a copy with one defect
 planted (it must fail, and say why). Nothing in the working tree is modified;
 every copy lives in a temporary directory.
 
+Some checks depend on a file being absent (no pins doc yet, an Always Fetch
+doc not written). Those states belonged to the skeleton and vanish as the repo
+fills in, so the test no longer reads them off the real tree: it plants each
+one in its own temporary copy by removing the file there, which keeps every
+check meaningful whether the working tree is a bare skeleton or a release
+candidate.
+
 Covered: check-prompt-blocks.py, check-routing-coverage.py,
 render-audit-context.py, route.py, check-exclusions.py, check-pins.py and
 build-release-bundle.sh.
@@ -23,6 +30,8 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
@@ -41,6 +50,20 @@ def tree(td: str) -> Path:
         else:
             shutil.copy2(src, root / name)
     return root
+
+
+def unwrite(root: Path, rel: str) -> str:
+    """Plant the skeleton state 'this doc is not written yet' in a copy."""
+    p = root / rel
+    if p.is_file():
+        p.unlink()
+    return rel
+
+
+def always_fetch(root: Path) -> list[str]:
+    docs = list((yaml.safe_load((root / "routing.yaml").read_text(encoding="utf-8")) or {}).get("always-fetch") or [])
+    assert docs, "routing.yaml has no always-fetch list to plant a missing doc from"
+    return docs
 
 
 def run(args: list[str], root: Path, env: dict | None = None) -> subprocess.CompletedProcess:
@@ -90,8 +113,13 @@ def main() -> int:
         r = tree(td)
         expect("render --check passes on the tree", run(["render-audit-context.py", "--root", str(r), "--check"], r), True)
         expect("routing coverage passes on the tree", run(["check-routing-coverage.py", "--root", str(r)], r), True)
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        unwrite(r, always_fetch(r)[0])
         expect("routing coverage --release fails while routed docs are unwritten",
                run(["check-routing-coverage.py", "--root", str(r), "--release"], r), False, "not written")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
         edit(r / "routing.yaml", "      factors: {reach: 2, stakes: 2, reversibility: 1, blast: 1}",
              "      factors: {reach: 0, stakes: 2, reversibility: 1, blast: 1}")
         expect("routing coverage: factors that no longer fold into the band fail",
@@ -159,6 +187,7 @@ def main() -> int:
     # check-pins
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
+        unwrite(r, "analysis/revalidation-and-pins.md")
         expect("pins: no pins doc yet passes", run(["check-pins.py", "--root", str(r)], r), True, "not written yet")
         (r / "analysis" / "revalidation-and-pins.md").write_text(
             "---\npins:\n  - \"MITRE ATLAS v2026.10\"\n  - \"OCSF 1.9.0\"\n---\n", encoding="utf-8")
@@ -179,8 +208,12 @@ def main() -> int:
         expect("bundle: stamp writes the tag and date", run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), True)
         ac = (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
         results.append(("Release: v2026.12. Date: 2026-12-01." in ac, "bundle: AUDIT-CONTEXT header stamped"))
+        held = always_fetch(r)[0]
+        body = (r / held).read_bytes()
+        unwrite(r, held)
         expect("bundle: refuses to build while Always Fetch docs are missing",
                run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, "Always Fetch docs missing")
+        (r / held).write_bytes(body)
         p = run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, dict(env, ALLOW_MISSING="1"))
         expect("bundle: builds with ALLOW_MISSING=1", p, True)
         out = r / "dist" / "securing-ai-best-practices-v2026.12.md"

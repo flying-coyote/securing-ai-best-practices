@@ -38,25 +38,25 @@ The incident record reaches both surfaces through familiar doors. MITRE ATLAS ca
 
 ## What the platforms ship (as of 2026-11-09)
 
-Each row is the vendor's published default for the product, not any tenant's configuration. Where the first column names an ai-config-pointers companion page, that page carries the full row with console path and licence.
+Each row is the vendor's published default for the product, not any tenant's configuration. The fuller rows, with console path and licence, will sit in the forthcoming ai-config-pointers set (Decision 12).
 
 | Platform family | Setting | Default | Where the record lands | last-checked |
 |---|---|---|---|---|
-| Copilot Studio (`g1-microsoft-365-entra-copilot-studio.md`) | Data policy blocking the "Chat without Microsoft Entra ID authentication" connector (external sharing; B) | unset; new agents default to authenticated, but a maker can choose no authentication | violation row in the Channels page download; publish blocked | 2026-11-09 |
+| Copilot Studio | Data policy blocking the "Chat without Microsoft Entra ID authentication" connector (external sharing; B) | unset; new agents default to authenticated, but a maker can choose no authentication | violation row in the Channels page download; publish blocked | 2026-11-09 |
 | Copilot Studio | Data policy blocking publishing channels, including Direct Line for websites and apps (external sharing; B) | Direct Line channels allowed | violation row; channel disabled for the maker | 2026-11-09 |
 | Copilot Studio | Data policy blocking connectors used as tools, which also blocks MCP tools reached through them (connectors; B) | unset | violation row; publish blocked | 2026-11-09 |
 | Copilot Studio | Managed Environments sharing limits: no security-group sharing, viewer cap (external sharing; B) | no limits until set; existing shares are not revoked | sharing error in the maker UI | 2026-11-09 |
 | Copilot Studio | Tenant setting to publish agents with generative AI features (publish; C, name from a search excerpt) | not stated | none named | 2026-11-09 |
 | Copilot Studio | Audit records for maker and admin activity such as agent creation (publish; C, page read via excerpt) | on, stays in Purview unless exported | Purview unified audit log | 2026-11-09 |
-| Entra Agent ID (`g1-microsoft-365-entra-entra-id.md`) | Agent identity created for each Copilot Studio agent, creator recorded as sponsor (inventory; B) | on | Entra directory objects and sign-in logs | 2026-11-09 |
-| Agentforce (`g8-saas-data-integration-salesforce.md`) | Agent running user (maker credential; C) | service agents get a new user with no inherited permissions plus a vendor permission set group; employee agents run as the invoking user | Setup Audit Trail for permission set changes | 2026-11-09 |
+| Entra Agent ID | Agent identity created for each Copilot Studio agent, creator recorded as sponsor (inventory; B) | on | Entra directory objects and sign-in logs | 2026-11-09 |
+| Agentforce | Agent running user (maker credential; C) | service agents get a new user with no inherited permissions plus a vendor permission set group; employee agents run as the invoking user | Setup Audit Trail for permission set changes | 2026-11-09 |
 | Agentforce | External MCP server tool approval (connectors; C, vendor blogs) | off, no tools exposed until an admin approves them | tool approval event not documented | 2026-11-09 |
-| ServiceNow (`g8-saas-data-integration-servicenow.md`) | AI Gateway approval playbook on MCP server registration (connectors; B, with the approval-before-activation detail from a community post, C) | not stated | AI Control Tower inventory | 2026-11-09 |
+| ServiceNow | AI Gateway approval playbook on MCP server registration (connectors; B, with the approval-before-activation detail from a community post, C) | not stated | AI Control Tower inventory | 2026-11-09 |
 | ServiceNow | AI Control Tower flags for privileged and dormant agents (maker credential; B) | not stated | AI Control Tower inventory | 2026-11-09 |
-| Workato (`g8-saas-data-integration-workato.md`) | Runtime user connections for agent skills, so each skill runs with the end user's credential (maker credential; B) | unset, builder's choice per skill | activity audit log | 2026-11-09 |
+| Workato | Runtime user connections for agent skills, so each skill runs with the end user's credential (maker credential; B) | unset, builder's choice per skill | activity audit log | 2026-11-09 |
 | Workato | Project Admin scope over who creates agents and adds MCP skills (publish; B) | role assignment; no separate publish permission named | activity audit log | 2026-11-09 |
-| Amazon Bedrock AgentCore (`g3-clouds-aws.md`) | Workload identity and token vault API activity as CloudTrail data events (inventory; B) | off by default and billed when on | CloudTrail, only if data events are enabled | 2026-11-09 |
-| Google Cloud Agent Identity (Agent Identity overview page; the `g3-clouds-gcp.md` row does not carry this detail) | IAM bindings left after an agent is deleted (inventory; B) | bindings remain as inactive grants | Cloud IAM policy | 2026-11-09 |
+| Amazon Bedrock AgentCore | Workload identity and token vault API activity as CloudTrail data events (inventory; B) | off by default and billed when on | CloudTrail, only if data events are enabled | 2026-11-09 |
+| Google Cloud Agent Identity (read from the Agent Identity overview page) | IAM bindings left after an agent is deleted (inventory; B) | bindings remain as inactive grants | Cloud IAM policy | 2026-11-09 |
 
 Two things stand out from building the table. As far as the four SaaS builder pages I read go, none names a publish-approval step for agents in the form the signal's question asks about; the closest equivalents are policies that block publish outright, an approval playbook on tool registration, and role scoping over who may build, which is why the first action above talks about a gate the platform already offers. And the maker-credential question has three different answers across three products (a dedicated agent user, the invoking user, or the builder's choice per skill), so the review should ask which one each built agent uses rather than which one the platform supports.
 
@@ -73,7 +73,7 @@ A blocked connector or an authenticated channel does not make an agent safe to r
 - Convergence is single-source because CoSAI's agent controls are a draft framework in a working repository and no second implementation of a publish-approval control is shown here, so the standards route does not apply.
 - No lab run this repo cites touches this family, so the frontmatter carries no `measurement-claims`.
 - The turn-on order stated in the summary (sharing first because it is cheap, then connectors, then credentials) is my practitioner judgement, Tier D, dated 2026-11-10; the bullet list itself follows the signal order in `routing.yaml`.
-- The companion pages are named by file rather than linked until the ai-config-pointers set has a public address; they are linked, never copied, per Decision 12.
+- The ai-config-pointers set is a separate repository, the platforms layer beside this one (Decision 12), and it is not yet public, so this document calls it forthcoming and carries no link to it; its pages will be linked, never copied, once it has a public address.
 - The CoSAI control descriptions are paraphrased, and the KEV count was re-derived from catalogue 2026.11.09 on 2026-11-10.
 
 ## Sources

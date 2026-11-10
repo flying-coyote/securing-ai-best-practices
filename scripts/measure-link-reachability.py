@@ -472,12 +472,32 @@ def main() -> int:
               "always spans both lanes and reports them as separate columns.",
               file=sys.stderr)
     corpus = repo_markdown(root, include_archive=args.include_archive or args.links)
+
+    # Fails closed in every mode, --links included. The emptiness check used to
+    # sit after the --links return, so the reachability report refused an empty
+    # corpus while --links printed an all-zero table and exited 0, and the CI
+    # gate read that as "0 dangling". The common way to get there is a git
+    # repository whose markdown is on disk but not yet tracked (git ls-files
+    # succeeds and returns nothing), which is exactly the state of a tree
+    # before its first commit, so the gate passed vacuously on the one tree it
+    # had never seen.
+    if not corpus:
+        on_disk = [p for p in root.rglob("*.md")
+                   if not any(part in DEFAULT_EXCLUDES for part in p.relative_to(root).parts)
+                   and (args.include_archive or args.links
+                        or not p.relative_to(root).as_posix().startswith("archive/"))]
+        if on_disk:
+            print(f"error: {len(on_disk)} markdown file(s) on disk but none tracked by git; "
+                  f"the corpus is read from git ls-files, so commit (or at least add) "
+                  f"the docs before measuring. Refusing to report a vacuous result.",
+                  file=sys.stderr)
+        else:
+            print("error: no markdown found; refusing to report a vacuous result.",
+                  file=sys.stderr)
+        return 1
+
     if args.links:
         return report_links(root, corpus)
-
-    if not corpus:
-        print("no markdown found", file=sys.stderr)
-        return 1
 
     tiers = [args.entry] if args.entry else sorted(ENTRY_TIERS)
     modes = [args.mode] if args.mode else MODES

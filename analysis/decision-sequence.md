@@ -21,7 +21,7 @@ Evidence tier: Mixed. Each of the sixteen decisions is carried by practitioner t
 
 ## Summary for the review
 
-The ordering principle, in two sentences: take the decisions in the order ownership, risk tolerance, configure what you own, gateway and identities, log tier, evaluation, containment, and only then the vendor conversation, because each earlier step produces the inventory or telemetry the later ones need to be honest. That order is my judgement as a practitioner (Tier D), the interview accepts a one-line override of it, and the output should print which variant it applied.
+The ordering principle, in two sentences: take the decisions in the order ownership, risk tolerance, configure what you own, gateway and identities, log tier, evaluation, containment, and only then the vendor conversation, because each earlier step produces the inventory or telemetry the later ones depend on. That order is my judgement as a practitioner (Tier D), the interview accepts a one-line override of it, and the output should print which variant it applied.
 
 Practices for the review, as actions:
 
@@ -106,7 +106,7 @@ This is a full quarter for a team of two. If something has to slip, I'd let step
 
 ### First year: join, evaluate, tighten, buy what stays blind
 
-1. Join what the first 90 days switched on over four keys (host, identity, resource, credential), which gives the first honest inventory of AI in use and the denominator every later evaluation needs (rows 3, 4; `inventory-and-shadow-ai.md`).
+1. Join what the first 90 days switched on over four keys (host, identity, resource, credential), which gives the first reliable inventory of AI in use and the denominator every later evaluation needs (rows 3, 4; `inventory-and-shadow-ai.md`).
 2. Move the gateway to enforce once every key has an owner (rows 5, 7).
 3. Agree the triggers for on-demand content capture with privacy and works councils, with a measured redaction recall in the DPIA (row 8).
 4. Finish the coding-agent order: MCP allowlist with a manifest snapshot and diff, the required sandbox, one fail-closed hook only where deny rules cannot reach (rows 4, 9; `coding-agent-hooks-and-policy.md`).
@@ -191,7 +191,6 @@ The sequence is not a maturity score, and a regulated organization that owns a s
 ## Notes
 
 - Status (2026-11-10): ships `EMERGING` ahead of the long-form article that argues the sequence (`DECISIONS.md` Decision 15) and gains a `follows:` line naming the article when it publishes.
-- The sixteen rows are this document's only decision numbering.
 - Measurement claims: none. The lab figures the decisions rest on live in the routed documents, pinned to sdw-lab-benchmarks branch `hub/ai-research-2026-11-09` until it merges.
 - The 80 to 90 percent observation (dated 2026-11-09) is a perspective, not a measurement; any anecdote behind it comes from operational work before August 2026 or is stated generally.
 - Revalidate-by is three months out because ATLAS releases and the 2026-12-02 trigger fall inside the window. Products in the trigger table are examples of a trigger kind; nothing here says any named organization runs any product.

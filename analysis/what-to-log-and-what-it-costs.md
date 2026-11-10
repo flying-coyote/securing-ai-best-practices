@@ -10,7 +10,7 @@ last-verified: 2026-11-10
 revalidate-by: 2027-04-10
 status: EMERGING
 measurement-claims:
-  - claim: "Per million billed tokens, coding tier, Parquet zstd default: metadata only about 1.1 KB, metadata plus prompt and response hashes about 2.6 KB, delta text 26 to 32 KB, full prompt as sent about 0.2 MB to 0.9 MB, roughly 180 to 800 times the metadata footprint, with the top of that range from a single-seed exploratory probe"
+  - claim: "Per million billed tokens, coding tier, Parquet with zstd at its default level 1: metadata only about 1.1 KB, metadata plus prompt and response hashes about 2.6 KB, delta text 26 to 32 KB, full prompt as sent about 0.2 MB to 0.9 MB, roughly 180 to 800 times the metadata footprint, with the top of that range from a single-seed exploratory probe"
     source: "sdw-lab-benchmarks branch hub/ai-research-2026-11-09 agent-telemetry-retention/RESULTS.md"
     date: 2026-11-09
     revalidate: 2027-05-10
@@ -61,7 +61,7 @@ The default state of the platforms is already metadata. The content channel is a
 
 ### Five capture tiers and what each costs
 
-The tiers below are the five the interview asks about, and they map one-to-one onto the four arms of the lab's retention run (R6) plus "none". The run wrote synthetic OCSF 1.9.0 `ai_operation` records for coding-agent and chat sessions each way, measured the bytes per million billed tokens, and priced a year of retention from those bytes, in Parquet with pyarrow 24.0.0 at the default zstd setting (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09, agent-telemetry-retention, VERIFIED-WITH-FIXES: every measured number reproduced byte for byte, two hypothesis verdicts were restated, and the real-text corpora reproduce only from the stored files because the prose pool was not snapshotted).
+The tiers below are the five the interview asks about, and they map one-to-one onto the four arms of the lab's retention run (R6) plus "none". The run wrote synthetic OCSF 1.9.0 `ai_operation` records for coding-agent and chat sessions each way, measured the bytes per million billed tokens, and priced a year of retention from those bytes, in Parquet with pyarrow 24.0.0, zstd at its default level 1 (the codec was set explicitly, since pyarrow defaults to snappy) (Tier B, sdw-lab-benchmarks branch hub/ai-research-2026-11-09, agent-telemetry-retention, VERIFIED-WITH-FIXES: every measured number reproduced byte for byte, two hypothesis verdicts were restated, and the real-text corpora reproduce only from the stored files because the prose pool was not snapshotted).
 
 | Tier | What it holds | Bytes per million billed tokens (coding, session-sorted to random) | Raw ingest per active day, 1,000 coding users |
 |---|---|---|---|
@@ -97,7 +97,7 @@ This is my proposal (Tier D), and it is also the shape the EU texts point at. Re
 
 The triggers I'd start from are a classifier or guardrail verdict, a DLP match, a destructive or external-write tool call, an off-allowlist MCP server, a delegation chain that escalates, an identity under a documented investigation, a user-reported model fault and a confirmed stolen credential. Two qualifiers come with that list. Stacking verdict triggers compounds their false positives, since LLMail-Inject's stress test put single defences at 0% to 5.7% false positives and all of them stacked at 10% (Tier A, Findings of EMNLP 2026, appendix Table 8, a Microsoft-led study of largely Microsoft defences), so measure the rule on your own tool outputs first. And a trigger can reach content that came before it only if the content channel is on and buffered somewhere short-lived (a bucket with a lifecycle rule of days, or a collector that drops text after a window unless a trigger promotes the session); without that buffer, delta capture runs forward from the trigger, which answers what the agent did next and loses what it was told.
 
-Delta text in session order plus a version hash of the system prompt can rebuild an append-only agent's full prompt, and the hash of the full prompt verifies the rebuild, which on the run's medians is roughly an eighth to a twenty-fourth of full-context storage. That rebuild breaks wherever the agent compacts or summarises its own context, which many coding agents do on long sessions, and that is the honest reason for a full-context exception.
+Delta text in session order plus a version hash of the system prompt can rebuild an append-only agent's full prompt, and the hash of the full prompt verifies the rebuild, which on the run's medians is roughly an eighth to a twenty-fourth of full-context storage. That rebuild breaks wherever the agent compacts or summarises its own context, which many coding agents do on long sessions, and that is the real reason for a full-context exception.
 
 ## What this does not mean
 

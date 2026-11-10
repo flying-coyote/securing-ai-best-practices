@@ -1,11 +1,11 @@
 # Audit context: securing-AI review map
 
 <!-- release-header: the release script writes the tag and date here before tagging -->
-Release: unreleased (skeleton). Date: not stamped.
+Release: unreleased (pre-v0.1). Date: not stamped.
 
 This is the file the one-line review fetches first. It tells the agent how to interview the practitioner, how to read what they paste, how to turn answers into a list of documents, how to rank what it finds, and what the review must contain. The practitioner never edits it. If you are a person reading it, `routing.yaml` holds the same routing as data, and the review's output format is in `ONE-LINE-PROMPT.md`.
 
-> Pre-release. The interview, the routing section (rendered from `routing.yaml`), the Answers Block shape and the rubric are complete, and `scripts/route.py` reproduces the routing for three synthetic fixtures in `fixtures/`; the analysis documents the routing points at are still being written. An agent fetching this file before the first release should stop and say the repo is unreleased.
+> Pre-release. The interview, the routing section (rendered from `routing.yaml`), the Answers Block shape and the rubric are complete, and `scripts/route.py` reproduces the routing for three synthetic fixtures in `fixtures/`; the v0.1 analysis documents and stubs are drafted but not yet independently verified, and some documents the routing points at are planned for later releases and not written yet. An agent fetching this file before the first release should stop and say the repo is unreleased.
 
 ## Boundaries
 

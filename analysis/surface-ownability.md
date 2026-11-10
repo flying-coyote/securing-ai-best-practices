@@ -18,7 +18,7 @@ Evidence tier: Mixed, A for the CoSAI YAML counts and the ATLAS step counts, D f
 
 ## Summary for the review
 
-The CoSAI component map describes an AI system its operator owns end to end, and most of the thirteen ways AI gets deployed in an organization are systems the organization rents, so on most surfaces the parts it can configure and instrument are its identity provider, its network enforcement point and whatever audit record the vendor exports. The surfaces fall into three bands, which tell the review where effort can land.
+The CoSAI component map describes an AI system its operator owns end to end, and most of the thirteen ways AI gets deployed in an organization are systems the organization rents, so on most surfaces the parts it can configure and instrument are its identity provider, its network enforcement point and whatever audit record the vendor exports. The surfaces fall into three bands (Tier D, one author's reading of the CoSAI map), which tell the review where effort can land.
 
 - Own all: S9 self-hosted serving, S11 fine-tuning pipelines, S12 RAG and vector stores (a rented embedding model and a public model registry are the usual exceptions).
 - Own the agent, tool and orchestration components, with the model reached through another surface: S4 coding agents, S5 MCP servers and agent tools, S6 low-code builders.

@@ -30,7 +30,7 @@ Before an organization buys anything for AI security, it should find out what it
 
 ## Why this matters
 
-The question "what should we buy for AI security" has a prior question that many teams skip, which is what the platforms they already license now do for AI. Over 2025 and 2026 the suites, identity providers, clouds, endpoint agents, code platforms and SSE products shipped AI-specific features such as AI app catalogues, endpoint agent inventories, agent identity types and agent audit records, and many of those shipped into an admin centre the AI owner does not look at, or default to off, or produce a record that stays in the vendor's store and never reaches a defender (Tier B, vendor admin documentation read 2026-11-09; the per-product detail is in the ai-config-pointers companion set, Decision 12). So licence-sheet coverage and tenant coverage are two different numbers, and the distance between them is a configuration gap before it is a product gap.
+The question "what should we buy for AI security" has a prior question that many teams skip, which is what the platforms they already license now do for AI. Over 2025 and 2026 the suites, identity providers, clouds, endpoint agents, code platforms and SSE products shipped AI-specific features such as AI app catalogues, endpoint agent inventories, agent identity types and agent audit records, and many of those shipped into an admin centre the AI owner does not look at, or default to off, or produce a record that stays in the vendor's store and never reaches a defender (Tier B, vendor admin documentation read 2026-11-09; the per-product detail will be in the forthcoming ai-config-pointers set, Decision 12). So licence-sheet coverage and tenant coverage are two different numbers, and the distance between them is a configuration gap before it is a product gap.
 
 In my own earlier operational work, something like 80 to 90 percent of what I needed for a given problem was already present in platforms we licensed, and the vast majority of what we had was unconfigured or misconfigured. That is a practitioner view, offered as a general observation, and it is carried here at Tier D (marker dated 2026-11-10; see Notes). I have found no survey that measures it, and I haven't found anything in the public record that contradicts it either, which is why the next section lays out what the record does measure and keeps those sources apart rather than adding them up.
 
@@ -74,30 +74,30 @@ Step two is the audit. An enabled feature is not yet a control, and each state b
 4. Alerted: a detection or a review consumes the record, and it has been exercised against a planted event, ideally with a variant, on a known date.
 5. Owned: a named role owns the configuration and the response, recorded somewhere a successor will find it.
 
-The grade is the highest state at which every earlier state is a yes, so a feature that is exported but not scoped grades at state 1 (Tier D). That rule looks harsh, and I think it should, because the common finding is a record that exists for some users on some endpoints and sits in a 30-day vendor window, and calling that "logged" is how a coverage view turns into a brochure. The ai-config-pointers companion worksheet fills these same five states from read-only tenant APIs, which is why "accepted" is a disposition column here rather than a sixth state.
+The grade is the highest state at which every earlier state is a yes, so a feature that is exported but not scoped grades at state 1 (Tier D). That rule looks harsh, and I think it should, because the common finding is a record that exists for some users on some endpoints and sits in a 30-day vendor window, and calling that "logged" is how a coverage view turns into a brochure. The worksheet planned for the forthcoming ai-config-pointers set fills these same five states from read-only tenant APIs, which is why "accepted" is a disposition column here rather than a sixth state.
 
 For a small or mid-sized organization, the realistic target is enabled, scoped and exported plus a named quarterly review, with "alerted" reserved for the few records whose absence would stall an investigation, and with any gap the organization chooses to live with written down as "accepted, reviewed quarterly" (Tier D). BOD 25-01's quarterly reporting cadence is a reasonable default for that review window.
 
 Step three grades the result onto the CoSAI component map at commit `622605a1`, so that configuring a feature visibly moves a cell. Nothing entitled reaches a component: blind. Entitled or enabled but not through all five states: claimed, drawn on the map and never counted. All five states yes: documented. A planted event produced the record or alert in the organization's own store on a dated run: verified. A regression at any state drops the cell back to claimed, and a lapsed entitlement drops it to blind (Tier D, the grading scheme). Read that way the map yields a turn-on list (held but unaudited), a test list (audited, never planted) and a blind list, which holds the only components where buying or building is even a candidate.
 
-Step four is the decision order, turn on, evaluate, buy, build, because each step is cheaper, faster to reverse and less expensive organizationally than the next, so a cell moves on only when the current step has been shown not to reach it (Tier D). Evaluation means a time-boxed planted-event test in the organization's own tenant, since a preview with no GA date is a vendor promise, and a purchase sits on the map as claimed until that test runs. A build carries the cost `analysis/build-buy-and-the-high-priest.md` describes, and the honest alternative is often the skipped turn-on list. The one build I'd expect to pass the two preconditions in many environments is an ingest transform that normalizes identity, model and tool name into typed columns in a store the organization already runs, because it is glue on an existing core system rather than a new one.
+Step four is the decision order, turn on, evaluate, buy, build, because each step is cheaper, faster to reverse and less expensive organizationally than the next, so a cell moves on only when the current step has been shown not to reach it (Tier D). Evaluation means a time-boxed planted-event test in the organization's own tenant, since a preview with no GA date is a vendor promise, and a purchase sits on the map as claimed until that test runs. A build carries the cost `analysis/build-buy-and-the-high-priest.md` describes, and the better alternative is often the skipped turn-on list. The one build I'd expect to pass the two preconditions in many environments is an ingest transform that normalizes identity, model and tool name into typed columns in a store the organization already runs, because it is glue on an existing core system rather than a new one.
 
 ## Default-state table: the content channels that ship off
 
-These are the vendors' published defaults for the product, not any tenant's configuration, and the review prints "as of" the row's date beside anything drawn from it. The ai-config-pointers page named in the first column carries the full row (console path, licence verbatim, route-to destination).
+These are the vendors' published defaults for the product, not any tenant's configuration, and the review prints "as of" the row's date beside anything drawn from it. The fuller version of each row (console path, licence verbatim, route-to destination) will sit on that product's page in the forthcoming ai-config-pointers set, and the rows will link those pages once it is public.
 
-| Platform family (companion page) | Setting | Default | Where the record lands | last-checked |
+| Platform family | Setting | Default | Where the record lands | last-checked |
 |---|---|---|---|---|
-| AWS (g3-clouds-aws) | Bedrock model invocation logging | Off; when on, covers `bedrock-runtime` and does not capture `bedrock-mantle` | CloudWatch Logs or S3, as configured | 2026-11-09 |
-| AWS (g3-clouds-aws) | CloudTrail Event history | On for management events | Vendor-held, past 90 days; longer needs a trail | 2026-11-09 |
-| Google Cloud (g3-clouds-gcp) | Vertex AI Data Access audit logs | Off | Cloud Logging | 2026-11-09 |
-| Google Cloud (g3-clouds-gcp) | Vertex AI request-response logging | Off; Pre-GA terms; no caller-identity column | BigQuery table, sampled | 2026-11-09 |
-| Google Cloud (g3-clouds-gcp) | Gemini Enterprise usage audit logs, prompt-and-response setting | Content elided until an admin enables it | Cloud Logging `_Default` bucket, 30 days unless changed | 2026-11-09 |
-| Azure (g3-clouds-azure) | Azure OpenAI and Foundry diagnostic settings | Off until a diagnostic setting is created | Log Analytics, storage or Event Hubs, as configured | 2026-11-09 |
-| Microsoft 365 (g1-microsoft-365-entra-purview) | Purview Audit `CopilotInteraction` | On where auditing is on; the record carries no prompt text | Unified audit log, 180 days on Audit (Standard) | 2026-11-09 |
-| Coding agents (g6-dev-appsec-coding-agents-claude-code) | Claude Code OpenTelemetry export, and its separate content flags | Opt-in | The collector the organization names | 2026-11-09 |
-| Coding agents (g6-dev-appsec-coding-agents-cursor) | Cursor audit log and OTel export | Enterprise plan only; audit log excludes prompts and agent output | Vendor-held, retention not stated; Admin API queries default to 7 days and span at most 30 | 2026-11-09 |
-| Code platform (g6-dev-appsec-coding-agents-github-enterprise-copilot) | GitHub Copilot audit log | On for plan, policy and seat changes; no local client prompts | GitHub audit log, 180 days | 2026-11-09 |
+| AWS | Bedrock model invocation logging | Off; when on, covers `bedrock-runtime` and does not capture `bedrock-mantle` | CloudWatch Logs or S3, as configured | 2026-11-09 |
+| AWS | CloudTrail Event history | On for management events | Vendor-held, past 90 days; longer needs a trail | 2026-11-09 |
+| Google Cloud | Vertex AI Data Access audit logs | Off | Cloud Logging | 2026-11-09 |
+| Google Cloud | Vertex AI request-response logging | Off; Pre-GA terms; no caller-identity column | BigQuery table, sampled | 2026-11-09 |
+| Google Cloud | Gemini Enterprise usage audit logs, prompt-and-response setting | Content elided until an admin enables it | Cloud Logging `_Default` bucket, 30 days unless changed | 2026-11-09 |
+| Azure | Azure OpenAI and Foundry diagnostic settings | Off until a diagnostic setting is created | Log Analytics, storage or Event Hubs, as configured | 2026-11-09 |
+| Microsoft 365 | Purview Audit `CopilotInteraction` | On where auditing is on; the record carries no prompt text | Unified audit log, 180 days on Audit (Standard) | 2026-11-09 |
+| Coding agents | Claude Code OpenTelemetry export, and its separate content flags | Opt-in | The collector the organization names | 2026-11-09 |
+| Coding agents | Cursor audit log and OTel export | Enterprise plan only; audit log excludes prompts and agent output | Vendor-held, retention not stated; Admin API queries default to 7 days and span at most 30 | 2026-11-09 |
+| Code platform | GitHub Copilot audit log | On for plan, policy and seat changes; no local client prompts | GitHub audit log, 180 days | 2026-11-09 |
 
 ## What this does not mean
 
@@ -105,7 +105,7 @@ It does not mean owned tools cover AI, since some components sit outside the rea
 
 ## Gaps
 
-- **Gap: G24, the configure-first share**. Nobody has measured what fraction of the AI-security capability an organization needs is already present in what it owns, configured or not, so the 80 to 90 percent view stays Tier D and the review never prints it as a figure. **Needs**: a published worksheet in the five-state shape that practitioners fill for their own tenants and contribute by category, aggregated once enough rows exist; a pre-registered reference-tenant pass in sdw-lab-benchmarks (inventory, five-state audit, components reachable at documented or better before and after configuration, no purchase) would be a single-host precursor and would be labelled as one.
+- **Gap: G24, the configure-first share**. I found no published measurement of what fraction of the AI-security capability an organization needs is already present in what it owns, configured or not, so the 80 to 90 percent view stays Tier D and the review never prints it as a figure. **Needs**: a published worksheet in the five-state shape that practitioners fill for their own tenants and contribute by category, aggregated once enough rows exist; a pre-registered reference-tenant pass in sdw-lab-benchmarks (inventory, five-state audit, components reachable at documented or better before and after configuration, no purchase) would be a single-host precursor and would be labelled as one.
 - **Gap: population distribution of configuration audits**. There is no public distribution of Secure Score values or SCuBA baseline pass rates, so the configuration-debt premise rests on vendor telemetry rather than a population measure. **Needs**: Microsoft or CISA publishing an anonymized distribution, or aggregated ScubaGear output contributed by category.
 - **Gap: loss along the five states**. Studies measure one state at a time and none follows a control end to end to report where the record stops. **Needs**: a study tracking a sample of enabled features through all five states in real tenants.
 - **Gap: does turning on change outcomes**. No before-and-after study of enabling owned controls in an enterprise was found. **Needs**: a controlled comparison, or VCDB records coded for configuration preconditions.
@@ -115,8 +115,8 @@ It does not mean owned tools cover AI, since some components sit outside the rea
 - 2026-11-10, judgement marker: the 80 to 90 percent configure-first view is the author's practitioner judgement, carried at Tier D, never scored and never printed as a figure. It is one of the ordering perspectives that live in `analysis/decision-sequence.md` and order actions within a priority band without raising one (DECISIONS.md Decision 15 and Decision 3); recording the tier choice here follows Decision 16.
 - Convergence is single-source because no standard prescribes this practice: BOD 25-01 mandates a tenant configuration audit against SCuBA baselines for federal Microsoft 365 and Google Workspace, which is a precedent for step two, not a prescription of the five-state AI audit.
 - The Verizon DBIR is not cited, because its misconfiguration share within the error pattern was found only in secondary coverage. Orca's figures are per organization, as its methodology page states.
-- "Accepted" is a disposition column rather than a sixth audit state, so the five-state shape stays the same data contract as the companion worksheet.
-- The companion pages are named by file rather than linked until the ai-config-pointers set has a public address; they are linked, never copied, per Decision 12.
+- "Accepted" is a disposition column rather than a sixth audit state, so the five-state shape stays the same data contract as the ai-config-pointers worksheet.
+- The ai-config-pointers set is a separate repository, the platforms layer beside this one (Decision 12), and it is not yet public, so this document calls it forthcoming and carries no link to it; its pages will be linked, never copied, once it has a public address.
 - The default-state rows were checked on 2026-11-09; vendor pages change monthly, hence revalidation in under five months.
 
 ## Sources
@@ -148,7 +148,7 @@ Tier B, agency guidance, practitioners and vendor documentation of what a featur
 - Anthropic, "Monitoring" (Claude Code), https://code.claude.com/docs/en/monitoring-usage (read 2026-11-09).
 - Cursor, "Compliance and Monitoring", https://cursor.com/docs/enterprise/compliance-and-monitoring (read 2026-11-09).
 - GitHub Docs, Copilot "Review audit logs" (read 2026-11-09).
-- ai-config-pointers companion set (Decision 12): platform pages named in the default-state table, plus its overlooked-settings list and by-component view; linked once public.
+- ai-config-pointers (Decision 12), the forthcoming platforms-layer repository: per-product pages for the platforms in the default-state table, an overlooked-settings list and a by-component view; not yet public, so not linked here.
 
 Tier C, vendor-published studies, bias flagged (each publisher sells the remediation and measures its own customers)
 

@@ -2,9 +2,9 @@
 
 Paste one block into an agent and it interviews you about how your organization uses AI, matches your answers to a routing table, reads the four to eight researched documents that apply, and hands back a short review that opens with what to do in the next 30 days, ordered by what could hurt you, with the repo's confidence printed beside every item and a link to the document that researched it. Where the public record had a gap, the documents cite lab measurements published in [sdw-lab-benchmarks](https://github.com/flying-coyote/sdw-lab-benchmarks), pinned by commit.
 
-> Status: pre-release skeleton. The routing table, the decisions record, the checks and the document template are here; the reducers, the reference mapper and its three fixtures are in place; the analysis documents are being written, and the block below carries placeholders until the first release is tagged. Nothing here is ready to rely on yet.
+> Status: pre-release, untagged. The v0.1 small-organization slice is drafted to the template, which is fifteen analysis documents and five declared-gap stubs, all at `status: EMERGING`, beside the routing table, the reducers, the reference mapper and its three fixtures. No independent verifier has run over any document yet, and the publish gates have had one reviewer pass (2026-11-10) with voice findings still open. The lab citations still pin a branch of sdw-lab-benchmarks that has not merged to its master, the routing table also names documents planned for later releases that are not written yet, and the block below carries placeholders until the first release is tagged, so nothing here is ready to rely on yet.
 
-0 routable docs, 107 signals, 0 stubs, last derived 2026-11-10.
+15 routable docs, 107 signals, 5 stubs, last derived 2026-11-10.
 
 ## Why it is shaped this way
 
@@ -56,7 +56,7 @@ The repo concerns no employer, and no organization is named or assumed to run an
 
 ## Related work
 
-A Claude Code project gets its deeper review from [claude-code-project-best-practices](https://github.com/flying-coyote/claude-code-project-best-practices), whose one-line audit, gates and lifecycle frontmatter this repo copies nearly whole; this repo covers the organization around the coding agent. The data layer underneath security tooling is covered by [security-data-that-works](https://github.com/flying-coyote/security-data-that-works), and every lab measurement cited here lives in [sdw-lab-benchmarks](https://github.com/flying-coyote/sdw-lab-benchmarks).
+A Claude Code project gets its deeper review from [claude-code-project-best-practices](https://github.com/flying-coyote/claude-code-project-best-practices), whose one-line audit, gates and lifecycle frontmatter this repo copies nearly whole; this repo covers the organization around the coding agent. The per-product settings pages (the setting, its default, the licence tier, the log it produces and where it lands) belong to ai-config-pointers, a separate repository that serves as this repo's platforms layer (Decision 12); it is not public yet, so the documents that point to it call it forthcoming and will link its pages once it has a public address. The data layer underneath security tooling is covered by [security-data-that-works](https://github.com/flying-coyote/security-data-that-works), and every lab measurement cited here lives in [sdw-lab-benchmarks](https://github.com/flying-coyote/sdw-lab-benchmarks).
 
 ## License
 

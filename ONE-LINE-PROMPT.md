@@ -43,7 +43,7 @@ Run the review in your organization's sanctioned business or enterprise assistan
 
 ## What a run costs
 
-These figures are measured on the three synthetic fixtures before each release and are not measured yet, so the table says so rather than guessing.
+These figures will be measured on the three synthetic fixtures before each release and have not been measured yet, so the table says so rather than guessing.
 
 | Interview branch | Questions | Practitioner minutes | Docs fetched | Context used |
 |---|---|---|---|---|

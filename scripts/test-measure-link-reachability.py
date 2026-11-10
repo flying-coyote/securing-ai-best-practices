@@ -181,6 +181,34 @@ def main():
             ok &= check("gate reports a non-zero count so the PR-failing step fires",
                         got not in ("", "0"), f"got {got!r}")
 
+    # 9. Fails closed on an empty or untracked corpus, in --links mode as well.
+    #
+    # --links used to return before the emptiness check, so an empty corpus
+    # printed an all-zero table, exited 0, and the gate's awk read "0
+    # dangling". The realistic case is a git repo whose docs are on disk but
+    # not yet tracked, where git ls-files succeeds and returns nothing, so the
+    # link gate passed on a tree it had never read.
+    def refused(root, *extra):
+        p = subprocess.run([sys.executable, str(SCRIPT), "--root", str(root), *extra],
+                           capture_output=True, text=True)
+        return p.returncode != 0, p.stderr
+
+    with tempfile.TemporaryDirectory() as td:
+        for extra in (["--links"], ["--include-archive"]):
+            bad, err = refused(td, *extra)
+            ok &= check(f"empty corpus is refused: {extra}", bad, err.strip()[-200:])
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "README.md").write_text("# r\n\n[gone](nowhere.md)\n")
+        init = subprocess.run(["git", "init", "-q", str(root)], capture_output=True, text=True)
+        if init.returncode == 0:
+            for extra in (["--links"], ["--include-archive"]):
+                bad, err = refused(root, *extra)
+                ok &= check(f"untracked corpus is refused: {extra}",
+                            bad and "none tracked" in err, err.strip()[-200:])
+        else:
+            ok &= check("git is available to build the untracked fixture", False, init.stderr[-200:])
+
     print("\nAll tests passed." if ok else "\nFAILURES above.")
     return 0 if ok else 1
 

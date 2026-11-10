@@ -49,22 +49,22 @@ The band boundary is the interview's own question in `routing.yaml` and is my ju
 
 Renting is not one thing either, and for a small organization the tier of the rented product may matter more than the rent-or-own choice itself. A consumer seat used for work leaves the organization owning nothing on the surface: no identity provider in front of it, no audit record, and a training setting the individual controls. A business or team seat usually adds SSO and an admin-held training default, and the audit log and compliance export often sit one tier higher still. The pattern I read across the plan pages is that for coding agents and assistants the record of who did what is a top-tier feature, while Microsoft inverts this for its own Copilot by recording interactions in Audit (Standard) and charging separately for non-Microsoft AI apps (Tier B, as of the dates below).
 
-The rows below are the vendors' published plan contents, not any tenant's configuration, and the review prints "as of" the row's date beside anything drawn from it. Where a companion page is named, the full row with its console path is there (Decision 12). A plan page is a summary; the binding training and retention promise lives in the commercial terms, which `analysis/saas-embedded-ai-and-vendor-terms.md` covers.
+The rows below are the vendors' published plan contents, not any tenant's configuration, and the review prints "as of" the row's date beside anything drawn from it. The fuller rows, with console paths, will sit in the forthcoming ai-config-pointers set (Decision 12). A plan page is a summary; the binding training and retention promise lives in the commercial terms, which `analysis/saas-embedded-ai-and-vendor-terms.md` covers.
 
-| Product (companion page) | Tier | SSO | Audit log or compliance export | Training on content | Admin control of connectors or tools | last-checked |
+| Product | Tier | SSO | Audit log or compliance export | Training on content | Admin control of connectors or tools | last-checked |
 |---|---|---|---|---|---|---|
-| Claude (g6-dev-appsec-coding-agents-claude-code) | Individual plans | No | No audit log, no Compliance API | User opt-out | No | 2026-11-10 |
+| Claude | Individual plans | No | No audit log, no Compliance API | User opt-out | No | 2026-11-10 |
 | Claude | Team | Yes | Plan page lists no audit log and no Compliance API | None by default | Admin controls for remote and local connectors | 2026-11-10 |
 | Claude | Enterprise | Yes, with SCIM | Audit logs, Compliance API, custom retention | None by default | Yes, with role-based permissions | 2026-11-10 |
-| ChatGPT (g6-dev-appsec-coding-agents-codex) | Free, Go, Plus, Pro | Not stated | Not stated | Used for training, opt-out available | Not stated | 2026-11-10 |
+| ChatGPT | Free, Go, Plus, Pro | Not stated | Not stated | Used for training, opt-out available | Not stated | 2026-11-10 |
 | ChatGPT | Enterprise | Not read this pass | Compliance API and Compliance Logs Platform, off until collected | Not read this pass | Workspace toggles for Codex | 2026-11-09 |
-| GitHub Copilot (g6-dev-appsec-coding-agents-github-enterprise-copilot) | Free, Pro, Pro+, Max | SAML SSO not included | Audit logs listed from Pro+ up, not on Free or Pro | Interaction data may be used for training, opt-out | MCP in agent mode, no admin policy | 2026-11-10 |
+| GitHub Copilot | Free, Pro, Pro+, Max | SAML SSO not included | Audit logs listed from Pro+ up, not on Free or Pro | Interaction data may be used for training, opt-out | MCP in agent mode, no admin policy | 2026-11-10 |
 | GitHub Copilot | Business, Enterprise | Through the GitHub organization or enterprise | Enterprise audit log, 180 days, streaming off until configured | Not re-read this pass | MCP policy and managed MCP allowlist | 2026-11-09 |
-| Cursor (g6-dev-appsec-coding-agents-cursor) | Individual plans | No | No | Privacy mode, user-enabled | No | 2026-11-10 |
+| Cursor | Individual plans | No | No | Privacy mode, user-enabled | No | 2026-11-10 |
 | Cursor | Teams | SAML or OIDC | Not listed | Team-wide privacy settings | Not listed | 2026-11-10 |
 | Cursor | Enterprise | SAML or OIDC, with SCIM | Audit logs and service accounts (the Admin API caps each query at a 30-day window, admin docs read 2026-11-09) | Team-wide privacy settings | Repository, model and MCP access controls | 2026-11-10 |
-| Microsoft 365 Copilot (g1-microsoft-365-entra-purview) | Copilot licence | Entra ID | `CopilotInteraction` in Audit (Standard), 180 days; non-Microsoft AI apps billed pay-as-you-go | Contractual statement, no setting | Agent and model-provider settings in the admin center | 2026-11-09 |
-| Google Workspace with Gemini (g2-google-okta-browsers-google-workspace) | Enterprise Standard, Plus | Workspace identity | Gemini log events in the Admin console | Unlicensed users let in by the "regardless of license" setting fall under terms that allow model improvement | Gemini app access to Workspace apps, per OU | 2026-11-09 |
+| Microsoft 365 Copilot | Copilot licence | Entra ID | `CopilotInteraction` in Audit (Standard), 180 days; non-Microsoft AI apps billed pay-as-you-go | Contractual statement, no setting | Agent and model-provider settings in the admin center | 2026-11-09 |
+| Google Workspace with Gemini | Enterprise Standard, Plus | Workspace identity | Gemini log events in the Admin console | Unlicensed users let in by the "regardless of license" setting fall under terms that allow model improvement | Gemini app access to Workspace apps, per OU | 2026-11-09 |
 
 Two rows deserve a comment. The Claude Team row lists no audit log on the plan page, while the Claude Code settings documentation records audit events for server-managed settings changes on Team and Enterprise, so I read the plan row as the organization-wide audit log and compliance export rather than as no record at all (Tier B, both read on the dates shown). And the Google Workspace row shows the tier question inside a single tenant, since one admin checkbox can put unlicensed users on the assistant under consumer-style terms, which is the consumer-seat problem without any shadow-AI purchase behind it.
 
@@ -89,9 +89,9 @@ What would change my mind on the sizing default: a managed platform dropping a l
 
 - 2026-11-10, judgement marker: the rent-leaning default for small and mid-sized organizations is my practitioner view, carried at Tier D as a reference perspective. It is the first of the ordering perspectives in `analysis/decision-sequence.md`, which order actions within a priority band and never raise one (DECISIONS.md Decision 3 and Decision 15); recording the tier here follows Decision 16.
 - There are no `measurement-claims` rows because no lab result backs this document. The storage cost of exporting rented records lives in `analysis/what-to-log-and-what-it-costs.md`.
-- The plan-page rows were read on 2026-11-10 and the companion-page rows on 2026-11-09. Plan pages change more often than admin documentation, which is why this document revalidates in under four months.
+- The plan-page rows were read on 2026-11-10 and the admin-documentation rows on 2026-11-09. Plan pages change more often than admin documentation, which is why this document revalidates in under four months.
 - Plan names differ between vendors and between a vendor's pricing page and its documentation, so the table groups individual plans together and names business tiers as the vendor does.
-- Companion pages are named by file rather than linked until the ai-config-pointers set has a public address (Decision 12).
+- The ai-config-pointers set is a separate repository, the platforms layer beside this one (Decision 12), and it is not yet public, so this document calls it forthcoming and carries no link to it; its pages will be linked, never copied, once it has a public address.
 
 ## Sources
 
@@ -105,11 +105,11 @@ Tier A, standards and peer-reviewed
 Tier B, vendor plan pages and documentation of what a feature does
 
 - Anthropic, Claude pricing and plan comparison, https://www.claude.com/pricing (read 2026-11-10).
-- Anthropic, "Configure custom data retention controls for Enterprise plans", https://support.claude.com/en/articles/10440198-configure-custom-data-retention-controls-for-enterprise-plans (read 2026-11-09, via companion page).
+- Anthropic, "Configure custom data retention controls for Enterprise plans", https://support.claude.com/en/articles/10440198-configure-custom-data-retention-controls-for-enterprise-plans (read 2026-11-09, while drafting the ai-config-pointers pages).
 - OpenAI, ChatGPT pricing, https://chatgpt.com/pricing (read 2026-11-10; Business and Enterprise columns not shown).
 - GitHub, Copilot plans, https://github.com/features/copilot/plans (read 2026-11-10); "Plans for GitHub Copilot", https://docs.github.com/en/copilot/get-started/plans (read 2026-11-10, first half of the page).
 - Cursor, pricing, https://cursor.com/pricing (read 2026-11-10).
-- Microsoft, Google, AWS and GitHub admin documentation for the retention and default-state rows, as cited row by row in the ai-config-pointers companion pages named above (read 2026-11-09).
+- Microsoft, Google, AWS and GitHub admin documentation for the retention and default-state rows, read 2026-11-09 while drafting the pages of the forthcoming ai-config-pointers set, which will cite each row's source page; until that set is public the row-level URLs are not repeated here.
 
 Tier D, practitioner judgement
 

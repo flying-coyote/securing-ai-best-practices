@@ -51,7 +51,7 @@ The practical consequence is that a toggle review alone covers the first two sha
 
 ### Default-state table
 
-Every row is the vendor's published default as read on the `last-checked` date and says nothing about any particular organisation's tenant. Rows checked on 2026-11-09 were read from the vendor pages listed in Sources while the companion configuration pointer pages were drafted; rows checked on 2026-11-10 were re-fetched for this document.
+Every row is the vendor's published default as read on the `last-checked` date and says nothing about any particular organisation's tenant. Rows checked on 2026-11-09 were read from the vendor pages listed in Sources while the forthcoming ai-config-pointers pages were drafted; rows checked on 2026-11-10 were re-fetched for this document.
 
 | Platform family | Setting | Default | Where the record lands | last-checked |
 |---|---|---|---|---|
@@ -109,7 +109,7 @@ Question 3 matters more than it looks, because Microsoft's Copilot settings sepa
 
 A default of "on" is not evidence of harm, and a contractual no-training promise is not evidence the vendor breaks it; neither can be checked from the customer's side beyond reading the terms and the attestation scope, which is why this document treats them as a record to keep current and not as a finding to escalate on their own. The routing rows that send a review here are Medium priority for that reason, and the training opt-out row scores higher on reversibility only because data that has been trained on is hard to recall, which the planned `fine-tuned-model-is-a-data-store.md` (scheduled for v0.2) will discuss from the research side.
 
-The table is not a vendor comparison. The products in it are the ones the companion configuration pointer set has pages for, and a vendor that looks better here may simply document more, so reading the rows as a ranking would get it wrong.
+The table is not a vendor comparison. The products in it are the ones the forthcoming ai-config-pointers set covers, and a vendor that looks better here may simply document more, so reading the rows as a ranking would get it wrong.
 
 A toggle review is also not discovery. It covers the SaaS products you already know you run, and AI tools nobody approved are the subject of `inventory-and-shadow-ai.md`, where the toggle review is one step in a longer sequence. And this document is not legal advice; the GDPR, NIST and ISO references describe what those texts ask for, and whether a given change needs notice or consent under a specific contract is a question for counsel.
 

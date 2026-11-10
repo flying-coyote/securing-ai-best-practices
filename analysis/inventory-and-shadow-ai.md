@@ -95,7 +95,7 @@ It does not mean blocking fails. Monitoring before blocking matches the practice
 
 ## Gaps
 
-- **Gap: network-only miss share**. Nobody has published what share of AI use a network-only programme misses, and T1 is a single planted host. **Needs**: a 30-day comparison on a real fleet of a network-derived AI inventory against an endpoint, identity and SaaS-admin inventory over the same window, which the lab can run at small scale and must label as a small fleet; an organization's own number stays a reader-supplied input.
+- **Gap: network-only miss share**. I found no published figure for what share of AI use a network-only programme misses, and T1 is a single planted host. **Needs**: a 30-day comparison on a real fleet of a network-derived AI inventory against an endpoint, identity and SaaS-admin inventory over the same window, which the lab can run at small scale and must label as a small fleet; an organization's own number stays a reader-supplied input.
 - **Gap: endpoint query noise**. T1 measured the four endpoint queries on planted fixtures with five benign controls, which says nothing about false-positive rates on ordinary developer machines. **Needs**: the four query packs published and run against unplanted endpoints, with per-query false-positive counts.
 - **Gap: personal-account share**. The only figure for how much browser AI use runs through unmanaged personal accounts is vendor telemetry (Tier C). **Needs**: an independent measurement, or tenant-restriction block counts reported across several organizations.
 - **Gap: OpenAI tenant header**. The `ChatGPT-Allowed-Workspace-Id` header name and its blocked-request response could not be re-read on 2026-11-10. **Needs**: a successful read of the OpenAI help page or a tested proxy deployment.

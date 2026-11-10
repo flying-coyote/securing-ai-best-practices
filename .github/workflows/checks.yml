@@ -1,22 +1,27 @@
 name: checks
 
-# The two deterministic jobs that branch protection requires on the default
-# branch: `check-internal-links` and `test-instruments`. Both are adapted from
-# claude-code-project-best-practices (MIT), whose workflow taught the lessons
-# written into the comments below.
+# Five jobs. Two are deterministic and are the checks branch protection
+# requires on the default branch: `check-internal-links` and
+# `test-instruments`. Both are adapted from claude-code-project-best-practices
+# (MIT), whose workflow taught the lessons written into the comments below.
 #
-# Three further jobs are planned for this file and are not here yet, on
-# purpose, because each needs something the skeleton does not have:
-#   markdown-lint               comment-only, never fails a PR; needs a pinned
-#                               linter config
-#   check-links                 external links, scheduled, cannot fail a PR,
-#                               updates ONE standing issue in place and never
-#                               files a new one
-#   check-source-accessibility  scheduled probe of the pinned ATLAS, CoSAI,
-#                               OCSF, MCP specification and OWASP release pages,
-#                               writing into the same standing issue
-# They need a pinned linter config and a standing-issue updater that do not
-# exist yet, and none of them will ever be a required check. check-pins.py is
+# The other three are never required and can never block a pull request:
+#   markdown-lint               runs on pull requests and comments the findings
+#                               on the PR, updating one comment in place; the
+#                               job itself always passes
+#   check-links                 external links, on the weekly schedule and on
+#                               manual dispatch only, so a flaky upstream never
+#                               reports on a PR at all
+#   check-source-accessibility  on the same schedule, probes the pinned ATLAS,
+#                               OCSF, MCP specification, CoSAI and OWASP release
+#                               pages, reports which upstreams moved past their
+#                               pin, and is the one job that writes the standing
+#                               issue, carrying check-links' result with its own
+# No job files a new issue per run. The standing issue is found by its exact
+# title in any state, created only if it has never existed, reopened when
+# something needs a look and closed when everything is clean, which is the form
+# that replaced the daily issue filing in claude-code-project-best-practices
+# (Decision 9). check-pins.py is
 # deliberately absent: it runs in the weekly review, where its count belongs,
 # and fails only for the pins doc.
 
@@ -29,6 +34,11 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Weekly, Monday 06:00 UTC: the external link scan and the source probe. The
+  # two required jobs run on this event as well, which costs under two minutes
+  # and shows the default branch's state the morning of the weekly review.
+  schedule:
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -157,3 +167,197 @@ jobs:
           else
             python scripts/check-measurement-expiry.py --changed-files
           fi
+
+  # Comment-only. The lint step may fail; the job does not, because
+  # continue-on-error is on the step, and the comment step is skipped on
+  # anything but a pull request. One comment per PR, found by a hidden marker
+  # and edited in place on each push, so a long-lived PR does not collect a
+  # comment per commit. On a PR from a fork the token cannot write comments,
+  # which is why that step is also continue-on-error: the findings stay in the
+  # job log either way. The linter version is pinned so the rule set cannot
+  # change under the repo between two runs.
+  markdown-lint:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lint markdown (pinned markdownlint-cli2, rules in .markdownlint.jsonc)
+        id: lint
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npx --yes markdownlint-cli2@0.23.3 "**/*.md" "#node_modules" "#dist" 2>&1 | tee "$RUNNER_TEMP/lint.txt"
+
+      - name: Comment the findings on the pull request, in place
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          LINT_FILE: ${{ runner.temp }}/lint.txt
+        with:
+          script: |
+            const fs = require('fs');
+            const MARKER = '<!-- markdown-lint-report -->';
+            const failed = process.env.LINT_OUTCOME === 'failure';
+            let out = '';
+            try { out = fs.readFileSync(process.env.LINT_FILE, 'utf8'); } catch (e) { out = '(no lint output was captured)'; }
+            if (out.length > 60000) out = out.slice(0, 60000) + '\n... (truncated; the full list is in the job log)';
+            const run = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number, per_page: 100,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(MARKER));
+            if (!failed && !existing) return;
+            const body = failed
+              ? `${MARKER}\nMarkdown lint found issues. This is a comment, not a failing check, and the PR can merge without fixing them.\n\n\`\`\`\n${out}\n\`\`\`\n\nRun locally: \`npx markdownlint-cli2@0.23.3 "**/*.md" "#node_modules" "#dist"\`\n\n${run}`
+              : `${MARKER}\nMarkdown lint is clean on the latest push.\n\n${run}`;
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body,
+              });
+            }
+
+  # External links in every markdown file. Scheduled and manual only, so it
+  # never reports on a pull request and cannot fail one; continue-on-error on
+  # the scan means the job stays green and hands its outcome to the next job,
+  # which writes the standing issue. The action is the maintained successor to
+  # the one link-checker.yml in claude-code-project-best-practices used, reading
+  # the same config format.
+  # The config ignores this repo's own github.com URLs while the repository is
+  # private, since an anonymous request gets a 404 for every one of them; that
+  # pattern comes out when the repository goes public.
+  check-links:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      external: ${{ steps.summary.outputs.external }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check external links
+        id: scan
+        continue-on-error: true
+        uses: tcort/github-action-markdown-link-check@v1.1.2
+        with:
+          config-file: '.github/link-check-config.json'
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'no'
+
+      - name: Summarise the outcome
+        id: summary
+        env:
+          OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          if [ "$OUTCOME" = "success" ]; then
+            echo "external=clean" >> "$GITHUB_OUTPUT"
+          else
+            echo "external=failures" >> "$GITHUB_OUTPUT"
+          fi
+
+  # The pinned upstreams, probed from the pins doc's own frontmatter so the job
+  # carries no version of its own, then the one write to the standing issue.
+  # It needs both other jobs so that a single step composes the whole issue
+  # body, which avoids two jobs editing the same issue at the same moment.
+  # `always()` keeps it running when the internal check is red, because a red
+  # internal check is exactly what the standing issue should say.
+  check-source-accessibility:
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    needs: [check-internal-links, check-links]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install the one dependency
+        run: python -m pip install --quiet 'PyYAML==6.0.2'
+
+      # Never fails on what it finds; exits 2 only when it cannot read the pins
+      # doc, which fails this job rather than writing a clean report from
+      # nothing. The newest-known versions file goes to the job summary so the
+      # weekly review can copy it into check-pins.py --current if it wants to.
+      - name: Probe the pinned release pages
+        id: probe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python scripts/probe-source-accessibility.py --current "$RUNNER_TEMP/pins-current.yaml" | tee "$RUNNER_TEMP/probe.md"
+          {
+            cat "$RUNNER_TEMP/probe.md"
+            echo
+            echo "Newest-known versions (for check-pins.py --current):"
+            echo '```yaml'
+            cat "$RUNNER_TEMP/pins-current.yaml"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Update the standing issue in place
+        uses: actions/github-script@v7
+        env:
+          EXTERNAL: ${{ needs.check-links.outputs.external }}
+          LINKS_RESULT: ${{ needs.check-links.result }}
+          DANGLING: ${{ needs.check-internal-links.outputs.dangling_live }}
+          PROBE_FILE: ${{ runner.temp }}/probe.md
+        with:
+          script: |
+            const fs = require('fs');
+            const TITLE = 'Standing report: external links and pinned sources';
+            const probe = fs.readFileSync(process.env.PROBE_FILE, 'utf8');
+            const external = process.env.EXTERNAL || `not run (check-links ${process.env.LINKS_RESULT})`;
+            const dangling = process.env.DANGLING || 'unknown';
+            const tally = (probe.match(/sources-probed=\d+ broken=(\d+) refused=(\d+) moved=(\d+)/) || []).slice(1).map(Number);
+            const probeClean = tally.length === 3 && tally.every(n => n === 0);
+            const clean = external === 'clean' && dangling === '0' && probeClean;
+            const today = new Date().toISOString().slice(0, 10);
+            const run = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+
+            const body = [
+              'This issue is updated in place by the weekly run of `checks.yml`, and no run files a new one.',
+              '',
+              `- Dangling internal links in the live docs: ${dangling} (actionable; \`python3 scripts/measure-link-reachability.py --links\`)`,
+              `- External link check: ${external} (mostly upstream rot; the failing URLs are in the check-links job log)`,
+              '- Pinned sources, from `analysis/revalidation-and-pins.md`:',
+              '',
+              probe.trim(),
+              '',
+              'A broken page or an external failure: update the URL, cite an archived snapshot, or mark the source stale in SOURCES.md and reconsider its tier. A refused page usually means a bot filter, so open it by hand. A source that moved past its pin is a revalidation task under the trigger table in `analysis/revalidation-and-pins.md`, not a defect.',
+              '',
+              `Last checked ${today}: ${run}`,
+            ].join('\n');
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'all', per_page: 100,
+            });
+            const existing = issues.find(i => !i.pull_request && i.title === TITLE);
+
+            if (!existing) {
+              if (clean) return;   // nothing to report and no issue yet
+              await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title: TITLE, body });
+              return;
+            }
+            await github.rest.issues.update({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: existing.number, body, state: clean ? 'closed' : 'open',
+            });

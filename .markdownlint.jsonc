@@ -1,0 +1,49 @@
+{
+  // Markdown lint rules for this repo. The rule set is copied from
+  // claude-code-project-best-practices (MIT), whose documents have the same
+  // shape: long lines, tables, bare URLs in source lists and templates with
+  // several top-level headings. The markdown-lint job in checks.yml only ever
+  // comments on a pull request; it never fails one.
+  // Rules: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+  "default": true,
+
+  // Long lines: documents carry long URLs and table rows
+  "MD013": false,
+
+  // Inline HTML
+  "MD033": false,
+
+  // Duplicate headings allowed in different sections
+  "MD024": { "siblings_only": true },
+
+  // Trailing punctuation in headings (questions)
+  "MD026": false,
+
+  // Multiple blank lines
+  "MD012": false,
+
+  // Bare URLs, common in source lists
+  "MD034": false,
+
+  // Relaxed blank-line spacing around headings, fences and lists
+  "MD022": false,
+  "MD031": false,
+  "MD032": false,
+
+  // Code blocks without a language
+  "MD040": false,
+
+  // Compact tables and relaxed table spacing
+  "MD060": false,
+  "MD058": false,
+
+  // Emphasis used as a heading in templates
+  "MD036": false,
+
+  // Ordered-list prefix variations
+  "MD029": false,
+
+  // Several h1 headings (template files)
+  "MD025": false
+}

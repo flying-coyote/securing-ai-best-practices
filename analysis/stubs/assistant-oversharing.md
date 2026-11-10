@@ -46,7 +46,7 @@ CoSAI names the risk as Sensitive Data Disclosure and notes that agentic systems
 
 Two points from the vendor text change how a review should read these rows. Microsoft documents both interim controls as temporary and says neither changes permissions, so a user who already has access keeps it and an open document can still be summarised (Tier B, Restricted Content Discovery page, read 2026-11-10). And because Restricted SharePoint Search can no longer be newly enabled, a "No" on `restricted-search-unset` in a Microsoft tenant now points at Restricted Content Discovery and the licence it needs.
 
-The fuller rows (console paths, licence wording, routing to a SIEM) are in the ai-config-pointers companion pages for Microsoft 365 Copilot, Microsoft Purview and Google Workspace (`g1-microsoft-365-entra-m365-copilot.md`, `g1-microsoft-365-entra-purview.md`, `g2-google-okta-browsers-google-workspace.md`), named by file until that set has a public address.
+The fuller rows (console paths, licence wording, routing to a SIEM) will be in the Microsoft 365 Copilot, Microsoft Purview and Google Workspace pages of the forthcoming ai-config-pointers set, a separate repository that is not yet public and is not linked here until it is.
 
 ## What this does not mean
 
