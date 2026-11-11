@@ -216,6 +216,10 @@ question-packets:
     why: not checked
   - key: mcp-allowlist-absent
     why: believed only
+  - key: mcp-unpinned
+    why: not checked
+  - key: mcp-remote
+    why: not checked
   identity team:
   - key: agent-static-secrets
     why: believed only

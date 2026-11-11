@@ -231,7 +231,7 @@ signals:
     question: "Does the organization run IDE and coding agents, including MCP servers those agents start locally? (yes, no, or not sure)"
     method: [I, E]
     weight: INVENTORY
-    enables: [coding-agent-managed-tier-absent, hook-fail-open, hooks-user-disableable, mcp-allowlist-absent, agent-static-secrets]
+    enables: [coding-agent-managed-tier-absent, hook-fail-open, hooks-user-disableable, mcp-allowlist-absent, mcp-unpinned, mcp-remote, agent-static-secrets]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S4 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S5
