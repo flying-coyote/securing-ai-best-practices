@@ -123,6 +123,20 @@ def main() -> int:
             else:
                 print(f"PASS block names release {args.tag}")
 
+    # The README prose around the block must agree with the block and with RELEASES.md:
+    # a pinned block under a banner saying the placeholders remain, or "Tested agents:
+    # none yet" beside a release row, tells a reader two different things.
+    readme_text = readme_p.read_text(encoding="utf-8")
+    banner = re.search(r"pre-release:start[^\n]*\n(.*?)<!-- pre-release:end", readme_text, re.S)
+    if pinned != PLACEHOLDER_SHA and banner and "still carry" in banner.group(1):
+        failures.append("README status banner says the blocks still carry placeholders, but the block is pinned")
+    rel_p = root / "RELEASES.md"
+    released = rel_p.is_file() and re.search(r"(?m)^\| v\d{4}\.\d{2}", rel_p.read_text(encoding="utf-8"))
+    if released and "Tested agents: none yet" in readme_text:
+        failures.append("README says 'Tested agents: none yet' but RELEASES.md records a release")
+    elif released:
+        print("PASS README prose agrees with the block and RELEASES.md")
+
     for f in failures:
         print(f"FAIL {f}")
     return 1 if failures else 0

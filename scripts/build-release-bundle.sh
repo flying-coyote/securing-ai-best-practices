@@ -90,9 +90,10 @@ sub("routing.yaml", r"(# pre-release:start[^\n]*\n).*?(# pre-release:end\n)",
                "# releases.\n") + m.group(2),
     "pre-release header comment between markers", re.S)
 sub("README.md", r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -->\n)",
-    lambda m: m.group(1) + (f"> Status: release {tag}, stamped {date}. The blocks below still carry the `<release-sha>` "
-               "and `<vYYYY.MM>` placeholders until the default branch is bumped to the tagged commit, so take the "
-               "release's full commit SHA, its tag and the SHA-256 of the offline bundle from `RELEASES.md`.\n") + m.group(2),
+    lambda m: m.group(1) + (f"> Status: release {tag}, stamped {date}. On the tagged commit the blocks below carry the "
+               "`<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, and on the "
+               "default branch they carry the tagged commit. Either way, the release's full commit SHA, its tag and the "
+               "SHA-256 of the offline bundle are in `RELEASES.md`.\n") + m.group(2),
     "pre-release status banner between markers", re.S)
 sub("analysis/revalidation-and-pins.md", r"Release: [^;\n]+; pins last verified",
     lambda m: f"Release: {tag}; pins last verified", "'Release: ...; pins last verified' line")

@@ -50,7 +50,7 @@ jobs:
     outputs:
       dangling_live: ${{ steps.internal.outputs.dangling_live }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       # Fails closed. A crash, a renamed script or an unparseable report is an
       # error, never a silent zero: a check that reports clean when its
@@ -88,12 +88,12 @@ jobs:
   test-instruments:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # Full history so the expiry check can diff the PR against its base.
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
@@ -183,9 +183,9 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '20'
 
@@ -199,7 +199,7 @@ jobs:
       - name: Comment the findings on the pull request, in place
         if: github.event_name == 'pull_request'
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
           LINT_OUTCOME: ${{ steps.lint.outcome }}
           LINT_FILE: ${{ runner.temp }}/lint.txt
@@ -248,12 +248,12 @@ jobs:
     outputs:
       external: ${{ steps.summary.outputs.external }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Check external links
         id: scan
         continue-on-error: true
-        uses: tcort/github-action-markdown-link-check@v1.1.2
+        uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # v1.1.2
         with:
           config-file: '.github/link-check-config.json'
           use-quiet-mode: 'yes'
@@ -284,9 +284,9 @@ jobs:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
@@ -314,7 +314,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Update the standing issue in place
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
           EXTERNAL: ${{ needs.check-links.outputs.external }}
           LINKS_RESULT: ${{ needs.check-links.result }}

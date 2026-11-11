@@ -150,6 +150,14 @@ def main() -> int:
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha, "--tag", "v2099.01"], r), True)
         expect("prompt blocks: pinned SHA differs from the tag's commit fails",
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", "f" * 40], r), False, "newest tag points at")
+        edit(r / "README.md", "Tested agents: each release", "Tested agents: none yet. Each release")
+        expect("prompt blocks: 'Tested agents: none yet' beside a release row fails",
+               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "none yet")
+        edit(r / "README.md", "Tested agents: none yet. Each release", "Tested agents: each release")
+        edit(r / "README.md", "On the tagged commit the blocks below carry", "The blocks below still carry")
+        expect("prompt blocks: banner says placeholders remain while the block is pinned fails",
+               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "status banner")
+        edit(r / "README.md", "The blocks below still carry", "On the tagged commit the blocks below carry")
         edit(r / "README.md", "Change nothing in any system.", "Change nothing.")
         expect("prompt blocks: README block drifts from ONE-LINE-PROMPT fails",
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "differ")

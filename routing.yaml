@@ -1008,7 +1008,7 @@ signals:
     method: [E, I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md, analysis/revalidation-and-pins.md]
-    why: "The OWASP project has announced a 2026 edition of the list, so controls keyed to 2025 IDs are flagged for a re-check against whichever edition the pins doc records."
+    why: "The OWASP project published a 2026 edition of the list (page dated 2026-08-03), so controls keyed to 2025 IDs are flagged for a re-check against the edition the pins doc records."
 
   # --- soc ---
   - key: ai-in-soc-present
