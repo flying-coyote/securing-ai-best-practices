@@ -1,7 +1,7 @@
 # Audit context: securing-AI review map
 
 <!-- release-header: the release script writes the tag and date here before tagging -->
-Release: v2026.12. Date: 2026-11-11.
+Release: v2026.12.1. Date: 2026-11-11.
 
 This is the file the one-line review fetches first. It tells the agent how to interview the practitioner, how to read what they paste, how to turn answers into a list of documents, how to rank what it finds, and what the review must contain. The practitioner never edits it. If you are a person reading it, `routing.yaml` holds the same routing as data, and the review's output format is in `ONE-LINE-PROMPT.md`.
 

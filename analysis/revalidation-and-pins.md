@@ -45,7 +45,7 @@ Evidence tier: Mixed. The release records, STIX diffs, statute dates and catalog
 
 ## Summary for the review
 
-A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12; pins last verified 2026-11-10. If the review date is past 2027-02-10, print that these pins are unverified since then.
+A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12.1; pins last verified 2026-11-10. If the review date is past 2027-02-10, print that these pins are unverified since then.
 
 - Print the release tag from `RELEASES.md`, the pins list and the last-verified date in the "Staleness and open revalidation triggers" section of every output. Effort S. Tier D.
 - Record the framework version on every mapping row, rule tag and coverage record that cites an ATLAS, ATT&CK, OWASP or CoSAI ID, because ATLAS removed eight technique IDs in four releases without tombstones. Effort S. Tier A for the removal, B for the practice.

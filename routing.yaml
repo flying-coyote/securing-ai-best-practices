@@ -9,7 +9,7 @@
 # to the three golden fixtures in fixtures/.
 #
 # pre-release:start (the release script's stamp step rewrites the text between these markers)
-# State: release v2026.12, stamped 2026-11-11. The factor scores and the surface-to-signal
+# State: release v2026.12.1, stamped 2026-11-11. The factor scores and the surface-to-signal
 # "enables" lists are the author's judgement (Tier D) and may move between
 # releases.
 # pre-release:end
@@ -28,7 +28,7 @@
 # declared observation, and when a row's factors do not fold into its band.
 
 version: 0
-release: v2026.12
+release: v2026.12.1
 
 always-fetch:
   - analysis/evidence-tiers.md
