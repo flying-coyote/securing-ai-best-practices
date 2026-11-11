@@ -169,7 +169,7 @@ What would prove it wrong: a claim-level choice that has to be found from outsid
 - date: 2026-11-11
 - status: Active
 - supersedes: 2
-- executed:
+- executed: 786b0b6 (first release under it: v2026.12.1 at b8ab016)
 
 Everything in Decision 2 stands (the block pins a commit SHA with the release tag beside it, and each release publishes an offline bundle with its SHA-256 in `RELEASES.md`), except the cadence. Feature releases stay monthly at most and are tagged `vYYYY.MM`. A correction that cannot wait for the next monthly release (a wrong fact, a wrong citation, a front-door statement that contradicts the release record) ships as `vYYYY.MM.N`, numbered from 1 after the release it corrects. A correction release changes no routing behaviour and moves no golden, so a change that does either waits for the next monthly release. Decision 2's own failure condition was met on 2026-11-11, when an external review found front-door errors a day after v2026.12, which is why this entry exists.
 
