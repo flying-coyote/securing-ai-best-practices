@@ -112,7 +112,7 @@ def http_status(url: str) -> int:
 def classify(code: int) -> str:
     if 200 <= code < 400:
         return "ok"
-    if code in (401, 403, 429):
+    if code in (401, 403, 429, 999):
         return "refused"
     return "broken"
 
@@ -173,6 +173,8 @@ def main() -> int:
     ap.add_argument("--root", default=".")
     ap.add_argument("--current", help="write newest-known versions here, for check-pins.py --current")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--sources", action="store_true",
+                    help="also probe every external URL in SOURCES.md and list the refused and broken ones")
     args = ap.parse_args()
 
     pins_doc = Path(args.root) / PINS_DOC
@@ -213,7 +215,33 @@ def main() -> int:
         refused = sum(r["page_state"] == "refused" for r in rows)
         moved = sum(r["moved"] is True for r in rows)
         print(f"\nsources-probed={len(rows)} broken={broken} refused={refused} moved={moved}")
+    if args.sources and not args.json:
+        sources_report(Path(args.root) / "SOURCES.md")
     return 0
+
+
+def sources_report(path: Path) -> None:
+    """List SOURCES.md URLs that answer refused or broken. The CI link checker
+    counts 401, 403 and 999 as alive so a bot filter never turns a pull request
+    red, which means a source that refuses every fetch would otherwise never be
+    seen; this table is where the weekly review sees it, as a task to check by
+    hand or move to the Unverified quarantine. It never fails the run."""
+    import concurrent.futures, re as _re
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        print(f"\nSOURCES.md not read ({type(e).__name__}); source-URL probe skipped")
+        return
+    urls = sorted(set(u.rstrip(").,;") for u in _re.findall(r"https?://[^\s|<>`\]]+", text)))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
+        codes = dict(zip(urls, ex.map(http_status, urls)))
+    bad = [(u, c, classify(c)) for u, c in codes.items() if classify(c) != "ok"]
+    print("\n| SOURCES.md URL | Answer | State |")
+    print("|---|---|---|")
+    for u, c, s in sorted(bad, key=lambda x: (x[2], x[0])):
+        print(f"| {u} | {c or 'no answer'} | {s} |")
+    print(f"\nsource-urls-probed={len(urls)} refused={sum(s == 'refused' for _, _, s in bad)} "
+          f"broken={sum(s == 'broken' for _, _, s in bad)}")
 
 
 if __name__ == "__main__":

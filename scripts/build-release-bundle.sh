@@ -30,8 +30,8 @@
 # only guess at it, and it refuses when any pre-release text survived the stamp.
 #
 # Usage:
-#   scripts/build-release-bundle.sh stamp  vYYYY.MM YYYY-MM-DD
-#   scripts/build-release-bundle.sh bundle vYYYY.MM <40-hex commit sha>
+#   scripts/build-release-bundle.sh stamp  vYYYY.MM[.N] YYYY-MM-DD
+#   scripts/build-release-bundle.sh bundle vYYYY.MM[.N] <40-hex commit sha>
 #
 # Environment:
 #   ROOT=DIR          repo root (default: the parent of this script's folder)
@@ -48,7 +48,7 @@ tag="${2:-}"
 
 die() { echo "ERROR: $*" >&2; exit 2; }
 
-[[ "$tag" =~ ^v[0-9]{4}\.[0-9]{2}$ ]] || die "tag must look like vYYYY.MM (got '${tag}')"
+[[ "$tag" =~ ^v[0-9]{4}\.[0-9]{2}(\.[0-9]+)?$ ]] || die "tag must look like vYYYY.MM or vYYYY.MM.N (got '${tag}')"
 
 case "$cmd" in
   stamp)
@@ -188,6 +188,6 @@ if missing or missing_routed:
 PY
     ;;
   *)
-    die "usage: $0 stamp vYYYY.MM YYYY-MM-DD | bundle vYYYY.MM <commit-sha>"
+    die "usage: $0 stamp vYYYY.MM[.N] YYYY-MM-DD | bundle vYYYY.MM[.N] <commit-sha>"
     ;;
 esac

@@ -18,7 +18,7 @@ the tree.
 
 Usage:
     python scripts/check-prompt-blocks.py
-    python scripts/check-prompt-blocks.py --tag-commit <40-hex sha> [--tag vYYYY.MM]
+    python scripts/check-prompt-blocks.py --tag-commit <40-hex sha> [--tag vYYYY.MM[.N]]
     python scripts/check-prompt-blocks.py --root /path/to/tree
 
 Exit 0 when every check passes, 1 when any fails, 2 when a file is missing or

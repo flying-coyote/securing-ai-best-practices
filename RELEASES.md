@@ -2,7 +2,7 @@
 
 Each release is a frozen, tagged commit. The one-line review pins the commit SHA, so this file is where a practitioner checks that the SHA in the block they were handed is a real release and that the offline bundle they downloaded is the one published with it.
 
-The release mechanic, because a commit cannot contain its own SHA: freeze and tag commit C as `vYYYY.MM` (monthly at most), with the release script stamping the tag and date into the header of `AUDIT-CONTEXT.md` before tagging; build the offline bundle from C; record C's full SHA and the bundle's SHA-256 here and in the GitHub release notes; then update the blocks in `README.md` and `ONE-LINE-PROMPT.md` on the default branch to name C's SHA. An old block therefore keeps working and announces its own age in every review it produces.
+The release mechanic, because a commit cannot contain its own SHA: freeze and tag commit C as `vYYYY.MM` (monthly at most), or `vYYYY.MM.N` for a correction that cannot wait for the next monthly release (DECISIONS.md, Decision 17), with the release script stamping the tag and date into the header of `AUDIT-CONTEXT.md` before tagging; build the offline bundle from C; record C's full SHA and the bundle's SHA-256 here and in the GitHub release notes; then update the blocks in `README.md` and `ONE-LINE-PROMPT.md` on the default branch to name C's SHA. An old block therefore keeps working and announces its own age in every review it produces.
 
 ## Release log
 
@@ -15,7 +15,7 @@ The first release, v2026.11, is the small-organization slice (v0.1 in the build 
 
 ## What each column holds
 
-- Tag is `vYYYY.MM`.
+- Tag is `vYYYY.MM`, or `vYYYY.MM.N` for a correction release between monthly releases.
 - Commit SHA is the full 40-character SHA of the tagged commit, which is what the block pins.
 - Bundle SHA-256 is the checksum of the offline bundle built from that commit.
 - Pins are the framework, schema and catalogue versions the release was checked against, copied from `analysis/revalidation-and-pins.md` at freeze (MITRE ATLAS and ATT&CK releases, the CoSAI registry commit, the OCSF and MCP specification versions, the OWASP list edition, and the CISA KEV catalogue version, among others).

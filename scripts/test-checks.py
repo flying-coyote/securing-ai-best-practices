@@ -129,7 +129,7 @@ def placeholder_blocks(r: Path):
         text = p.read_text(encoding="utf-8")
         text = re.sub(r"/securing-ai-best-practices/[0-9a-f]{40}/", "/securing-ai-best-practices/<release-sha>/", text)
         text = re.sub(r"commit [0-9a-f]{40}", "commit <release-sha>", text)
-        text = re.sub(r"\(release v\d{4}\.\d{2}([;,])", r"(release <vYYYY.MM>\1", text)
+        text = re.sub(r"\(release v\d{4}\.\d{2}(?:\.\d+)?([;,])", r"(release <vYYYY.MM>\1", text)
         p.write_text(text, encoding="utf-8")
 
 
