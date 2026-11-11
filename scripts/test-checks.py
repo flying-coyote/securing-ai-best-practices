@@ -145,9 +145,9 @@ def main() -> int:
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "placeholder")
         for f in ("README.md", "ONE-LINE-PROMPT.md"):
             edit(r / f, "<release-sha>/AUDIT-CONTEXT.md", f"{sha}/AUDIT-CONTEXT.md")
-            edit(r / f, "(release <vYYYY.MM>;", "(release v2026.12;")
+            edit(r / f, "(release <vYYYY.MM>;", "(release v2099.01;")
         expect("prompt blocks: bumped to the tag's commit passes",
-               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha, "--tag", "v2026.12"], r), True)
+               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha, "--tag", "v2099.01"], r), True)
         expect("prompt blocks: pinned SHA differs from the tag's commit fails",
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", "f" * 40], r), False, "newest tag points at")
         edit(r / "README.md", "Change nothing in any system.", "Change nothing.")
@@ -304,36 +304,36 @@ def main() -> int:
         r = tree(td)
         env = {"ROOT": str(r)}
         expect("bundle: refuses to build before the stamp step",
-               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, dict(env, ALLOW_MISSING="1")), False, "not stamped")
-        expect("bundle: stamp writes the tag and date", run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), True)
+               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, dict(env, ALLOW_MISSING="1")), False, "not stamped")
+        expect("bundle: stamp writes the tag and date", run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env), True)
         ac = (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
-        results.append(("Release: v2026.12. Date: 2026-12-01." in ac, "bundle: AUDIT-CONTEXT header stamped"))
+        results.append(("Release: v2099.01. Date: 2099-01-01." in ac, "bundle: AUDIT-CONTEXT header stamped"))
         olp = (r / "ONE-LINE-PROMPT.md").read_text(encoding="utf-8")
         ry = (r / "routing.yaml").read_text(encoding="utf-8")
         pins = (r / "analysis" / "revalidation-and-pins.md").read_text(encoding="utf-8")
         readme = (r / "README.md").read_text(encoding="utf-8")
         results.append(("> Pre-release." not in ac and "should stop and say the repo is unreleased" not in ac
-                        and "has not cut a release yet" not in olp and "release v2026.12, stamped 2026-12-01" in olp
-                        and "State: pre-release" not in ry and "# State: release v2026.12, stamped 2026-12-01." in ry
-                        and "release: v2026.12\n" in ry
-                        and "Release: unreleased" not in pins and "Release: v2026.12; pins last verified" in pins
-                        and "Status: pre-release" not in readme and "> Status: release v2026.12, stamped 2026-12-01." in readme
+                        and "has not cut a release yet" not in olp and "release v2099.01, stamped 2099-01-01" in olp
+                        and "State: pre-release" not in ry and "# State: release v2099.01, stamped 2099-01-01." in ry
+                        and "release: v2099.01\n" in ry
+                        and "Release: unreleased" not in pins and "Release: v2099.01; pins last verified" in pins
+                        and "Status: pre-release" not in readme and "> Status: release v2099.01, stamped 2099-01-01." in readme
                         and "<!-- pre-release:start" in readme and "<!-- pre-release:end -->" in readme,
                         "bundle: stamp retires the banner, the prompt paragraph, the routing comment, the README banner and the pins Release line"))
         held = always_fetch(r)[0]
         body = (r / held).read_bytes()
         unwrite(r, held)
         expect("bundle: refuses to build while Always Fetch docs are missing",
-               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, "Always Fetch docs missing")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, "Always Fetch docs missing")
         (r / held).write_bytes(body)
         fill_routed(r)
         gone = unwrite(r, routed_docs(r)[0])
         expect("bundle: refuses to build while a routed doc is missing",
-               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, f"routed docs missing (1)")
-        expect("bundle: names the missing routed doc", run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, gone)
-        p = run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, dict(env, ALLOW_MISSING="1"))
+               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, f"routed docs missing (1)")
+        expect("bundle: names the missing routed doc", run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, gone)
+        p = run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, dict(env, ALLOW_MISSING="1"))
         expect("bundle: builds with ALLOW_MISSING=1", p, True)
-        out = r / "dist" / "securing-ai-best-practices-v2026.12.md"
+        out = r / "dist" / "securing-ai-best-practices-v2099.01.md"
         digest = hashlib.sha256(out.read_bytes()).hexdigest() if out.is_file() else ""
         rel = (r / "RELEASES.md").read_text(encoding="utf-8")
         results.append((bool(digest) and digest in rel and sha in rel and digest in p.stdout,
@@ -341,15 +341,15 @@ def main() -> int:
         results.append((bool(re.search(r"^===== FILE: routing.yaml =====$", out.read_text(encoding="utf-8"), re.M)) if out.is_file() else False,
                         "bundle: contains routing.yaml under its file header"))
         expect("bundle: refuses a second row for the same tag",
-               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, dict(env, ALLOW_MISSING="1")), False, "already has a row")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, dict(env, ALLOW_MISSING="1")), False, "already has a row")
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
         env = {"ROOT": str(r)}
         fill_routed(r)
-        run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env)
+        run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env)
         expect("bundle: builds without ALLOW_MISSING once every routed doc exists",
-               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), True, "sha256:")
-        out = (r / "dist" / "securing-ai-best-practices-v2026.12.md")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), True, "sha256:")
+        out = (r / "dist" / "securing-ai-best-practices-v2099.01.md")
         text = out.read_text(encoding="utf-8") if out.is_file() else ""
         results.append((all(f"===== FILE: {d} =====" in text for d in routed_docs(r)),
                         "bundle: holds every routed doc"))
@@ -363,7 +363,7 @@ def main() -> int:
         before = (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
         edit(r / "routing.yaml", "# pre-release:end\n", "")
         expect("bundle: stamp refuses when a pre-release marker is missing, and writes nothing",
-               run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), False, "nothing written")
+               run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env), False, "nothing written")
         results.append(((r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8") == before,
                         "bundle: a refused stamp leaves AUDIT-CONTEXT unstamped"))
     with tempfile.TemporaryDirectory() as td:
@@ -372,15 +372,15 @@ def main() -> int:
         before = (r / "README.md").read_text(encoding="utf-8")
         edit(r / "README.md", "<!-- pre-release:end -->\n", "")
         expect("bundle: stamp refuses when the README banner marker is missing",
-               run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env), False, "README.md: expected exactly one")
+               run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env), False, "README.md: expected exactly one")
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
         env = {"ROOT": str(r), "ALLOW_MISSING": "1"}
         unstamped = (r / "ONE-LINE-PROMPT.md").read_text(encoding="utf-8")
-        run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], r, env)
+        run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env)
         (r / "ONE-LINE-PROMPT.md").write_text(unstamped, encoding="utf-8")
         expect("bundle: refuses when pre-release wording survives the stamp, even with ALLOW_MISSING=1",
-               run(["build-release-bundle.sh", "bundle", "v2026.12", sha], r, env), False, "survives the stamp")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, "survives the stamp")
     with tempfile.TemporaryDirectory() as td:
         r1, r2 = tree(td), None
         r2 = Path(td) / "repo2"
@@ -388,9 +388,9 @@ def main() -> int:
         digests = []
         for rr in (r1, r2):
             env = {"ROOT": str(rr), "ALLOW_MISSING": "1"}
-            run(["build-release-bundle.sh", "stamp", "v2026.12", "2026-12-01"], rr, env)
-            run(["build-release-bundle.sh", "bundle", "v2026.12", sha], rr, env)
-            digests.append(hashlib.sha256((rr / "dist" / "securing-ai-best-practices-v2026.12.md").read_bytes()).hexdigest())
+            run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], rr, env)
+            run(["build-release-bundle.sh", "bundle", "v2099.01", sha], rr, env)
+            digests.append(hashlib.sha256((rr / "dist" / "securing-ai-best-practices-v2099.01.md").read_bytes()).hexdigest())
         results.append((digests[0] == digests[1], "bundle: two builds of the same tree have the same SHA-256"))
 
     for good, label in results:

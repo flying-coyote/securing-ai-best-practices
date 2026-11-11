@@ -3,7 +3,7 @@
 Paste one block into an agent and it interviews you about how your organization uses AI, matches your answers to a routing table, reads the four to eight researched documents that apply, and hands back a short review that opens with what to do in the next 30 days, ordered by what could hurt you, with the repo's confidence printed beside every item and a link to the document that researched it. Where the public record had a gap, the documents cite lab measurements published in [sdw-lab-benchmarks](https://github.com/flying-coyote/sdw-lab-benchmarks), pinned by commit.
 
 <!-- pre-release:start (the release script's stamp step rewrites the text between these markers) -->
-> Status: release v2026.11, stamped 2026-11-10. The blocks below pin its commit; check the offline bundle's SHA-256 against `RELEASES.md`.
+> Status: release v2026.12, stamped 2026-11-11. The blocks below still carry the `<release-sha>` and `<vYYYY.MM>` placeholders until the default branch is bumped to the tagged commit, so take the release's full commit SHA, its tag and the SHA-256 of the offline bundle from `RELEASES.md`.
 <!-- pre-release:end -->
 
 26 routable docs, 107 signals, 5 stubs, last derived 2026-11-10.
