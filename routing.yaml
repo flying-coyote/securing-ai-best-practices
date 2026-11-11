@@ -228,7 +228,7 @@ signals:
     why: "Enables the S3 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S4
     family: surface
-    question: "Does the organization run IDE and coding agents? (yes, no, or not sure)"
+    question: "Does the organization run IDE and coding agents, including MCP servers those agents start locally? (yes, no, or not sure)"
     method: [I, E]
     weight: INVENTORY
     enables: [coding-agent-managed-tier-absent, hook-fail-open, hooks-user-disableable, mcp-allowlist-absent, agent-static-secrets]
@@ -236,7 +236,7 @@ signals:
     why: "Enables the S4 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S5
     family: surface
-    question: "Does the organization run MCP servers and agent tools? (yes, no, or not sure)"
+    question: "Does the organization run or host MCP servers and agent tools for shared use? (yes, no, or not sure)"
     method: [I, E]
     weight: INVENTORY
     enables: [mcp-allowlist-absent, mcp-unpinned, mcp-remote, mcp-manifest-snapshot-absent, agent-static-secrets, nhi-inventory-absent]
