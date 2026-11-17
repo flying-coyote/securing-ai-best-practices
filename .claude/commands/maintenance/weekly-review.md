@@ -51,7 +51,15 @@ WR=$(mktemp -d)
    python3 scripts/check-routing-coverage.py > "$WR/routing.txt" 2>&1 && routing=PASS || routing=FAIL
    python3 scripts/route.py --check-fixtures  > "$WR/fixtures.txt" 2>&1 && fixtures=PASS || fixtures=FAIL
    python3 scripts/check-exclusions.py        > "$WR/excl.txt" 2>&1 && exclusions=PASS || exclusions=FAIL
-   python3 scripts/check-prompt-blocks.py     > "$WR/blocks.txt" 2>&1 && blocks=PASS || blocks=FAIL
+   # Resolve the newest release tag the same way the CI job does: with no tag the block must carry the
+   # placeholder, and once a release exists the script needs the tag's commit, or it fails by design.
+   TAG=$(git tag --list 'v*' --sort=-v:refname | grep -E '^v[0-9]{4}\.[0-9]{2}(\.[0-9]+)?$' | head -n1 || true)
+   if [ -z "$TAG" ] || [ "$(git rev-list -n1 "$TAG")" = "$(git rev-parse HEAD)" ]; then
+     python3 scripts/check-prompt-blocks.py   > "$WR/blocks.txt" 2>&1 && blocks=PASS || blocks=FAIL
+   else
+     python3 scripts/check-prompt-blocks.py --tag "$TAG" --tag-commit "$(git rev-list -n1 "$TAG")" \
+                                              > "$WR/blocks.txt" 2>&1 && blocks=PASS || blocks=FAIL
+   fi
    python3 scripts/test-reducers.py           > "$WR/reducers.txt" 2>&1 && reducers=PASS || reducers=FAIL
    grep -E 'not yet written' "$WR/routing.txt"
    ```

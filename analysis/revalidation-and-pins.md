@@ -13,6 +13,8 @@ pins:
   - "NIST CSF 2.0"
   - "NIST IR 8596 iprd-2025-12-16"
   - "NIST AI RMF 1.0"
+  - "NIST AI 600-1 2024-07"
+  - "NIST AI 100-2 E2025"
   - "OWASP Top 10 for LLM Applications 2026"
   - "OWASP Top 10 for Agentic Applications 2026"
   - "ISO/IEC 42001 2023"
@@ -63,7 +65,7 @@ That is the general problem this document exists to manage. A recommendation in 
 
 ## The pin table
 
-Checked 2026-11-09 and 2026-11-10 against each project's own release surface. "Reopens" names the repo documents whose claims a new version would put back in question.
+Checked 2026-11-09 and 2026-11-10, and 2026-11-17 for the NIST AI 600-1 and AI 100-2 rows, against each project's own release surface. "Reopens" names the repo documents whose claims a new version would put back in question.
 
 | Framework or catalogue | Pinned | Released | What a new version reopens | Watched where | last-checked |
 |---|---|---|---|---|---|
@@ -77,6 +79,8 @@ Checked 2026-11-09 and 2026-11-10 against each project's own release surface. "R
 | NIST IR 8596 Cyber AI Profile | initial preliminary draft | 2025-12-16, comments closed 2026-01-30 | any CSF-to-AI bridge; redo when the next draft lands | CSRC | 2026-11-09 |
 | NIST SP 800-53 AI overlays (COSIS) | none published | concept paper 2025-08-14, outline 2026-01-08 | nothing yet; the repo writes no overlay explainer before CSRC publishes a draft | CSRC project page | 2026-11-09 |
 | NIST AI RMF | 1.0 | January 2023; nist.gov says it "is being revised", no draft | the NIST section of `frameworks-and-what-they-reach.md` | nist.gov | 2026-11-09 |
+| NIST AI 600-1 Generative AI Profile | July 2024 | July 2024; nist.gov landing page updated 2026-04-08, no new edition | the NIST section of `frameworks-and-what-they-reach.md`; the action IDs in `stubs/ai-you-ship.md` | nist.gov publication page | 2026-11-17 |
+| NIST AI 100-2 adversarial machine learning taxonomy | E2025, final 2025-03-24 (corrected PDF 2025-04-01; a planning note of 2025-06-03 identifies an error on page x, with potential updates promised for a future update or revision) | March 2025 | the NIST section of `frameworks-and-what-they-reach.md`; redo when NIST SP 2400-102 E2026, its successor in initial public draft since 2026-11-09, goes final | CSRC | 2026-11-17 |
 | OWASP Top 10 for LLM Applications | 2026 edition | 2026-08-03 | `frameworks-and-what-they-reach.md` §OWASP; the `owasp-ids-2025` row | OWASP GenAI project | 2026-11-09 |
 | OWASP Top 10 for Agentic Applications | "for 2026" edition | 2025-12-09 | same | same | 2026-11-09 |
 | ISO/IEC 42001 | 42001:2023 (EN ISO/IEC 42001:2026 is the CEN adoption, text reported unchanged) | 2023 | management-system references only | iso.org (returned 403; adoption read from a national body's catalogue) | 2026-11-09 |
@@ -95,7 +99,7 @@ MCP is the case where one pin is not enough. In a lab run against one fixture se
 
 OCSF, CoSAI and the OWASP lists change less often but in ways that rename what a control points at. OCSF 1.9.0 is pinned; the AI Agent Activity class draft (#1754) is not in a release, and an OCSF release that carries it, or that adds a weights digest to `ai_model`, reopens the landing guidance. CoSAI's component list is the canon every surface row in this repo is keyed to, so a commit past `622605a1` that renames or splits a component reopens `surface-ownability.md` before anything else. OWASP published a 2026 edition of the LLM Top 10 on 2026-08-03, so any control text keyed to an LLM0x:2025 ID needs re-mapping, and I have not read a published crosswalk between the two editions, which is listed as a gap below.
 
-The NIST rows are pins on an absence. IR 8596 has only its December 2025 draft, the AI RMF is "being revised" with no draft, and the SP 800-53 overlay project was renamed on 2026-10-20 from COSAiS to Control Overlays for Super Intelligence Systems (COSIS) with only a concept paper and an annotated outline published (Tier A, CSRC). I would not spend on a mapping to any of them until a public draft exists, and the repo will not write an overlay explainer before then.
+Most of the NIST rows are pins on an absence. IR 8596 has only its December 2025 draft, the AI RMF is "being revised" with no draft, and the SP 800-53 overlay project was renamed on 2026-10-20 from COSAiS to Control Overlays for Super Intelligence Systems (COSIS) with only a concept paper and an annotated outline published (Tier A, CSRC). I would not spend on a mapping to any of those three until a public draft exists, and the repo will not write an overlay explainer before then. The exceptions are AI 600-1 (July 2024) and the adversarial machine learning taxonomy AI 100-2 E2025 (final 2025-03-24), both final, and the second already has a successor in draft, NIST SP 2400-102 E2026, published as an initial public draft on 2026-11-09 with comments due 2026-12-18, which CSRC says "builds on the historical NIST AI 100-2 series" (Tier A, CSRC, read 2026-11-17), so the pin stays on the final edition until the draft is final.
 
 KEV is pinned for the record rather than as a standard. The catalogue changes several times a week, so the pin says which snapshot a release read, and it matters for one kind of claim: in the 2026.11.09 snapshot the exploited AI-adjacent entries added during 2026 sit in orchestration and gateway software (three LiteLLM entries, five Langflow, one n8n, one MLflow, one Ray) and none names an inference engine such as vLLM or Ollama (Tier A). Any sentence in this repo that says "no KEV entries for" a product class carries the catalogue version beside it, because a "zero 2026 entries" sentence in my own earlier research was true on its date and false a day later, when MLflow entered the catalogue.
 
@@ -119,7 +123,7 @@ The dated rows go on a calendar now. The signal rows are what a monthly or quart
 | An OCSF release | the AI Agent Activity class (#1754) ships, or `ai_model` gains a weights digest | `landing-ai-events-in-ocsf.md`, `models-you-hold.md` |
 | An MCP specification revision past 2026-07-28, or an SDK major version | a new revision; a new SDK release that changes what is logged | `mcp-servers-and-manifest-drift.md`, `landing-ai-events-in-ocsf.md` |
 | A CoSAI commit that renames or splits a component | a new component under the agent subcategory | `surface-ownability.md` |
-| A NIST AI public draft | IR 8596 initial public draft; a COSIS overlay draft; AI RMF revision draft | `frameworks-and-what-they-reach.md` §NIST |
+| A NIST AI public draft or final | IR 8596 initial public draft; a COSIS overlay draft; AI RMF revision draft; SP 2400-102 going final as the successor to AI 100-2 E2025 | `frameworks-and-what-they-reach.md` §NIST |
 | A platform changes a logging default, export schema or licence tier | content logging turned on by default; an audit log arriving at a lower plan tier | `telemetry-by-surface.md` default-state rows, `rent-or-own-sized-to-the-org.md` |
 | A preview feature you were waiting on goes generally available | a discovery, policy or logging feature losing its preview label | `configure-before-you-buy.md`, `incumbent-tool-coverage.md` |
 | A KEV entry for software you run or rent in the AI path | a further gateway entry; a first entry for an inference engine | `models-you-hold.md`, `ai-apis-and-the-gateway.md` |
@@ -150,6 +154,7 @@ Pinning is also not a substitute for reading. The pins say which version the rep
 - ATT&CK's site dates v19.x from 28 April 2026, while the v19.2 STIX tag was cut 2026-08-05; both are right for what they describe, and the pin uses the STIX collection's own version (Tier A).
 - The ISO/IEC 42001 row rests on a national standards body's catalogue page because iso.org returned 403; treat the "text unchanged" statement as Tier C until read at the primary.
 - The vendor retention windows referenced in the dated table live as default-state rows with their own `last-checked` dates in `telemetry-by-surface.md`, not here, so this document carries no vendor default.
+- 2026-11-17: the AI 600-1 and AI 100-2 E2025 pins were added after both were read at the publisher; neither moves a routing row, and the 600-1 pin matches the one `stubs/ai-you-ship.md` already carried.
 - Judgement marker, 2026-11-10: the monthly reading cadence and the twelve-month build sunset are the maintainer's practice, Tier D, recorded here so a review can print them as such.
 
 ## Sources
@@ -165,6 +170,8 @@ Tier A
 - NIST IR 8596 initial preliminary draft, https://csrc.nist.gov/pubs/ir/8596/iprd (read 2026-11-09).
 - NIST Control Overlays for Securing AI Systems, renamed COSIS, https://csrc.nist.gov/projects/cosais (read 2026-11-09).
 - NIST AI Risk Management Framework, https://www.nist.gov/itl/ai-risk-management-framework (read 2026-11-09).
+- NIST AI 600-1, Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile, July 2024, https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf (read 2026-11-17).
+- NIST AI 100-2 E2025, Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations, March 2025, https://csrc.nist.gov/pubs/ai/100/2/e2025/final (read 2026-11-17), and its successor draft NIST SP 2400-102 E2026 (Initial Public Draft), https://csrc.nist.gov/pubs/sp/2400-102/e2026/ipd (read 2026-11-17).
 - Regulation (EU) 2024/1689, consolidated text CELEX 02024R1689-20260727, https://eur-lex.europa.eu/eli/reg/2024/1689 (read 2026-11-09), and Regulation (EU) 2026/1744.
 - CISA Known Exploited Vulnerabilities catalog, https://www.cisa.gov/known-exploited-vulnerabilities-catalog (`kev.json` catalogVersion 2026.11.09).
 

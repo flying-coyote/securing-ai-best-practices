@@ -9,6 +9,10 @@ Corrections, new sources and new analysis are welcome, and the bar for each is t
 - A researched source for one of the declared-gap families, which is how a stub becomes a routable document.
 - A report from running the review: which agent and version, which branch, how long it took, and where the routing or the output went wrong. Please describe your organization by category only (see the anonymization rule).
 
+## The quick path for a correction
+
+A correction to one fact, version, default or citation does not need the checklist below. Open an issue or a pull request that names the file and line, gives the corrected text, and links the primary source with the date you read it, and say which tier the source carries under the rules below. A correction that changes no routing behaviour and moves no fixture golden can ship between monthly releases as a correction release (DECISIONS.md, Decision 17); one that does either waits for the next monthly release. A weakness with a security consequence goes through [SECURITY.md](SECURITY.md) instead.
+
 ## Integration checklist for a new analysis document
 
 1. Copy `analysis/CANONICAL-DOC-TEMPLATE.md`, fill in the frontmatter, and keep the routable summary section inside the size budget the template sets.

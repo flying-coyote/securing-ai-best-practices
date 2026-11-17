@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: >-
+  If you cite this repository, cite the release you used, with the commit SHA
+  that RELEASES.md records for it, because the one-line review pins a commit
+  rather than a branch and the documents change between releases.
+title: "Securing AI: best practices and a one-line review"
+type: software
+authors:
+  - name: "flying-coyote"
+repository-code: "https://github.com/flying-coyote/securing-ai-best-practices"
+license: MIT
+version: "v2026.12.1"
+commit: "b8ab0160a36102cf1ee27753bc5d262fe9030625"
+date-released: "2026-11-11"
+keywords:
+  - AI security
+  - security architecture
+  - MCP
+  - coding agents
+  - telemetry
+  - OCSF
+  - MITRE ATLAS

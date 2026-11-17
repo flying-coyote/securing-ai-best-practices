@@ -71,6 +71,27 @@ python3 scripts/check-measurement-expiry.py --changed-files
 
 The one dependency outside the standard library is PyYAML (CI pins 6.0.2); the reducers need none.
 
+Run with no arguments on the default branch after a release, `check-prompt-blocks.py` prints `FAIL no release tag given but the block pins '<sha>'` and exits 1, and that is the check working as designed rather than a defect. With no `--tag-commit` the script assumes the repo is unreleased and requires the `<release-sha>` placeholder, because it never runs git itself, so after the first release it needs to be told which commit the newest tag points at. CI resolves that from the tags (`.github/workflows/checks.yml`), and the local equivalent is:
+
+```bash
+TAG=$(git tag --list 'v*' --sort=-v:refname | grep -E '^v[0-9]{4}\.[0-9]{2}(\.[0-9]+)?$' | head -n1)
+python3 scripts/check-prompt-blocks.py --tag "$TAG" --tag-commit "$(git rev-list -n1 "$TAG")"
+```
+
+On the commit the tag itself points at, CI runs it with no arguments, because that commit carries the placeholders (see `RELEASES.md` for why a commit cannot contain its own SHA).
+
+## The README count line
+
+The README carries one count line (DECISIONS.md, Decision 8), and `check-routing-coverage.py` prints two document counts beside it that look as if they should match it and do not, because each counts a different set. This section explains the relationship without restating the numbers, since Decision 8 keeps the counts in the README line alone.
+
+| Count | Where it is printed | What it counts |
+|---|---|---|
+| routable docs | README count line | Top-level `analysis/*.md` files with status `PRODUCTION` or `EMERGING`, excluding the template; this includes the four Always Fetch documents and leaves out `VERIFICATION-LOG.md`, whose status is `REFERENCE` |
+| shipped docs checked | `check-routing-coverage.py` | The routable documents plus the stubs under `analysis/stubs/`, which is every document the coverage check reads for `applies-to-signals`, so it equals the README's routable and stub figures added together |
+| docs routed | `check-routing-coverage.py` | Distinct documents named in some signal row's `docs` list, which is the shipped figure less any Always Fetch document that no signal row names (`check-routing-coverage.py` does not list them by name; compare `routing.yaml` `always-fetch` with the rows' `docs`), since every review reads those through the `always-fetch` list instead |
+
+An Always Fetch document that a signal row also names counts as routed. The weekly review re-derives the README line from disk with the procedure in `.claude/commands/maintenance/weekly-review.md` (step 2), and that procedure, not this table, is the definition.
+
 ## The employer and identifier denylist hook
 
 The employer and identifier denylist is deliberately not in CI. It runs as a local pre-push hook, [`hooks/pre-push-employer-denylist.sh`](hooks/pre-push-employer-denylist.sh), reading a file outside the repo, because a check backed by a secret list would still print its matches into public CI logs, and because the list itself is the thing that must not be published. The hook carries no names. It reads one term per line from the file named in the `SECURING_AI_DENYLIST` environment variable (blank lines and `#` comments ignored), matches case-insensitively as fixed strings rather than regular expressions, and scans the commit messages and every added line, file paths included, in each range being pushed.

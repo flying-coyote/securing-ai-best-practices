@@ -2,7 +2,7 @@
 
 One dossier per source the analysis documents rely on: what it is, who publishes it, its evidence tier, the version or date this repo is pinned to, which documents cite it, and when it was last checked. The tier rules are in `CONTRIBUTING.md` and `analysis/evidence-tiers.md`. Upstream, the [security-data-literature-review](https://github.com/flying-coyote/security-data-literature-review) is the broader bibliography, and a dossier here cites its entry where one exists rather than repeating it.
 
-Last curated: 2026-11-10. This is the first fill, built from the Sources section of each routable document and stub (the README's count line gives how many), first for the documents of the initial draft and then, on the same date, for those written after them, so a dossier's "Last checked" is the read date the citing document records and not a fresh fetch for this file. Cross-references to literature-review entries are not added yet. Document paths below drop the `analysis/` prefix, and a stub is written `stubs/<name>`.
+Last curated: 2026-11-10. This is the first fill, built from the Sources section of each routable document and stub (the README's count line gives how many), first for the documents of the initial draft and then, on the same date, for those written after them, so a dossier's "Last checked" is the read date the citing document records and not a fresh fetch for this file. Entries added on 2026-11-17 (the MCP Security Best Practices page, two CoSAI Workstream 4 papers, NIST AI 100-2 E2025 and its successor draft, and three model-vendor guidance pages) were each read at the publisher on that date. Cross-references to literature-review entries are not added yet. Document paths below drop the `analysis/` prefix, and a stub is written `stubs/<name>`.
 
 ## How a dossier reads
 
@@ -42,6 +42,26 @@ The sources several documents share get a full dossier. Sources a single documen
 - URL: https://www.coalitionforsecureai.org/wp-content/uploads/2026/03/AI-Incident-Response-1.pdf (project: https://github.com/cosai-oasis/ws2-defenders)
 - Cited by: stubs/ai-incident-response
 - Last checked: 2026-11-10
+
+### CoSAI Agentic Identity and Access Management
+
+- Publisher: Coalition for Secure AI, Workstream 4 (Secure Design Patterns for Agentic Systems)
+- Tier: A, on the same basis as the AI Incident Response Framework V1.0 above, an approved version 1.0 from an OASIS Open project
+- Pinned: Version 1.0, 20 March 2026, PDF read 2026-11-17
+- URL: https://www.coalitionforsecureai.org/wp-content/uploads/2026/04/agentic-identity-and-access-control.pdf
+- Cited by: agent-identity-and-delegation
+- Last checked: 2026-11-17
+- Notes: cited for §5.1 (gateways SHOULD forward only scoped OBO credentials, never raw upstream tokens; decisions MUST be recorded in immutable logs), §3.4 (scope SHOULD narrow at each hop and MUST NOT expand beyond the delegating principal's effective permissions) and principle 8, which extends the forwarding rule to agent-to-agent boundaries. The forwarding rule is a SHOULD.
+
+### CoSAI Model Context Protocol (MCP) Security
+
+- Publisher: Coalition for Secure AI, Workstream 4
+- Tier: A, with a draft caveat, on the basis this file already applies to NIST IR 8596's preliminary draft and to the CoSAI risk map: the version cited was approved by the CoSAI Project Governing Board on 8 January 2026 but still prints "Status: Draft", so it is a reopen trigger rather than a basis for any practice on its own (B is also defensible for an OASIS working draft, as the risk-map entry notes; flagged for maintainer ruling)
+- Pinned: version `7ec1306f2f55563f6eeef9d36a6bb2b531491ceb`, dated 8 January 2026, PDF read 2026-11-17
+- URL: https://www.coalitionforsecureai.org/wp-content/uploads/2026/03/model-context-protocol-security-1.pdf
+- Cited by: mcp-servers-and-manifest-drift
+- Last checked: 2026-11-17
+- Notes: cited for the MCP-T1 to MCP-T12 threat categories and section 3.2.2 (no token passthrough; RFC 8693 token exchange instead). It predates MCP revision 2026-07-28 (it describes stateful sessions and recommends Dynamic Client Registration), so the specification governs where the two differ.
 
 ### MITRE ATLAS
 
@@ -96,8 +116,8 @@ The sources several documents share get a full dossier. Sources a single documen
 - Tier: A
 - Pinned: July 2024
 - URL: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf
-- Cited by: stubs/ai-you-ship, frameworks-and-what-they-reach
-- Last checked: 2026-11-10
+- Cited by: stubs/ai-you-ship, frameworks-and-what-they-reach, revalidation-and-pins (pinned there since 2026-11-17)
+- Last checked: 2026-11-17 (nist.gov landing page "Created July 26, 2024, Updated April 8, 2026"; PDF re-read)
 - Notes: actions MS-2.7-007, MS-4.2-001, MG-3.1-004, MG-4.1-002 and MG-4.3-001 to -003; thin on output handling as a software-integration problem, so the stub reads OWASP first for that signal.
 
 ### Other NIST publications
@@ -107,6 +127,8 @@ The sources several documents share get a full dossier. Sources a single documen
 | NIST CSF 2.0 and its quick-start guides | CSF 2.0 | https://csrc.nist.gov/news/2026/two-new-csf-2-0-quick-start-guides | revalidation-and-pins | 2026-11-09 | |
 | NIST IR 8596 | initial preliminary draft, 2025-12-16 | https://csrc.nist.gov/pubs/ir/8596/iprd | revalidation-and-pins, frameworks-and-what-they-reach (with its ATLAS-to-CSF bridge) | 2026-11-09 | a draft, so a reopen trigger rather than a basis for any practice |
 | NIST Control Overlays for Securing AI Systems (renamed COSIS) | unpinned | https://csrc.nist.gov/projects/cosais | revalidation-and-pins, frameworks-and-what-they-reach | 2026-11-09 | |
+| NIST AI 100-2 E2025, Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations | E2025, final 2025-03-24 (corrected PDF 2025-04-01) | https://csrc.nist.gov/pubs/ai/100/2/e2025/final | frameworks-and-what-they-reach, revalidation-and-pins | 2026-11-17 | a planning note of 2025-06-03 identifies an error on page x, with potential updates promised for a future update or revision |
+| NIST SP 2400-102 E2026, Adversarial Machine Learning (initial public draft) | initial public draft, 2026-11-09, comments due 2026-12-18 | https://csrc.nist.gov/pubs/sp/2400-102/e2026/ipd | frameworks-and-what-they-reach, revalidation-and-pins | 2026-11-17 | the successor to AI 100-2 E2025 in draft, so a reopen trigger rather than a basis for any practice |
 | NIST SP 800-53 Rev. 5, CM-8 System Component Inventory | Rev. 5 update 1 | https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final | build-buy-and-the-high-priest, frameworks-and-what-they-reach | 2026-11-10 | |
 | NIST SP 800-61 Rev. 3 | April 2025 | https://csrc.nist.gov/pubs/sp/800/61/r3/final | stubs/ai-incident-response | 2026-11-10 | |
 | Garfinkel, De-Identification of Personal Information, NIST IR 8053 | 2015, §3.2 | https://doi.org/10.6028/NIST.IR.8053 | prompt-capture-and-the-law, what-to-log-and-what-it-costs | 2026-11-09 | the unkeyed-hash enumeration example |
@@ -140,8 +162,9 @@ The sources several documents share get a full dossier. Sources a single documen
 - Tier: A (`decision-sequence.md` grades it B; see Tier disagreements)
 - Pinned: revision 2026-07-28
 - URL: https://modelcontextprotocol.io/specification/2026-07-28
-- Cited by: decision-sequence, revalidation-and-pins, mcp-servers-and-manifest-drift (changelog, Authorization, Deprecated features), landing-ai-events-in-ocsf (changelog), ai-apis-and-the-gateway (changelog, Authorization)
-- Last checked: 2026-11-10 (landing-ai-events-in-ocsf; the others 2026-11-09)
+- Cited by: decision-sequence, revalidation-and-pins, mcp-servers-and-manifest-drift (changelog, Authorization, Deprecated features, Security Best Practices), landing-ai-events-in-ocsf (changelog), ai-apis-and-the-gateway (changelog, Authorization), agent-identity-and-delegation (Security Best Practices, Token Passthrough)
+- Last checked: 2026-11-17 (Security Best Practices and the Authorization page's Dynamic Client Registration note; landing-ai-events-in-ocsf 2026-11-10; the others 2026-11-09)
+- Notes: the Security Best Practices page for revision 2026-07-28 (https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices, which redirects to the `docs/2026-07-28/tutorials/security/` path) lists eleven attack classes, three of them new over 2025-11-25, and replaces Session Hijacking with State Handle Hijacking because the revision has no protocol-level sessions.
 
 ### CISA Known Exploited Vulnerabilities catalog
 
@@ -430,11 +453,11 @@ Every row here is Tier B for what the product does, read on the date given, and 
 
 | Vendor or project | Pages read | Read | Cited by |
 |---|---|---|---|
-| Anthropic | Claude Code hooks, permissions, settings, managed settings, settings reference, sandboxing, monitoring, headless and costs (code.claude.com/docs); Compliance API (platform.claude.com); custom data retention for Enterprise (support.claude.com article 10440198); tenant restrictions (support.claude.com article 13198485); pricing (claude.com/pricing); Claude Code managed MCP (managed-mcp), monitoring and settings-reference `cleanupPeriodDays` | 2026-11-09 and 2026-11-10 | coding-agent-hooks-and-policy, configure-before-you-buy, telemetry-by-surface, what-to-log-and-what-it-costs, saas-embedded-ai-and-vendor-terms, rent-or-own-sized-to-the-org, inventory-and-shadow-ai, tamper-evident-record, mcp-servers-and-manifest-drift, ai-apis-and-the-gateway |
+| Anthropic | Claude Code hooks, permissions, settings, managed settings, settings reference, sandboxing, monitoring, headless and costs (code.claude.com/docs); Compliance API (platform.claude.com); custom data retention for Enterprise (support.claude.com article 10440198); tenant restrictions (support.claude.com article 13198485); pricing (claude.com/pricing); Claude Code managed MCP (managed-mcp), monitoring and settings-reference `cleanupPeriodDays`; Claude Code security page (code.claude.com/docs/en/security, read 2026-11-17); "Mitigate jailbreaks and prompt injections" (platform.claude.com, read 2026-11-17) | 2026-11-09, 2026-11-10 and 2026-11-17 | telemetry-is-an-injection-surface, coding-agent-hooks-and-policy, configure-before-you-buy, telemetry-by-surface, what-to-log-and-what-it-costs, saas-embedded-ai-and-vendor-terms, rent-or-own-sized-to-the-org, inventory-and-shadow-ai, tamper-evident-record, mcp-servers-and-manifest-drift, ai-apis-and-the-gateway |
 | Microsoft | Purview audit for Copilot and AI apps (ms.date 2026-08-26), auditing solutions overview, Purview for generative AI apps, DSPM for AI, DLP for Microsoft 365 Copilot, sensitivity labels; Microsoft 365 Copilot privacy (updated 2026-11-04), Copilot admin center settings, public web access; Restricted SharePoint Search and restricted content discovery; Copilot Studio data policies, security and governance, Managed Environments sharing limits; Entra agent identities, application permissions, diagnostic settings; Azure OpenAI monitoring and Foundry model monitoring; Secure Score; Security for AI app discovery, DSPM for AI (classic), Sysmon and `microsoft/SysmonCommon` `manifest.xml` (schema 4.90), Entra Agent ID overview and agent ID Governance, Defender for Cloud AI security posture and AI threat protection, Azure API Management AI gateway, Azure Activity Log schema, governing MCP tools through an AI gateway (updated 2026-08-27), Monitor Azure OpenAI (updated 2026-05-12) | 2026-11-09 and 2026-11-10 | telemetry-by-surface, configure-before-you-buy, saas-embedded-ai-and-vendor-terms, inventory-and-shadow-ai, ai-use-policy-and-intake, what-to-log-and-what-it-costs, stubs/assistant-oversharing, stubs/agent-builders, incumbent-tool-coverage, mcp-servers-and-manifest-drift, ai-apis-and-the-gateway, agent-identity-and-delegation |
 | Google | Workspace Gemini log events, BigQuery log export and retention, Gemini conversation history settings, OAuth log events, Privacy Hub, Gemini app access, DLP for Gemini; Gemini Enterprise usage audit logs; Cloud Logging quotas; Vertex AI audit logging and request-response logging (Pre-GA on the read date); Agent Identity overview; Security Command Center AI Protection; Chrome Enterprise reporting connectors; Chrome Enterprise Premium DLP integration; Vertex AI audit logging | 2026-11-09 and 2026-11-10 | telemetry-by-surface, configure-before-you-buy, saas-embedded-ai-and-vendor-terms, inventory-and-shadow-ai, decision-sequence, stubs/assistant-oversharing, stubs/agent-builders, incumbent-tool-coverage, ai-apis-and-the-gateway |
 | AWS | Bedrock model invocation logging; Bedrock and `bedrock-mantle` CloudTrail logging; CloudTrail event history and concepts; Bedrock AgentCore policy and enforcement modes; CloudTrail log file integrity validation (two pages) and S3 Object Lock; Bedrock CloudTrail monitoring, CloudTrail record contents and `userIdentity`; AgentCore policy, enforcement modes and observability; IAM Access Analyzer unused access and AgentCore CloudTrail data events | 2026-11-09 and 2026-11-10 | telemetry-by-surface, configure-before-you-buy, inventory-and-shadow-ai, coding-agent-hooks-and-policy, what-to-log-and-what-it-costs, stubs/agent-builders, tamper-evident-record, incumbent-tool-coverage, mcp-servers-and-manifest-drift, ai-apis-and-the-gateway, agent-identity-and-delegation |
-| OpenAI | Codex approvals and security, rules, governance and managed configuration (learn.chatgpt.com); ChatGPT pricing; Codex managed configuration | 2026-11-09 and 2026-11-10 | coding-agent-hooks-and-policy, telemetry-by-surface, rent-or-own-sized-to-the-org, mcp-servers-and-manifest-drift |
+| OpenAI | Codex approvals and security, rules, governance and managed configuration (learn.chatgpt.com); ChatGPT pricing; Codex managed configuration; "Safety in building agents" (developers.openai.com, read 2026-11-17, carrying an Agent Builder deprecation notice with a shutdown date of 2026-11-30) | 2026-11-09, 2026-11-10 and 2026-11-17 | coding-agent-hooks-and-policy, telemetry-by-surface, rent-or-own-sized-to-the-org, mcp-servers-and-manifest-drift, telemetry-is-an-injection-surface |
 | GitHub | Copilot hooks reference, coding agent firewall, Copilot audit logs, enterprise audit log streaming, Copilot plans; MCP management, MCP allowlist enforcement, supported secret scanning patterns | 2026-11-09 and 2026-11-10 | coding-agent-hooks-and-policy, telemetry-by-surface, configure-before-you-buy, rent-or-own-sized-to-the-org, mcp-servers-and-manifest-drift, incumbent-tool-coverage |
 | Cursor | hooks; compliance and monitoring; pricing; Enterprise | 2026-11-09 and 2026-11-10 | coding-agent-hooks-and-policy, telemetry-by-surface, configure-before-you-buy, rent-or-own-sized-to-the-org, mcp-servers-and-manifest-drift |
 | Gemini CLI | policy engine (updated 2026-04-30), hooks (updated 2026-04-10), enterprise (updated 2026-06-16) | 2026-11-09 | coding-agent-hooks-and-policy, mcp-servers-and-manifest-drift |

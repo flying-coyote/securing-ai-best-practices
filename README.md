@@ -8,6 +8,20 @@ Paste one block into an agent and it interviews you about how your organization 
 
 26 routable docs, 107 signals, 5 stubs, last derived 2026-11-10.
 
+## What this is, and what it is not
+
+It is a set of researched documents on securing the AI an organization runs or rents, a routing table that decides which of them apply to a given organization, and a pasteable prompt that runs the interview and writes the review, with every recommendation carrying a priority from a published rubric and a confidence from its source's evidence tier. You can use it in two ways, by running the review in an assistant you are already allowed to use, or by reading the documents directly in the order given under [Read it without running it](#read-it-without-running-it), and the second needs nothing but this page.
+
+It is not any of the following:
+
+- a scanner, since it changes nothing in any system, so whatever it knows about your environment is what you tell it or what the local reducers count;
+- a vendor comparison, a product review or a certification, because grades are category grades and no vendor's efficacy claim can lift a recommendation past Tier C;
+- legal advice;
+- a source of exploit steps or payloads, of which it carries none;
+- a researched treatment of every family yet, because the families that route to stubs (assistant oversharing, RAG and vector stores, agent builders, AI an organization ships, and AI incident response) get short documents that name the standard to read meanwhile instead of passing silently as clean.
+
+The terms it uses in a specific sense, from "surface" to "Question Packet", are in [GLOSSARY.md](GLOSSARY.md).
+
 ## Why it is shaped this way
 
 An organization's "AI" turns out to be about thirteen deployment surfaces, most of them rented, from the assistant inside the office suite and the AI features vendors switched on inside products you already pay for, through coding agents and the MCP servers they call, to the rarer cases of self-hosted models, fine-tunes and RAG stores. On most of those surfaces the organization owns only its identity provider, its egress path and whatever audit record the vendor exports, so the questions a practitioner actually has are which surfaces they run, which parts of each are theirs to secure, what record exists and who holds it, what the tools they already own cover, and what to turn on, evaluate, buy or build, in what order.
@@ -39,6 +53,28 @@ Run it in your organization's sanctioned business or enterprise assistant, on te
 
 Tested agents: each release names the agents and versions its block was run against, in the Agents tested column of [RELEASES.md](RELEASES.md). Fetch mode has not yet been run by a tested agent.
 
+## Read it without running it
+
+The documents are written to be read on their own, and reading them in the order a review would print its actions is a reasonable way to learn the material before running anything. Start with the four documents every review fetches, because they set how to read everything after them.
+
+1. [evidence-tiers.md](analysis/evidence-tiers.md) explains the A to D tiers and the convergence values printed beside every recommendation, so you can tell a standard from a vendor statement from the author's judgement.
+2. [surface-ownability.md](analysis/surface-ownability.md) places the thirteen AI surfaces on the CoSAI component map and shows which parts of each one an organization owns, shares or rents.
+3. [decision-sequence.md](analysis/decision-sequence.md) gives the order the work tends to go in, from deciding what you rent or own through to the vendor conversation, and the 90-day and one-year steps.
+4. [revalidation-and-pins.md](analysis/revalidation-and-pins.md) lists the framework and catalogue versions this release was checked against and the events that would reopen a recommendation.
+
+Then read the families in the order the decision sequence groups them, with a document that more than one group reaches listed under its earliest, skipping any surface your organization does not run.
+
+- Ownership and profile: [rent-or-own-sized-to-the-org.md](analysis/rent-or-own-sized-to-the-org.md), [inventory-and-shadow-ai.md](analysis/inventory-and-shadow-ai.md), [build-buy-and-the-high-priest.md](analysis/build-buy-and-the-high-priest.md) and [models-you-hold.md](analysis/models-you-hold.md).
+- Governance and risk tolerance: [ai-use-policy-and-intake.md](analysis/ai-use-policy-and-intake.md), [configure-before-you-buy.md](analysis/configure-before-you-buy.md) and [incumbent-tool-coverage.md](analysis/incumbent-tool-coverage.md).
+- Configuring what you own: [saas-embedded-ai-and-vendor-terms.md](analysis/saas-embedded-ai-and-vendor-terms.md), which the vendor conversation comes back to, [coding-agent-hooks-and-policy.md](analysis/coding-agent-hooks-and-policy.md) and [mcp-servers-and-manifest-drift.md](analysis/mcp-servers-and-manifest-drift.md), with the stubs for [assistant oversharing](analysis/stubs/assistant-oversharing.md), [agent builders](analysis/stubs/agent-builders.md) and [RAG stores](analysis/stubs/rag-stores.md).
+- Gateways and identities: [agent-identity-and-delegation.md](analysis/agent-identity-and-delegation.md) and [ai-apis-and-the-gateway.md](analysis/ai-apis-and-the-gateway.md).
+- The record: [telemetry-by-surface.md](analysis/telemetry-by-surface.md), [what-to-log-and-what-it-costs.md](analysis/what-to-log-and-what-it-costs.md), [prompt-capture-and-the-law.md](analysis/prompt-capture-and-the-law.md), [landing-ai-events-in-ocsf.md](analysis/landing-ai-events-in-ocsf.md), [tamper-evident-record.md](analysis/tamper-evident-record.md) and [telemetry-is-an-injection-surface.md](analysis/telemetry-is-an-injection-surface.md).
+- Evaluation and the artifacts you hold: [fine-tuned-model-is-a-data-store.md](analysis/fine-tuned-model-is-a-data-store.md), [evaluating-ai-in-the-soc.md](analysis/evaluating-ai-in-the-soc.md) and the stub for [AI you ship](analysis/stubs/ai-you-ship.md).
+- Containment: the stub for [AI incident response](analysis/stubs/ai-incident-response.md).
+- The vendor conversation: [reading-vendor-claims.md](analysis/reading-vendor-claims.md) and [frameworks-and-what-they-reach.md](analysis/frameworks-and-what-they-reach.md).
+
+Each document opens with a short "Summary for the review" section, which is the part an agent reads first, and the sections after it carry the evidence, the gaps it declares and its sources with their tiers.
+
 ## Boundaries
 
 The repo concerns no employer, and no organization is named or assumed to run any product; every vendor that appears is named from its own public documentation or the public record. Grades are category grades and never a vendor comparison, vendor documentation of what a feature does counts as Tier B, and any claim about how well a product works is Tier C with the bias flagged, so no vendor claim can raise the repo's confidence past B. And the review is not legal advice, which matters because one of the documents is about whether an organization may capture prompt text at all.
@@ -52,6 +88,8 @@ The repo concerns no employer, and no organization is named or assumed to run an
 - [SOURCES.md](SOURCES.md) holds the source dossiers.
 - [CONTRIBUTING.md](CONTRIBUTING.md) carries the integration checklist, the tier rules, the anonymization rule and the exclusions.
 - [ABSORPTION-MAP.md](ABSORPTION-MAP.md) says, per document, which standard or project could carry its load instead.
+- [GLOSSARY.md](GLOSSARY.md) defines the terms the repo uses in a specific sense, each with the document that owns the definition.
+- [SECURITY.md](SECURITY.md) says how to report a weakness in the prompt block, the reducers or the checks, and [CITATION.cff](CITATION.cff) says how to cite a release.
 - [analysis/CANONICAL-DOC-TEMPLATE.md](analysis/CANONICAL-DOC-TEMPLATE.md) is the shape every analysis document takes.
 - [fixtures/](fixtures/README.md) holds three synthetic Answers Blocks with the routing each produces, which CI checks and which double as worked examples.
 - [scripts/README.md](scripts/README.md) lists the scripts and which of them CI runs. The local reducers that turn an admin export into counts are in `scripts/reducers/`.

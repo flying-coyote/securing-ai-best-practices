@@ -12,6 +12,8 @@ pins:
   - "NIST CSF 2.0"
   - "NIST IR 8596 iprd-2025-12-16"
   - "NIST AI RMF 1.0"
+  - "NIST AI 600-1 2024-07"
+  - "NIST AI 100-2 E2025"
   - "OWASP Top 10 for LLM Applications 2026"
   - "OWASP Top 10 for Agentic Applications 2026"
   - "ISO/IEC 42001 2023"
@@ -139,9 +141,11 @@ So `mapping-treated-as-coverage` selects when a mapping is offered as the third 
 
 The OWASP lists are Tier A for the risk categories they name ([evidence-tiers.md](evidence-tiers.md)), which makes them useful for checking that a design review asks about each category, and they carry no technique IDs that join to ATT&CK or ATLAS, no telemetry and no test procedure, so "covers the OWASP Top 10" says which risks a team discussed. The live issue is versioning. OWASP published a 2026 edition of the LLM Top 10 on 2026-08-03 with numbering that differs from 2025, and the Agentic list has a "for 2026" edition dated 2025-12-09 (Tier A, OWASP GenAI Security Project), so control text keyed to 2025 IDs points at the wrong entries, which `owasp-ids-2025` detects. I have not read a published crosswalk between the editions, and the repo writes no explainer of the list itself.
 
-### NIST: AI RMF 1.0, AI 600-1, CSF 2.0 and the Cyber AI Profile
+### NIST: AI RMF 1.0, AI 600-1, AI 100-2, CSF 2.0 and the Cyber AI Profile
 
 NIST AI RMF 1.0 (NIST AI 100-1, January 2023) organizes AI risk management into Govern, Map, Measure and Manage, and the Generative AI Profile (NIST AI 600-1, July 2024) adds suggested actions for generative systems (Tier A). Both reach governance outcomes, an AI risk process with owners, an inventory and third-party review, which is how [ai-use-policy-and-intake.md](ai-use-policy-and-intake.md) uses the Govern function, and neither names a technique or a log source; NIST says AI RMF 1.0 "is being revised", with no draft as of 2026-11-09. IR 8596 (iprd, 2025-12-16) is the only published bridge from ATLAS mitigations to CSF 2.0 that I have found, with the limits above. The SP 800-53 AI overlay project, renamed on 2026-10-20 to Control Overlays for Super Intelligence Systems (COSIS), has only a concept paper (2025-08-14) and an annotated outline (2026-01-08) (Tier A, CSRC), so I would not buy or build a mapping to it yet.
+
+NIST's adversarial machine learning taxonomy, AI 100-2 E2025 (final 2025-03-24, with a corrected PDF on 2025-04-01), is the one NIST text in this set that names attacks rather than governance outcomes, and its generative AI part gives a shared vocabulary that the other frameworks do not: supply chain attacks with data and model poisoning (§3.2), direct prompting attacks, which include jailbreaks (§3.3), indirect prompt injection (§3.4) and the security of agents (§3.5), with the attack classes of §3.2 to §3.4 carrying `NISTAML` identifiers and §3.5 a short discussion of agent security (Tier A, read at nvlpubs.nist.gov 2026-11-17). It is a taxonomy and terminology rather than a control set, so it reaches the naming of a finding and not whether anything would catch it, and CSRC lists a successor, NIST SP 2400-102 E2026, as an initial public draft published 2026-11-09 with comments due 2026-12-18 (Tier A, CSRC, read 2026-11-17). [revalidation-and-pins.md](revalidation-and-pins.md) pins E2025 and records the draft going final as a reopen trigger.
 
 ### ISO/IEC 42001
 
@@ -183,6 +187,7 @@ The counts have limits. The incident weights are ATLAS-only, 27 incidents, and s
 - 2026-11-10: M1 ran as a partial run (grader complete, adjudication refused at a quota floor), so it sits beside the 55.5% without lifting it out of Tier D; whether a partial M1 is enough is a maintainer decision, not taken here.
 - 2026-11-10: lab citations point at sdw-lab-benchmarks master at 91e44df; the crosswalk is cited at 65cdab0, its initial public release.
 - 2026-11-10: the ATLAS overlap and STIX object counts were re-derived from the v2026.10 YAML and bundle for this document; the chain and burn-down counts were read from their verified outputs.
+- 2026-11-17: the AI 100-2 E2025 paragraph and the AI 600-1 and AI 100-2 pins were added from a reading at the publisher; they change no row, grade or count in this document.
 - 2026-11-10: the "where it stops" column, the layer labels and the order of the practices are my judgement (Tier D).
 
 ## Sources
@@ -194,7 +199,8 @@ Tier A
 - MITRE D3FEND ontology, release 1.6.0 (tag `91629ab`) and develop `048c693`, including `extensions/nist/sp800-53r5-control-catalog-d3fend-mapping.xlsx`, https://github.com/d3fend/d3fend-ontology.
 - NIST IR 8596, Cyber AI Profile, initial preliminary draft, 2025-12-16, with its ATLAS-to-CSF bridge, https://csrc.nist.gov/pubs/ir/8596/iprd; NIST COSIS project, https://csrc.nist.gov/projects/cosais; both read 2026-11-09.
 - NIST SP 800-53 Rev. 5, https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final.
-- NIST AI RMF 1.0, NIST AI 100-1, https://doi.org/10.6028/NIST.AI.100-1, and resource page https://www.nist.gov/itl/ai-risk-management-framework (read 2026-11-09); NIST AI 600-1, https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf.
+- NIST AI RMF 1.0, NIST AI 100-1, https://doi.org/10.6028/NIST.AI.100-1, and resource page https://www.nist.gov/itl/ai-risk-management-framework (read 2026-11-09); NIST AI 600-1, July 2024, https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf (re-read 2026-11-17).
+- NIST AI 100-2 E2025, Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations, March 2025, https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-2e2025.pdf and https://csrc.nist.gov/pubs/ai/100/2/e2025/final, §3.2 to §3.5, read 2026-11-17; successor draft NIST SP 2400-102 E2026 (Initial Public Draft, 2026-11-09), https://csrc.nist.gov/pubs/sp/2400-102/e2026/ipd, read 2026-11-17.
 - OWASP Top 10 for LLM Applications 2026, https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/, and for Agentic Applications for 2026, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/, read 2026-11-09 and 2026-11-10.
 - ISO/IEC 42001:2023, https://www.iso.org/standard/42001 (403; EN adoption at https://www.evs.ee/en/evs-en-iso-iec-42001-2026, Tier C).
 - CoSAI secure-ai-tooling at `622605a1`, https://github.com/cosai-oasis/secure-ai-tooling.
