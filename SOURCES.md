@@ -56,7 +56,7 @@ The sources several documents share get a full dossier. Sources a single documen
 ### CoSAI Model Context Protocol (MCP) Security
 
 - Publisher: Coalition for Secure AI, Workstream 4
-- Tier: A, with a draft caveat, on the basis this file already applies to NIST IR 8596's preliminary draft and to the CoSAI risk map: the version cited was approved by the CoSAI Project Governing Board on 8 January 2026 but still prints "Status: Draft", so it is a reopen trigger rather than a basis for any practice on its own (B is also defensible for an OASIS working draft, as the risk-map entry notes; flagged for maintainer ruling)
+- Tier: A, with a draft caveat, on the basis this file applies to NIST IR 8596's preliminary draft: the version cited was approved by the CoSAI Project Governing Board on 8 January 2026 but still prints "Status: Draft", so it is a reopen trigger rather than a basis for any practice on its own; B would also be defensible for a working draft (flagged for maintainer ruling)
 - Pinned: version `7ec1306f2f55563f6eeef9d36a6bb2b531491ceb`, dated 8 January 2026, PDF read 2026-11-17
 - URL: https://www.coalitionforsecureai.org/wp-content/uploads/2026/03/model-context-protocol-security-1.pdf
 - Cited by: mcp-servers-and-manifest-drift
@@ -164,7 +164,7 @@ The sources several documents share get a full dossier. Sources a single documen
 - URL: https://modelcontextprotocol.io/specification/2026-07-28
 - Cited by: decision-sequence, revalidation-and-pins, mcp-servers-and-manifest-drift (changelog, Authorization, Deprecated features, Security Best Practices), landing-ai-events-in-ocsf (changelog), ai-apis-and-the-gateway (changelog, Authorization), agent-identity-and-delegation (Security Best Practices, Token Passthrough)
 - Last checked: 2026-11-17 (Security Best Practices and the Authorization page's Dynamic Client Registration note; landing-ai-events-in-ocsf 2026-11-10; the others 2026-11-09)
-- Notes: the Security Best Practices page for revision 2026-07-28 (https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices, which redirects to the `docs/2026-07-28/tutorials/security/` path) lists eleven attack classes, three of them new over 2025-11-25, and replaces Session Hijacking with State Handle Hijacking because the revision has no protocol-level sessions.
+- Notes: the Security Best Practices page for revision 2026-07-28 (https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices, which redirects to the `docs/2026-07-28/tutorials/security/` path) has eleven attack and mitigation sections, three of them new over 2025-11-25, and replaces Session Hijacking with State Handle Hijacking because the revision has no protocol-level sessions.
 
 ### CISA Known Exploited Vulnerabilities catalog
 

@@ -14,7 +14,7 @@ It is a set of researched documents on securing the AI an organization runs or r
 
 It is not any of the following:
 
-- a scanner, since it changes nothing in any system, so whatever it knows about your environment is what you tell it or what the local reducers count;
+- a scanner, since it connects to no system and reads nothing on its own, so whatever it knows about your environment is what you tell it or what the local reducers count;
 - a vendor comparison, a product review or a certification, because grades are category grades and no vendor's efficacy claim can lift a recommendation past Tier C;
 - legal advice;
 - a source of exploit steps or payloads, of which it carries none;
@@ -55,7 +55,7 @@ Tested agents: each release names the agents and versions its block was run agai
 
 ## Read it without running it
 
-The documents are written to be read on their own, and reading them in the order a review would print its actions is a reasonable way to learn the material before running anything. Start with the four documents every review fetches, because they set how to read everything after them.
+The documents are written to be read on their own, and reading them in the order the decision sequence groups the work is a reasonable way to learn the material before running anything. Start with the four documents every review fetches, because they set how to read everything after them.
 
 1. [evidence-tiers.md](analysis/evidence-tiers.md) explains the A to D tiers and the convergence values printed beside every recommendation, so you can tell a standard from a vendor statement from the author's judgement.
 2. [surface-ownability.md](analysis/surface-ownability.md) places the thirteen AI surfaces on the CoSAI component map and shows which parts of each one an organization owns, shares or rents.
@@ -66,9 +66,9 @@ Then read the families in the order the decision sequence groups them, with a do
 
 - Ownership and profile: [rent-or-own-sized-to-the-org.md](analysis/rent-or-own-sized-to-the-org.md), [inventory-and-shadow-ai.md](analysis/inventory-and-shadow-ai.md), [build-buy-and-the-high-priest.md](analysis/build-buy-and-the-high-priest.md) and [models-you-hold.md](analysis/models-you-hold.md).
 - Governance and risk tolerance: [ai-use-policy-and-intake.md](analysis/ai-use-policy-and-intake.md), [configure-before-you-buy.md](analysis/configure-before-you-buy.md) and [incumbent-tool-coverage.md](analysis/incumbent-tool-coverage.md).
-- Configuring what you own: [saas-embedded-ai-and-vendor-terms.md](analysis/saas-embedded-ai-and-vendor-terms.md), which the vendor conversation comes back to, [coding-agent-hooks-and-policy.md](analysis/coding-agent-hooks-and-policy.md) and [mcp-servers-and-manifest-drift.md](analysis/mcp-servers-and-manifest-drift.md), with the stubs for [assistant oversharing](analysis/stubs/assistant-oversharing.md), [agent builders](analysis/stubs/agent-builders.md) and [RAG stores](analysis/stubs/rag-stores.md).
+- Configuring what you own: [saas-embedded-ai-and-vendor-terms.md](analysis/saas-embedded-ai-and-vendor-terms.md), which the vendor conversation comes back to, [coding-agent-hooks-and-policy.md](analysis/coding-agent-hooks-and-policy.md), [mcp-servers-and-manifest-drift.md](analysis/mcp-servers-and-manifest-drift.md) and [landing-ai-events-in-ocsf.md](analysis/landing-ai-events-in-ocsf.md), which the record group comes back to, with the stubs for [assistant oversharing](analysis/stubs/assistant-oversharing.md), [agent builders](analysis/stubs/agent-builders.md) and [RAG stores](analysis/stubs/rag-stores.md).
 - Gateways and identities: [agent-identity-and-delegation.md](analysis/agent-identity-and-delegation.md) and [ai-apis-and-the-gateway.md](analysis/ai-apis-and-the-gateway.md).
-- The record: [telemetry-by-surface.md](analysis/telemetry-by-surface.md), [what-to-log-and-what-it-costs.md](analysis/what-to-log-and-what-it-costs.md), [prompt-capture-and-the-law.md](analysis/prompt-capture-and-the-law.md), [landing-ai-events-in-ocsf.md](analysis/landing-ai-events-in-ocsf.md), [tamper-evident-record.md](analysis/tamper-evident-record.md) and [telemetry-is-an-injection-surface.md](analysis/telemetry-is-an-injection-surface.md).
+- The record: [telemetry-by-surface.md](analysis/telemetry-by-surface.md), [what-to-log-and-what-it-costs.md](analysis/what-to-log-and-what-it-costs.md), [prompt-capture-and-the-law.md](analysis/prompt-capture-and-the-law.md), [tamper-evident-record.md](analysis/tamper-evident-record.md) and [telemetry-is-an-injection-surface.md](analysis/telemetry-is-an-injection-surface.md).
 - Evaluation and the artifacts you hold: [fine-tuned-model-is-a-data-store.md](analysis/fine-tuned-model-is-a-data-store.md), [evaluating-ai-in-the-soc.md](analysis/evaluating-ai-in-the-soc.md) and the stub for [AI you ship](analysis/stubs/ai-you-ship.md).
 - Containment: the stub for [AI incident response](analysis/stubs/ai-incident-response.md).
 - The vendor conversation: [reading-vendor-claims.md](analysis/reading-vendor-claims.md) and [frameworks-and-what-they-reach.md](analysis/frameworks-and-what-they-reach.md).
