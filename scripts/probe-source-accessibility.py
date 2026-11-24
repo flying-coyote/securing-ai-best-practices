@@ -144,6 +144,7 @@ def probe(name: str, ver: str, spec: dict) -> dict:
     row["page_state"] = classify(code)
     row["newest"] = None
     row["moved"] = None
+    row["checks_moved"] = "release_repo" in spec or "commit_path" in spec
     row["note"] = ""
     try:
         if "release_repo" in spec:
@@ -166,6 +167,21 @@ def probe(name: str, ver: str, spec: dict) -> dict:
     except Exception as e:  # report, never hide, an API failure
         row["note"] = f"API probe failed: {type(e).__name__}"
     return row
+
+
+def tally_line(rows: list[dict]) -> str:
+    """The machine-read tally line. A row whose page was neither ok, refused nor
+    broken (not pinned, say), or whose moved-past-pin state could not be read
+    although a probe for it exists (the API probe failed or a compare was
+    truncated), counts as unknown, never as clean: the standing report reads
+    clean only when unknown is zero too. A page-only probe has no moved state
+    to read, so its moved=None is not unknown."""
+    broken = sum(r["page_state"] == "broken" for r in rows)
+    refused = sum(r["page_state"] == "refused" for r in rows)
+    moved = sum(r["moved"] is True for r in rows)
+    unknown = sum((r.get("checks_moved") and r["moved"] is None)
+                  or r["page_state"] not in ("ok", "refused", "broken") for r in rows)
+    return f"sources-probed={len(rows)} broken={broken} refused={refused} moved={moved} unknown={unknown}"
 
 
 def main() -> int:
@@ -211,10 +227,7 @@ def main() -> int:
             page = f"{r['page_state']} ({r['http']})" if r["http"] is not None else r["page_state"]
             moved = {True: "yes", False: "no", None: "unknown"}[r["moved"]]
             print(f"| {r['name']} | {r['pinned'] or ''} | {page} | {r['newest'] or ''} | {moved} | {r['note']} |")
-        broken = sum(r["page_state"] == "broken" for r in rows)
-        refused = sum(r["page_state"] == "refused" for r in rows)
-        moved = sum(r["moved"] is True for r in rows)
-        print(f"\nsources-probed={len(rows)} broken={broken} refused={refused} moved={moved}")
+        print("\n" + tally_line(rows))
     if args.sources and not args.json:
         sources_report(Path(args.root) / "SOURCES.md")
     return 0

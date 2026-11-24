@@ -15,9 +15,19 @@
 #              analysis/revalidation-and-pins.md. Every one of these seven
 #              edits, the release header and `release:` field included,
 #              must match exactly once or nothing is
-#              written. Then commit and tag that commit.
-#   2. bundle: from the tagged commit, concatenate the release files into one
-#              offline bundle, compute its SHA-256, and add the release row to
+#              written. The stamp also resets the prompt blocks in README.md
+#              and ONE-LINE-PROMPT.md to the `<release-sha>` and `<vYYYY.MM>`
+#              placeholders (any number of matches, then a check that no
+#              pinned SHA or tag is left), because the blocks on the default
+#              branch name the previous release and a tagged copy that kept
+#              them would pin that release (the defect v2026.12 and v2026.12.1
+#              shipped with). Then commit and tag that commit.
+#   2. bundle: read the tagged commit with `git archive` (never the working
+#              tree, which may hold uncommitted edits), refuse unless
+#              check-prompt-blocks.py passes on it with no tag given (the
+#              placeholders are in place and no file names another release),
+#              concatenate the release files into one offline bundle, compute
+#              its SHA-256, and add the release row to the working tree's
 #              RELEASES.md (tag, date, commit SHA, bundle hash, pins).
 #   3. by hand: bump the README and ONE-LINE-PROMPT blocks to the tagged SHA on
 #              the default branch; check-prompt-blocks.py then holds them to it.
@@ -38,7 +48,9 @@
 #   ALLOW_MISSING=1   build even if an Always Fetch or routed doc is missing
 #                     (tests only; a real release must never set it)
 #
-# This script never runs git; the operator passes the commit SHA.
+# The stamp step never runs git. The bundle step runs only read-only git
+# (rev-parse and archive) against the commit the operator passes, and refuses
+# when a local tag of that name points elsewhere.
 
 set -euo pipefail
 
@@ -78,10 +90,10 @@ sub("AUDIT-CONTEXT.md", r"(<!-- release-header:[^\n]*-->\n)Release: [^\n]*\n",
 sub("AUDIT-CONTEXT.md", r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -->\n)",
     lambda m: m.group(1) + m.group(2), "pre-release banner between markers", re.S)
 sub("ONE-LINE-PROMPT.md", r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -->\n)",
-    lambda m: m.group(1) + (f"This copy belongs to release {tag}, stamped {date}. The blocks below still carry the "
-               "`<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, "
-               "so take the release's full commit SHA, its tag and the SHA-256 of the offline bundle from "
-               "`RELEASES.md`; the copy on the default branch carries them filled in.\n") + m.group(2),
+    lambda m: m.group(1) + (f"This copy belongs to release {tag}, stamped {date}. On the tagged commit the blocks below "
+               "carry the `<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, "
+               "and on the default branch they carry the tagged commit. Either way, the release's full commit SHA, "
+               "its tag and the SHA-256 of the offline bundle are in `RELEASES.md`.\n") + m.group(2),
     "pre-release paragraph between markers", re.S)
 sub("routing.yaml", r"(?m)^release: .*$", lambda m: f"release: {tag}", "top-level release: line")
 sub("routing.yaml", r"(# pre-release:start[^\n]*\n).*?(# pre-release:end\n)",
@@ -97,6 +109,26 @@ sub("README.md", r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -
     "pre-release status banner between markers", re.S)
 sub("analysis/revalidation-and-pins.md", r"Release: [^;\n]+; pins last verified",
     lambda m: f"Release: {tag}; pins last verified", "'Release: ...; pins last verified' line")
+# Reset the prompt blocks to placeholders: the default branch carries the previous
+# release's SHA and tag there, and the tagged commit must not.
+RESETS = [
+    (r"/securing-ai-best-practices/[0-9a-f]{40}/AUDIT-CONTEXT\.md", "/securing-ai-best-practices/<release-sha>/AUDIT-CONTEXT.md"),
+    (r"\(release v\d{4}\.\d{2}(?:\.\d+)?([;,])", r"(release <vYYYY.MM>\1"),
+    (r"(\(release <vYYYY\.MM>, commit )[0-9a-f]{40};", r"\1<release-sha>;"),
+]
+for rel in ("README.md", "ONE-LINE-PROMPT.md"):
+    if not (root / rel).is_file():
+        errors.append(f"{rel} not found (prompt block reset)")
+        continue
+    text = edits.get(rel, (root / rel).read_text(encoding="utf-8"))
+    for pat, repl in RESETS:
+        text = re.sub(pat, repl, text)
+    left = re.findall(r"/securing-ai-best-practices/[0-9a-f]{40}/|\(release v\d{4}\.\d{2}|commit [0-9a-f]{40};", text)
+    if left:
+        errors.append(f"{rel}: prompt block reset left a pinned SHA or tag: {left}")
+    if "/securing-ai-best-practices/<release-sha>/AUDIT-CONTEXT.md" not in text:
+        errors.append(f"{rel}: no prompt block URL to reset")
+    edits[rel] = text
 if errors:
     sys.exit("ERROR: stamp refused, nothing written:\n  " + "\n  ".join(errors))
 for rel, text in edits.items():
@@ -107,11 +139,22 @@ PY
   bundle)
     sha="${3:-}"
     [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || die "commit must be a full 40-hex SHA (got '${sha}')"
-    python3 - "$ROOT" "$tag" "$sha" "${ALLOW_MISSING:-0}" <<'PY'
+    got=$(git -C "$ROOT" rev-parse --verify --quiet "${sha}^{commit}" 2>/dev/null) || die "${sha} is not a commit in ${ROOT}"
+    [[ "$got" == "$sha" ]] || die "${sha} resolves to ${got}"
+    if tagged=$(git -C "$ROOT" rev-parse --verify --quiet "refs/tags/${tag}^{commit}" 2>/dev/null); then
+      [[ "$tagged" == "$sha" ]] || die "tag ${tag} points at ${tagged}, not ${sha}"
+    fi
+    SRC=$(mktemp -d)
+    trap 'rm -rf "$SRC"' EXIT
+    git -C "$ROOT" archive "$sha" | tar -x -C "$SRC"
+    python3 "$(dirname "${BASH_SOURCE[0]}")/check-prompt-blocks.py" --root "$SRC" >&2 \
+      || die "check-prompt-blocks.py fails on ${sha}: the tagged commit must carry the placeholders and name no other release"
+    python3 - "$ROOT" "$tag" "$sha" "${ALLOW_MISSING:-0}" "$SRC" <<'PY'
 import hashlib, re, sys
 from pathlib import Path
 import yaml
-root, tag, sha, allow_missing = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4] == "1"
+out_root, tag, sha, allow_missing = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4] == "1"
+root = Path(sys.argv[5])  # the archived commit; outputs go to out_root
 routing = yaml.safe_load((root / "routing.yaml").read_text(encoding="utf-8"))
 ac_text = (root / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
 m = re.search(r"^Release: (\S+?)\. Date: (\d{4}-\d{2}-\d{2})\.$", ac_text, re.M)
@@ -157,7 +200,7 @@ for f in files:
     parts.append(body)
 data = "".join(parts).encode("utf-8")
 digest = hashlib.sha256(data).hexdigest()
-out = root / "dist" / f"securing-ai-best-practices-{tag}.md"
+out = out_root / "dist" / f"securing-ai-best-practices-{tag}.md"
 out.parent.mkdir(exist_ok=True)
 out.write_bytes(data)
 
@@ -170,7 +213,7 @@ if pd.is_file():
         if plist:
             pins = "; ".join(str(p) for p in plist)
 
-rel = root / "RELEASES.md"
+rel = out_root / "RELEASES.md"
 rtext = rel.read_text(encoding="utf-8")
 if re.search(rf"^\| {re.escape(tag)} \|", rtext, re.M):
     sys.exit(f"ERROR: RELEASES.md already has a row for {tag}")
@@ -180,7 +223,7 @@ if header not in rtext:
 row = f"| {tag} | {date} | `{sha}` | `{digest}` | {pins} | to record after the dry runs | {len(files)} files |\n"
 rtext = rtext.replace(header, header + row, 1)
 rel.write_text(rtext, encoding="utf-8")
-print(f"bundle: {out.relative_to(root)} ({len(data)} bytes, {len(files)} files)")
+print(f"bundle: {out.relative_to(out_root)} ({len(data)} bytes, {len(files)} files)")
 print(f"sha256: {digest}")
 if missing or missing_routed:
     print(f"WARNING: built with ALLOW_MISSING=1; missing Always Fetch docs: {missing}; "

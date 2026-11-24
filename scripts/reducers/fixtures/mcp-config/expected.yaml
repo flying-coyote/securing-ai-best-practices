@@ -2,13 +2,14 @@
 reducer: mcp-config
 version: 1
 observations:
-  mcp-inline-secret-count: 4
-  mcp-local-count: 7
-  mcp-pinned-count: 3
-  mcp-remote-count: 2
-  mcp-server-count: 9
-  mcp-unpinned-count: 3
+  mcp-inline-secret-count: 5
+  mcp-launch-unknown-count: 1
+  mcp-local-count: 12
+  mcp-pinned-count: 6
+  mcp-remote-count: 3
+  mcp-server-count: 15
+  mcp-unpinned-count: 4
 signals:
   agent-static-secrets: {value: true, confidence: read}
-  mcp-remote: {value: 2, confidence: read}
-  mcp-unpinned: {value: 3, confidence: read}
+  mcp-remote: {value: 3, confidence: read}
+  mcp-unpinned: {value: 4, confidence: read}

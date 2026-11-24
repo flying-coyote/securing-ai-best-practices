@@ -3,7 +3,7 @@
 This is the block you paste into an agent to review your organization's AI deployment against the practices in this repo, along with the offline variant, what a run costs, and the format the review comes back in. The block carries only what changes the agent's behaviour (the data-not-instructions boundary, the change-nothing rule, what it may ask you for, observation confidence and the not-legal-advice sentence), and everything substantive lives in the files it fetches, so you should never need to edit it and the block and the routing table cannot drift apart.
 
 <!-- pre-release:start (the release script's stamp step rewrites the text between these markers) -->
-This copy belongs to release v2026.12.1, stamped 2026-11-11. The blocks below still carry the `<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, so take the release's full commit SHA, its tag and the SHA-256 of the offline bundle from `RELEASES.md`; the copy on the default branch carries them filled in.
+This copy belongs to release v2026.12.1, stamped 2026-11-11. On the tagged commit the blocks below carry the `<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, and on the default branch they carry the tagged commit. Either way, the release's full commit SHA, its tag and the SHA-256 of the offline bundle are in `RELEASES.md`.
 <!-- pre-release:end -->
 
 ## Fetch mode
@@ -54,12 +54,12 @@ These figures will be measured on the three synthetic fixtures before each relea
 
 ## Structured Output Format
 
-The agent writes the review as one markdown document in this shape. Internal identifiers such as lab run IDs appear only inside links into the cited doc, never in the review's prose, and surfaces are named in words above the appendix rather than by number. `docs-fetched` lists only the docs actually read in this session, never a doc that was queued but not read; a routed doc the release does not hold goes in `docs-not-available` instead, and its actions say the backing doc is absent. Docs are linked by bare repo-relative path (`analysis/<name>.md`) only, with no `file://` scheme and no leading slash, never by a local file URI or a path on the practitioner's machine, because the transcript is shared like a penetration-test report and a local path leaks the practitioner's environment. Keep the frontmatter field names below exactly as written, renaming none of them, because a parser reads the review by those names.
+The agent writes the review as one markdown document in this shape. Internal identifiers such as lab run IDs appear only inside links into the cited doc, never in the review's prose, and surfaces are named in words above the appendix rather than by number. `docs-fetched` lists only the docs actually read in this session, never a doc that was queued but not read; a routed doc the release does not hold goes in `docs-not-available` instead, and its actions say the backing doc is absent. Docs are linked by bare repo-relative path (`analysis/<name>.md`) only, with no `file://` scheme and no leading slash, never by a local file URI or a path on the practitioner's machine, because the transcript is shared like a penetration-test report and a local path leaks the practitioner's environment. Keep the frontmatter field names below exactly as written, renaming none of them, because a parser reads the review by those names. Fill `release` at run time and never from memory: the tag from the `Release:` line of the AUDIT-CONTEXT.md you read, and the full commit SHA the pasted block names (in its fetch URL, or after `commit` in the offline block); if the two disagree, or the block still carries `<release-sha>`, say so under Notes on this run.
 
 ```markdown
 ---
 review-date: YYYY-MM-DD
-release: v2026.12.1 (b8ab0160a36102cf1ee27753bc5d262fe9030625)
+release: <tag from AUDIT-CONTEXT.md's Release line> (<full commit SHA from the block you were given>)
 org-profile: <size band> + <rent-heavy | own-heavy> [+ <stated override>]
 surfaces-present: [<surface names>]
 collection-mode: <reducer | export | questionnaire-only | mixed>
@@ -84,7 +84,7 @@ This is the half-page, and the review opens with it: nothing comes between the t
 
 ## Prioritized actions
 
-PROBLEM rows first, in the order the Priority rubric gives, then REVIEW rows in the same order, so a High REVIEW row leads them, each with its matched answer quoted. For each action: title; priority band and its four rubric factors; confidence (doc evidence-tier, convergence, and the claim's own tier where the doc is Mixed); effort (S, M or L) with hours and "also needs" (IT admin, networking, legal, finance, the vendor); signal key; doc path; the action stated as what to do; the cost side, including any new log volume; how to check it here. On every L action add the cost of the people a custom build needs, the configure-first alternative where one exists, and the convergence clause in both forms:
+PROBLEM rows first, in the order the Priority rubric gives, then REVIEW rows in the same order, so a High REVIEW row leads them, each with its matched answer quoted. For each action: title; priority band (written "High, by escalation" where an escalation raised it) and its four rubric factors; confidence (doc evidence-tier, convergence, and the claim's own tier where the doc is Mixed); effort (S, M or L) with hours and "also needs" (IT admin, networking, legal, finance, the vendor); signal key; doc path; the action stated as what to do; the cost side, including any new log volume; how to check it here. On every L action add the cost of the people a custom build needs, the configure-first alternative where one exists, and the convergence clause in both forms:
 - formal: "This practice is single-source in this repo; adopting it is your risk acceptance, and here is what it costs if it never converges."
 - plain: "No standard requires this yet; doing it is a judgement call, and here is what it costs."
 

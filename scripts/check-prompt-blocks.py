@@ -2,7 +2,14 @@
 """
 Check that the one-line review block in README.md is byte-identical to the
 fetch-mode block in ONE-LINE-PROMPT.md, and that the commit SHA the block pins
-is the commit the newest release tag points at.
+is the commit the newest release tag points at. Also check that the offline
+block names the same commit and release as the fetch block, that the
+Structured Output Format's `release:` line is copied at run time rather than
+written into the file, that neither status banner says the blocks carry
+placeholders while they are pinned, and that no file the review fetches or the
+bundle holds names another release's tag or commit SHA (the stale self-naming
+that shipped at v2026.12 and v2026.12.1, where the tagged copy pinned the
+release before it).
 
 The two blocks are copies of one text, and a practitioner may paste either, so
 a drift between them means two different reviews depending on which page they
@@ -30,9 +37,15 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 FENCE_RE = re.compile(r"^```text\n(.*?)^```\s*$", re.S | re.M)
 SHA_RE = re.compile(r"/securing-ai-best-practices/([^/\s]+)/AUDIT-CONTEXT\.md")
 TAG_RE = re.compile(r"\(release ([^;\s]+);")
+OFFLINE_RE = re.compile(r"\(release ([^,\s]+), commit ([^;\s]+);")
+RELEASE_ROW_RE = re.compile(r"^\| (v\d{4}\.\d{2}(?:\.\d+)?) \| [^|]* \| `([0-9a-f]{40})` \|", re.M)
+# files where a release is named by tag; the SHA rule covers every fetched or bundled file
+TAG_FILES = ("AUDIT-CONTEXT.md", "ONE-LINE-PROMPT.md", "routing.yaml", "README.md")
 PLACEHOLDER_SHA = "<release-sha>"
 PLACEHOLDER_TAG = "<vYYYY.MM>"
 
@@ -59,6 +72,48 @@ def section(text: str, heading: str) -> str:
 def first_block(text: str) -> str | None:
     m = FENCE_RE.search(text)
     return m.group(1) if m else None
+
+
+def other_release_names(root: Path) -> list[str]:
+    """Every place a fetched or bundled file (or the README) names a release other
+    than the one AUDIT-CONTEXT's Release line states. The release list is
+    RELEASES.md's rows, never a vYYYY.MM pattern, because the docs pin framework
+    versions such as 'MITRE ATLAS v2026.10' and lab commits as 40-hex SHAs."""
+    rel = root / "RELEASES.md"
+    if not rel.is_file():
+        return []
+    rows = RELEASE_ROW_RE.findall(rel.read_text(encoding="utf-8"))
+    ac = root / "AUDIT-CONTEXT.md"
+    m = re.search(r"^Release: (\S+?)\. Date:", ac.read_text(encoding="utf-8"), re.M) if ac.is_file() else None
+    current = m.group(1) if m else None
+    others = [(t, sha) for t, sha in rows if t != current]
+    if not others:
+        return []
+    files = ["AUDIT-CONTEXT.md", "ONE-LINE-PROMPT.md", "routing.yaml", "README.md"]
+    rp = root / "routing.yaml"
+    if rp.is_file():
+        data = yaml.safe_load(rp.read_text(encoding="utf-8")) or {}
+        files += list(data.get("always-fetch") or [])
+        files += sorted({d for r in data.get("signals") or [] for d in r.get("docs", [])})
+    seen, found = set(), []
+    for f in files:
+        p = root / f
+        if f in seen or not p.is_file():
+            continue
+        seen.add(f)
+        text = p.read_text(encoding="utf-8")
+        for tag, sha in others:
+            if re.search(rf"(?<![0-9a-f]){sha[:7]}", text):
+                found.append(f"{f} names {tag}'s commit {sha[:12]}")
+            if f in TAG_FILES and re.search(rf"(?<![\w.]){re.escape(tag)}(?![.\d])", text):
+                found.append(f"{f} names release {tag}")
+    return found
+
+
+def banner_says_placeholders(path: Path, marker_end: str = "<!-- pre-release:end") -> bool:
+    text = path.read_text(encoding="utf-8")
+    b = re.search(r"pre-release:start[^\n]*\n(.*?)" + re.escape(marker_end), text, re.S)
+    return bool(b and "still carry" in b.group(1))
 
 
 def main() -> int:
@@ -127,9 +182,38 @@ def main() -> int:
     # a pinned block under a banner saying the placeholders remain, or "Tested agents:
     # none yet" beside a release row, tells a reader two different things.
     readme_text = readme_p.read_text(encoding="utf-8")
-    banner = re.search(r"pre-release:start[^\n]*\n(.*?)<!-- pre-release:end", readme_text, re.S)
-    if pinned != PLACEHOLDER_SHA and banner and "still carry" in banner.group(1):
-        failures.append("README status banner says the blocks still carry placeholders, but the block is pinned")
+    if pinned != PLACEHOLDER_SHA:
+        for label, p in (("README status banner", readme_p), ("ONE-LINE-PROMPT release paragraph", olp_p)):
+            if banner_says_placeholders(p):
+                failures.append(f"{label} says the blocks still carry placeholders, but the block is pinned")
+
+    # The offline block must name the commit and release the fetch block pins.
+    olp_text = olp_p.read_text(encoding="utf-8")
+    offline_block = first_block(section(olp_text, "Offline mode"))
+    om = OFFLINE_RE.search(offline_block or "")
+    if not om:
+        failures.append("ONE-LINE-PROMPT offline block has no '(release <tag>, commit <sha>;' line")
+    elif (om.group(2), om.group(1)) != (pinned, pinned_tag):
+        failures.append(f"offline block names release {om.group(1)} commit {om.group(2)}, "
+                        f"but the fetch block names release {pinned_tag} commit {pinned}")
+    else:
+        print("PASS offline block names the fetch block's commit and release")
+
+    # The output template's release line is filled in at run time; a SHA or tag written
+    # into the file goes stale at the next release.
+    fmt = section(olp_text, "Structured Output Format")
+    rl = re.search(r"^release: (.*)$", fmt, re.M)
+    if not rl:
+        failures.append("Structured Output Format has no 'release:' line")
+    elif re.search(r"[0-9a-f]{7,40}|v\d{4}\.\d{2}", rl.group(1)):
+        failures.append(f"Structured Output Format release line names a release ('{rl.group(1)}'); "
+                        "it must tell the agent where to copy the tag and SHA from")
+
+    others = other_release_names(root)
+    if others:
+        failures.extend(f"stale release named: {o}" for o in others)
+    else:
+        print("PASS no fetched or bundled file names another release's tag or commit")
     rel_p = root / "RELEASES.md"
     released = rel_p.is_file() and re.search(r"(?m)^\| v\d{4}\.\d{2}", rel_p.read_text(encoding="utf-8"))
     if released and "Tested agents: none yet" in readme_text:

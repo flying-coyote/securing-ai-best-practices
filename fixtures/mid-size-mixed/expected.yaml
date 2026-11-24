@@ -27,10 +27,10 @@ top-actions:
 - agent-static-secrets
 - dpia-absent
 - prompt-capture-tier-full
-- incumbent-inventory-absent
 - hook-fail-open
 - mcp-allowlist-absent
 - oauth-grants-unreviewed
+- rag-acl-propagation-unknown
 actions:
 - key: agent-static-secrets
   weight: PROBLEM
@@ -58,14 +58,6 @@ actions:
   - analysis/what-to-log-and-what-it-costs.md
   - analysis/prompt-capture-and-the-law.md
   escalated: true
-- key: incumbent-inventory-absent
-  weight: PROBLEM
-  band: Medium
-  sequence-group: 2
-  factor-sum: 3
-  confidence: owner-stated
-  docs:
-  - analysis/configure-before-you-buy.md
 - key: hook-fail-open
   weight: PROBLEM
   band: Medium
@@ -130,6 +122,14 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-you-ship.md
+- key: incumbent-inventory-absent
+  weight: PROBLEM
+  band: Medium
+  sequence-group: 2
+  factor-sum: 3
+  confidence: owner-stated
+  docs:
+  - analysis/configure-before-you-buy.md
 review:
 - key: gateway-token-store-unreviewed
   weight: REVIEW
@@ -139,14 +139,6 @@ review:
   confidence: owner-stated
   docs:
   - analysis/ai-apis-and-the-gateway.md
-- key: own-heavy-small-org
-  weight: REVIEW
-  band: Medium
-  sequence-group: 1
-  factor-sum: 3
-  confidence: derived
-  docs:
-  - analysis/rent-or-own-sized-to-the-org.md
 - key: mcp-unpinned
   weight: REVIEW
   band: Medium
@@ -163,6 +155,14 @@ review:
   confidence: read
   docs:
   - analysis/mcp-servers-and-manifest-drift.md
+- key: own-heavy-small-org
+  weight: REVIEW
+  band: Medium
+  sequence-group: 1
+  factor-sum: 3
+  confidence: derived
+  docs:
+  - analysis/rent-or-own-sized-to-the-org.md
 - key: ai-subprocessor-review-absent
   weight: REVIEW
   band: Medium
@@ -270,7 +270,6 @@ docs:
 - analysis/agent-identity-and-delegation.md
 - analysis/prompt-capture-and-the-law.md
 - analysis/what-to-log-and-what-it-costs.md
-- analysis/configure-before-you-buy.md
 - analysis/coding-agent-hooks-and-policy.md
 - analysis/mcp-servers-and-manifest-drift.md
 - analysis/inventory-and-shadow-ai.md
@@ -278,6 +277,7 @@ docs:
 - analysis/stubs/agent-builders.md
 - analysis/telemetry-by-surface.md
 - analysis/stubs/ai-you-ship.md
+- analysis/configure-before-you-buy.md
 - analysis/ai-apis-and-the-gateway.md
 - analysis/rent-or-own-sized-to-the-org.md
 - analysis/saas-embedded-ai-and-vendor-terms.md
@@ -322,4 +322,4 @@ clean:
 - ai-playbook-absent
 conflicts:
 - 'profile-rent-heavy: answered true but derived false from ''not (surface-S9 or surface-S11 or surface-S12)'''
-ordering: band, then sequence group from the sequence-order block in analysis/decision-sequence.md (row-overrides first, else the row's family), then factor sum descending, then routing.yaml row order
+ordering: band, then factor sum descending, then sequence group from the sequence-order block in analysis/decision-sequence.md (row-overrides first, else the row's family), then routing.yaml row order

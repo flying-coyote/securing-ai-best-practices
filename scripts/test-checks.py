@@ -20,9 +20,12 @@ Covered: check-prompt-blocks.py, check-routing-coverage.py,
 render-audit-context.py (including the ordering rule it renders from
 routing.yaml into the Priority rubric, held to route.py's sort keys),
 route.py (including its reading of the sequence-order
-block in analysis/decision-sequence.md), check-exclusions.py, check-pins.py and
-build-release-bundle.sh (including the stamp step retiring every pre-release
-statement and the bundle refusing a missing routed doc).
+block in analysis/decision-sequence.md, its conflicts and not-applicable
+handling), check-exclusions.py, check-pins.py, probe-source-accessibility.py's
+tally line, and build-release-bundle.sh (including the stamp step retiring
+every pre-release statement and resetting the prompt blocks, and the bundle
+reading the commit with git archive and refusing a missing routed doc or a
+commit that names another release).
 
 Usage: python scripts/test-checks.py
 """
@@ -51,7 +54,12 @@ DIRECT = {"bundle: AUDIT-CONTEXT header stamped",
           "bundle: holds every routed doc",
           "bundle: carries no pre-release wording",
           "bundle: a refused stamp leaves AUDIT-CONTEXT unstamped",
-          "bundle: two builds of the same tree have the same SHA-256"}
+          "bundle: two builds of the same tree have the same SHA-256",
+          "bundle: stamp resets both prompt blocks to the placeholders",
+          "probe: unknown moved state is counted, and the workflow parses both tally lines",
+          "route: a reducer's yes on a row whose surfaces are all answered no is a conflict, not dropped",
+          "route: a read no against a stated yes is a conflict and the yes stands",
+          "route: not-applicable is neither clean, an action nor a packet"}
 
 
 def tree(td: str) -> Path:
@@ -64,6 +72,29 @@ def tree(td: str) -> Path:
         else:
             shutil.copy2(src, root / name)
     return root
+
+
+GIT_ENV = {"GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@example.invalid",
+           "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "test@example.invalid",
+           "GIT_AUTHOR_DATE": "2099-01-01T00:00:00Z", "GIT_COMMITTER_DATE": "2099-01-01T00:00:00Z",
+           "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_NOSYSTEM": "1"}
+
+
+def git(root: Path, *args: str) -> str:
+    import os
+    p = subprocess.run(["git", "-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false",
+                        *args], cwd=root, capture_output=True, text=True, env=dict(os.environ, **GIT_ENV), check=True)
+    return p.stdout.strip()
+
+
+def commit(root: Path, allow_empty: bool = False) -> str:
+    """Commit the whole test tree (a throwaway repo in a temporary directory) and
+    return the SHA; identity and dates are fixed, so the same tree gives the same SHA."""
+    if not (root / ".git").exists():
+        git(root, "init", "-q")
+    git(root, "add", "-A")
+    git(root, "commit", "-q", "-m", "test", *(["--allow-empty"] if allow_empty else []))
+    return git(root, "rev-parse", "HEAD")
 
 
 def unwrite(root: Path, rel: str) -> str:
@@ -146,6 +177,7 @@ def main() -> int:
         for f in ("README.md", "ONE-LINE-PROMPT.md"):
             edit(r / f, "<release-sha>/AUDIT-CONTEXT.md", f"{sha}/AUDIT-CONTEXT.md")
             edit(r / f, "(release <vYYYY.MM>;", "(release v2099.01;")
+        edit(r / "ONE-LINE-PROMPT.md", "(release <vYYYY.MM>, commit <release-sha>;", f"(release v2099.01, commit {sha};")
         expect("prompt blocks: bumped to the tag's commit passes",
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha, "--tag", "v2099.01"], r), True)
         expect("prompt blocks: pinned SHA differs from the tag's commit fails",
@@ -158,6 +190,20 @@ def main() -> int:
         expect("prompt blocks: banner says placeholders remain while the block is pinned fails",
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "status banner")
         edit(r / "README.md", "The blocks below still carry", "On the tagged commit the blocks below carry")
+        edit(r / "ONE-LINE-PROMPT.md", "On the tagged commit the blocks below carry", "The blocks below still carry")
+        expect("prompt blocks: ONE-LINE-PROMPT paragraph says placeholders remain while the block is pinned fails",
+               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "ONE-LINE-PROMPT release paragraph")
+        edit(r / "ONE-LINE-PROMPT.md", "The blocks below still carry", "On the tagged commit the blocks below carry")
+        edit(r / "ONE-LINE-PROMPT.md", f"(release v2099.01, commit {sha};", "(release v2099.01, commit " + "e" * 40 + ";")
+        expect("prompt blocks: offline block naming another commit fails",
+               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "offline block names")
+        edit(r / "ONE-LINE-PROMPT.md", "(release v2099.01, commit " + "e" * 40 + ";", f"(release v2099.01, commit {sha};")
+        edit(r / "ONE-LINE-PROMPT.md", "release: <tag from AUDIT-CONTEXT.md's Release line> (<full commit SHA from the block you were given>)",
+             f"release: v2099.01 ({sha})")
+        expect("prompt blocks: a release written into the output template fails",
+               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "release line names a release")
+        edit(r / "ONE-LINE-PROMPT.md", f"release: v2099.01 ({sha})",
+             "release: <tag from AUDIT-CONTEXT.md's Release line> (<full commit SHA from the block you were given>)")
         edit(r / "README.md", "Change nothing in any system.", "Change nothing.")
         expect("prompt blocks: README block drifts from ONE-LINE-PROMPT fails",
                run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", sha], r), False, "differ")
@@ -187,11 +233,11 @@ def main() -> int:
         expect("render --check passes after rendering", run(["render-audit-context.py", "--root", str(r), "--check"], r), True)
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
-        edit(r / "routing.yaml", "then factor sum, highest first,", "then the backing doc's evidence tier, then factor sum, highest first,")
+        edit(r / "routing.yaml", "then the sequence group from", "then the backing doc's evidence tier, then the sequence group from")
         expect("render --check fails when routing.yaml's ordering rule changes", run(["render-audit-context.py", "--root", str(r), "--check"], r), False, "ordering rule is stale")
         expect("routing coverage fails when the ordering rule drifts", run(["check-routing-coverage.py", "--root", str(r)], r), False, "stale")
         expect("render rewrites the ordering rule", run(["render-audit-context.py", "--root", str(r)], r), True)
-        results.append(("then the backing doc's evidence tier, then factor sum" in (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8"),
+        results.append(("then the backing doc's evidence tier, then the sequence group" in (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8"),
                         "render: the ordering rule in AUDIT-CONTEXT is the one routing.yaml states"))
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
@@ -209,9 +255,9 @@ def main() -> int:
         pos = [text.find(n) for n in needles]
         return all(p >= 0 for p in pos) and pos == sorted(pos)
     sort_key = re.search(r"def sort_items.*?key=lambda t: \((.*?)\)\)", route_src, re.S)
-    results.append((in_order(ordering, ["Within a band", "sequence group", "factor sum, highest first", "`#`"])
-                    and in_order(mapper, ["band", "sequence group", "factor sum descending", "routing.yaml row order"])
-                    and bool(sort_key) and in_order(sort_key.group(1), ["BAND_RANK", "sequence-group", "factor-sum", "t[0]"])
+    results.append((in_order(ordering, ["Within a band", "factor sum, highest first", "sequence group", "`#`"])
+                    and in_order(mapper, ["band", "factor sum descending", "sequence group", "routing.yaml row order"])
+                    and bool(sort_key) and in_order(sort_key.group(1), ["BAND_RANK", "factor-sum", "sequence-group", "t[0]"])
                     and "Tier does not break ties" in ordering and "never sort by it" in ordering
                     and not re.search(r"evidence tier as the tie-breaker", ordering),
                     "render: routing.yaml ordering names the mapper's keys in its sort order, with no tier or effort key"))
@@ -250,6 +296,42 @@ def main() -> int:
         expect("route.py: a platform outside the closed list is refused", run(["route.py", "--root", str(r), str(bad)], r), False, "platform list")
         bad.write_text("answers-block: 1\nsignals:\n  surface-S1: maybe\n", encoding="utf-8")
         expect("route.py: a free-text value is refused", run(["route.py", "--root", str(r), str(bad)], r), False, "must be")
+    # route.py never discards an answer: ineligible yes and read-vs-stated disagreements are conflicts
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        a = r / "a.yaml"
+        a.write_text("answers-block: 1\nsignals:\n  org-size-small-mid: true\n  surface-S4: false\n"
+                     "  surface-S5: false\n  surface-S8: false\n", encoding="utf-8")
+        red = r / "red.yaml"
+        red.write_text("reducer: mcp-config\nversion: 1\nsignals:\n  agent-static-secrets: {value: true, confidence: read}\n",
+                       encoding="utf-8")
+        p = run(["route.py", "--root", str(r), str(a), str(red)], r)
+        out = yaml.safe_load(p.stdout) if p.returncode == 0 else {}
+        results.append((any(c.startswith("agent-static-secrets:") and "enablers" in c for c in out.get("conflicts", [])),
+                        "route: a reducer's yes on a row whose surfaces are all answered no is a conflict, not dropped"))
+        a.write_text("answers-block: 1\nsignals:\n  org-size-small-mid: true\n  surface-S4: true\n"
+                     "  hook-fail-open: {value: true, confidence: owner-stated}\n", encoding="utf-8")
+        red.write_text("reducer: coding-agent-settings\nversion: 1\nsignals:\n  hook-fail-open: {value: false, confidence: read}\n",
+                       encoding="utf-8")
+        p = run(["route.py", "--root", str(r), str(a), str(red)], r)
+        out = yaml.safe_load(p.stdout) if p.returncode == 0 else {}
+        results.append((any(c.startswith("hook-fail-open:") and "stated yes stands" in c for c in out.get("conflicts", []))
+                        and any(x["key"] == "hook-fail-open" for x in out.get("actions", []))
+                        and "hook-fail-open" not in out.get("clean", []),
+                        "route: a read no against a stated yes is a conflict and the yes stands"))
+        a.write_text("answers-block: 1\nsignals:\n  org-size-small-mid: true\n  surface-S4: true\n"
+                     "  hook-fail-open: not-applicable\n", encoding="utf-8")
+        p = run(["route.py", "--root", str(r), str(a)], r)
+        out = yaml.safe_load(p.stdout) if p.returncode == 0 else {}
+        packeted = [e["key"] for v in (out.get("question-packets") or {}).values() for e in v]
+        results.append((out.get("not-applicable") == ["hook-fail-open"] and "hook-fail-open" not in out.get("clean", [])
+                        and "hook-fail-open" not in packeted
+                        and not any(x["key"] == "hook-fail-open" for x in out.get("actions", []) + out.get("review", [])),
+                        "route: not-applicable is neither clean, an action nor a packet"))
+        a.write_text("answers-block: 1\nobservations:\n  surface-internet-reachable: not-applicable\n", encoding="utf-8")
+        expect("route.py: not-applicable is refused for an observation",
+               run(["route.py", "--root", str(r), str(a)], r), False, "must be")
+
     seq_doc = "analysis/decision-sequence.md"
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
@@ -307,12 +389,36 @@ def main() -> int:
         expect("pins: the pins doc behind the newest known release fails",
                run(["check-pins.py", "--root", str(r), "--current", str(cur)], r), False, "newest known")
 
-    # build-release-bundle.sh
+    # probe-source-accessibility: a failed moved-past-pin probe is unknown, never clean,
+    # and the workflow parses the tally lines the script actually prints
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("probe", SCRIPTS / "probe-source-accessibility.py")
+    probe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(probe)
+    line = probe.tally_line([
+        {"page_state": "ok", "moved": None, "checks_moved": False},   # page-only probe: nothing to read
+        {"page_state": "ok", "moved": None, "checks_moved": True},    # API probe failed
+        {"page_state": "not-pinned", "moved": None},                  # no pin to probe
+        {"page_state": "ok", "moved": False, "checks_moved": True},
+    ])
+    wf = (ROOT / ".github" / "workflows" / "checks.yml").read_text(encoding="utf-8")
+    probe_src = (SCRIPTS / "probe-source-accessibility.py").read_text(encoding="utf-8")
+    results.append((line == "sources-probed=4 broken=0 refused=0 moved=0 unknown=2"
+                    and all(f"fields('{pfx}')" in wf and f"{pfx}=" in probe_src for pfx in ("sources-probed", "source-urls-probed"))
+                    and "'unknown'" in wf,
+                    "probe: unknown moved state is counted, and the workflow parses both tally lines"))
+
+    # build-release-bundle.sh (the bundle step reads a commit with git archive, so each
+    # test tree is made a throwaway git repo with a fixed identity and date)
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
         env = {"ROOT": str(r)}
+        placeholder_blocks(r)
+        c = commit(r)
         expect("bundle: refuses to build before the stamp step",
-               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, dict(env, ALLOW_MISSING="1")), False, "not stamped")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, dict(env, ALLOW_MISSING="1")), False, "not stamped")
+        expect("bundle: refuses a SHA that is not a commit",
+               run(["build-release-bundle.sh", "bundle", "v2099.01", "f" * 40], r, dict(env, ALLOW_MISSING="1")), False, "is not a commit")
         expect("bundle: stamp writes the tag and date", run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env), True)
         ac = (r / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
         results.append(("Release: v2099.01. Date: 2099-01-01." in ac, "bundle: AUDIT-CONTEXT header stamped"))
@@ -322,6 +428,7 @@ def main() -> int:
         readme = (r / "README.md").read_text(encoding="utf-8")
         results.append(("> Pre-release." not in ac and "should stop and say the repo is unreleased" not in ac
                         and "has not cut a release yet" not in olp and "release v2099.01, stamped 2099-01-01" in olp
+                        and "still carry" not in olp
                         and "State: pre-release" not in ry and "# State: release v2099.01, stamped 2099-01-01." in ry
                         and "release: v2099.01\n" in ry
                         and "Release: unreleased" not in pins and "Release: v2099.01; pins last verified" in pins
@@ -331,32 +438,37 @@ def main() -> int:
         held = always_fetch(r)[0]
         body = (r / held).read_bytes()
         unwrite(r, held)
+        c = commit(r)
         expect("bundle: refuses to build while Always Fetch docs are missing",
-               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, "Always Fetch docs missing")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, env), False, "Always Fetch docs missing")
         (r / held).write_bytes(body)
         fill_routed(r)
         gone = unwrite(r, routed_docs(r)[0])
+        c = commit(r)
         expect("bundle: refuses to build while a routed doc is missing",
-               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, f"routed docs missing (1)")
-        expect("bundle: names the missing routed doc", run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, gone)
-        p = run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, dict(env, ALLOW_MISSING="1"))
+               run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, env), False, f"routed docs missing (1)")
+        expect("bundle: names the missing routed doc", run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, env), False, gone)
+        p = run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, dict(env, ALLOW_MISSING="1"))
         expect("bundle: builds with ALLOW_MISSING=1", p, True)
         out = r / "dist" / "securing-ai-best-practices-v2099.01.md"
         digest = hashlib.sha256(out.read_bytes()).hexdigest() if out.is_file() else ""
         rel = (r / "RELEASES.md").read_text(encoding="utf-8")
-        results.append((bool(digest) and digest in rel and sha in rel and digest in p.stdout,
+        results.append((bool(digest) and digest in rel and c in rel and digest in p.stdout,
                         "bundle: RELEASES.md row carries the commit and the bundle's real SHA-256"))
         results.append((bool(re.search(r"^===== FILE: routing.yaml =====$", out.read_text(encoding="utf-8"), re.M)) if out.is_file() else False,
                         "bundle: contains routing.yaml under its file header"))
         expect("bundle: refuses a second row for the same tag",
-               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, dict(env, ALLOW_MISSING="1")), False, "already has a row")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, dict(env, ALLOW_MISSING="1")), False, "already has a row")
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
         env = {"ROOT": str(r)}
         fill_routed(r)
         run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env)
-        expect("bundle: builds without ALLOW_MISSING once every routed doc exists",
-               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), True, "sha256:")
+        c = commit(r)
+        (r / "routing.yaml").write_text("not: [the committed file\n", encoding="utf-8")
+        expect("bundle: builds from the commit, not an edited working tree",
+               run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, env), True, "sha256:")
+        git(r, "checkout", "-q", "--", "routing.yaml")
         out = (r / "dist" / "securing-ai-best-practices-v2099.01.md")
         text = out.read_text(encoding="utf-8") if out.is_file() else ""
         results.append((all(f"===== FILE: {d} =====" in text for d in routed_docs(r)),
@@ -365,6 +477,29 @@ def main() -> int:
                         and "Release: unreleased" not in text, "bundle: carries no pre-release wording"))
         expect("bundle: a second stamp for the next release finds the markers again",
                run(["build-release-bundle.sh", "stamp", "v2027.01", "2027-01-05"], r, env), True, "stamped v2027.01")
+    with tempfile.TemporaryDirectory() as td:
+        # the v2026.12 and v2026.12.1 defect: the tagged copy pinned the release before it
+        r = tree(td)
+        env = {"ROOT": str(r), "ALLOW_MISSING": "1"}
+        prior_tag = re.search(r"^\| (v\S+) \| [^|]* \| `([0-9a-f]{40})`", (r / "RELEASES.md").read_text(encoding="utf-8"), re.M)
+        run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env)
+        olp_t = (r / "ONE-LINE-PROMPT.md").read_text(encoding="utf-8")
+        results.append(("<release-sha>/AUDIT-CONTEXT.md" in olp_t and "(release <vYYYY.MM>, commit <release-sha>;" in olp_t
+                        and not re.search(r"/securing-ai-best-practices/[0-9a-f]{40}/", olp_t)
+                        and "<release-sha>/AUDIT-CONTEXT.md" in (r / "README.md").read_text(encoding="utf-8"),
+                        "bundle: stamp resets both prompt blocks to the placeholders"))
+        for f in ("README.md", "ONE-LINE-PROMPT.md"):
+            edit(r / f, "<release-sha>/AUDIT-CONTEXT.md", f"{prior_tag.group(2)}/AUDIT-CONTEXT.md")
+        c = commit(r)
+        expect("bundle: refuses a commit whose blocks pin an earlier release",
+               run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, env), False, "check-prompt-blocks.py fails")
+        expect("prompt blocks: a stamped tree naming an earlier release's commit fails",
+               run(["check-prompt-blocks.py", "--root", str(r), "--tag-commit", prior_tag.group(2)], r), False,
+               f"names {prior_tag.group(1)}'s commit")
+        git(r, "tag", "v2099.01", "HEAD~0")
+        other = commit(r, allow_empty=True)
+        expect("bundle: refuses when the local tag points at another commit",
+               run(["build-release-bundle.sh", "bundle", "v2099.01", other], r, env), False, "points at")
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
         env = {"ROOT": str(r)}
@@ -384,11 +519,14 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)
         env = {"ROOT": str(r), "ALLOW_MISSING": "1"}
-        unstamped = (r / "ONE-LINE-PROMPT.md").read_text(encoding="utf-8")
         run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], r, env)
-        (r / "ONE-LINE-PROMPT.md").write_text(unstamped, encoding="utf-8")
+        olp_p = r / "ONE-LINE-PROMPT.md"
+        olp_p.write_text(re.sub(r"(<!-- pre-release:start[^\n]*-->\n).*?(<!-- pre-release:end -->)",
+                                r"\1This repo has not cut a release yet.\n\2", olp_p.read_text(encoding="utf-8"), flags=re.S),
+                         encoding="utf-8")
+        c = commit(r)
         expect("bundle: refuses when pre-release wording survives the stamp, even with ALLOW_MISSING=1",
-               run(["build-release-bundle.sh", "bundle", "v2099.01", sha], r, env), False, "survives the stamp")
+               run(["build-release-bundle.sh", "bundle", "v2099.01", c], r, env), False, "survives the stamp")
     with tempfile.TemporaryDirectory() as td:
         r1, r2 = tree(td), None
         r2 = Path(td) / "repo2"
@@ -397,9 +535,11 @@ def main() -> int:
         for rr in (r1, r2):
             env = {"ROOT": str(rr), "ALLOW_MISSING": "1"}
             run(["build-release-bundle.sh", "stamp", "v2099.01", "2099-01-01"], rr, env)
-            run(["build-release-bundle.sh", "bundle", "v2099.01", sha], rr, env)
-            digests.append(hashlib.sha256((rr / "dist" / "securing-ai-best-practices-v2099.01.md").read_bytes()).hexdigest())
-        results.append((digests[0] == digests[1], "bundle: two builds of the same tree have the same SHA-256"))
+            c = commit(rr)
+            run(["build-release-bundle.sh", "bundle", "v2099.01", c], rr, env)
+            out = rr / "dist" / "securing-ai-best-practices-v2099.01.md"
+            digests.append(hashlib.sha256(out.read_bytes()).hexdigest() if out.is_file() else None)
+        results.append((digests[0] is not None and digests[0] == digests[1], "bundle: two builds of the same tree have the same SHA-256"))
 
     for good, label in results:
         if label in DIRECT:

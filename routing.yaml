@@ -82,7 +82,7 @@ priority-rubric:
   caps:
     - "A believed observation caps the band at Medium."
     - "A Tier D perspective orders actions within a band and never raises one."
-  ordering: "Within a band, order actions by three keys in turn, which is exactly what the reference mapper does and is the whole ordering rule: the sequence group from the `sequence-order` block in `analysis/decision-sequence.md` (a row named under `row-overrides` takes that group, any other row takes its family's group, and groups run in the order the block lists them), then factor sum, highest first, then the row's `#` (its position in `routing.yaml`, shown in the routing tables), lowest first. Tier does not break ties, because it is confidence and never priority, and effort does not either: print each action's effort (S, M or L) beside it as information for whoever schedules the work, and never sort by it, whatever the organization's size. Order REVIEW rows the same way, in their own list after the PROBLEM rows."
+  ordering: "Within a band, order actions by three keys in turn, which is exactly what the reference mapper does and is the whole ordering rule: factor sum, highest first, then the sequence group from the `sequence-order` block in `analysis/decision-sequence.md` (a row named under `row-overrides` takes that group, any other row takes its family's group, and groups run in the order the block lists them), then the row's `#` (its position in `routing.yaml`, shown in the routing tables), lowest first. The rubric's factors therefore rank first and the sequence, which is the author's Tier D judgement, only orders rows of equal factor sum. A row that an escalation raised to High keeps its own factor sum, so it sorts among the High rows by that sum, and the review prints its band as \"High, by escalation\". Tier does not break ties, because it is confidence and never priority, and effort does not either: print each action's effort (S, M or L) beside it as information for whoever schedules the work, and never sort by it, whatever the organization's size. Order REVIEW rows the same way, in their own list after the PROBLEM rows."
 
 interview-branches:
   first-questions: [org-size-small-mid, profile-rent-heavy]
@@ -153,6 +153,7 @@ observations:
   mcp-unpinned-count: {from: mcp-config, meaning: "Local servers started from a package runner with no exact version."}
   mcp-pinned-count: {from: mcp-config, meaning: "Local servers started from a package runner with an exact version."}
   mcp-inline-secret-count: {from: mcp-config, meaning: "Secret-looking values written inline in env, headers, args or URLs (values never printed)."}
+  mcp-launch-unknown-count: {from: mcp-config, meaning: "Local servers whose launch the reducer could not read (an unresolvable shell or cmd wrapper); non-zero means the unpinned count is a floor."}
   # coding-agent settings reducer
   settings-files-read: {from: coding-agent-settings, meaning: "Settings or hooks files the reducer parsed."}
   managed-tier-seen: {from: coding-agent-settings, meaning: "A managed (administrator) tier file was among the inputs."}
@@ -247,7 +248,7 @@ signals:
     question: "Does the organization run low-code agent and workflow builders? (yes, no, or not sure)"
     method: [I, E]
     weight: INVENTORY
-    enables: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed, nhi-inventory-absent]
+    enables: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed, agent-builder-self-hosted-exposed, nhi-inventory-absent]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S6 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S7
@@ -1144,6 +1145,18 @@ signals:
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
     docs: [analysis/stubs/agent-builders.md]
     why: "Each connector widens what an agent can reach; the platform's connector policy is the control."
+  - key: agent-builder-self-hosted-exposed
+    family: agent-builders
+    question: "Is any self-hosted agent or workflow builder running without authentication, behind on a fix for a CISA KEV entry, or of unknown internet reach? (Yes to any of the three selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 1, stakes: 2, reversibility: 1, blast: 1}
+      escalation: "High when the builder is internet-reachable"
+      escalate-if: [surface-internet-reachable]
+    docs: [analysis/stubs/agent-builders.md]
+    why: "CISA KEV 2026.11.09 lists exploited vulnerabilities in self-hosted builders, and a builder keeps model keys and connector tokens behind one credential store, so internet reach, patch state and authentication are checked before the governance settings."
 
   # --- ai-you-ship ---
   - key: output-handling-unreviewed

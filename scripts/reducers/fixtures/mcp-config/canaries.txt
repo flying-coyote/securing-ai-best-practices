@@ -13,3 +13,7 @@ EXAMPLE-DB-KEY
 filesystem
 /srv/alice
 @example/github-mcp
+EXAMPLE-LISTENV-SECRET
+vault-dave
+dave-host
+@example/win-mcp

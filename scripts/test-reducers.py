@@ -113,6 +113,96 @@ def main() -> int:
     check(cleaned == "ChatGPT" and removed == len(hidden) - 7, f"sanitizer left {cleaned!r}")
     print("ok   sanitizer strips tag, zero-width and bidi characters")
 
+    # per-form checks, so a false positive and a false negative cannot cancel in an aggregate golden
+    import importlib.util
+    import json
+
+    def load(name):
+        spec = importlib.util.spec_from_file_location(name, RED / f"{name}.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    mc = load("mcp_config")
+    secret_cases = [
+        ({"env": {"API_TOKEN": "env:API_TOKEN"}}, 0, "env:VAR reference"),
+        ({"env": {"VAULT_KEY": "op://vault/item/field"}}, 0, "op:// reference"),
+        ({"headers": {"Authorization": "Bearer ${TOKEN}"}}, 0, "Bearer ${TOKEN} reference"),
+        ({"env": {"GITHUB_TOKEN": "${env:GITHUB_TOKEN}"}}, 0, "${env:VAR} reference"),
+        ({"env": {"MAX_TOKENS": "4096"}}, 0, "MAX_TOKENS number"),
+        ({"env": {"AUTH_MODE": "oauth"}}, 0, "AUTH_MODE word"),
+        ({"env": {"TOKEN_URL": "https://login.example.invalid/token"}}, 0, "TOKEN_URL"),
+        ({"args": ["--max-tokens", "4096"]}, 0, "--max-tokens 4096"),
+        ({"args": ["--api-key=env:KEY"]}, 0, "--api-key=env:KEY"),
+        ({"env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "EXAMPLE-NOT-A-REAL-TOKEN"}}, 1, "inline token"),
+        ({"headers": {"Authorization": "Bearer EXAMPLEopaque0123"}}, 1, "inline bearer"),
+        ({"headers": {"X-Api-Key": "EXAMPLE-KEY-value"}}, 1, "inline X-Api-Key"),
+        ({"env": ["ACCESS_TOKEN=EXAMPLE-LIST-SECRET", "LOG_LEVEL=debug"]}, 1, "list-typed env"),
+        ({"env": "not-a-mapping", "args": "not-a-list"}, 0, "malformed env and args"),
+        ({"args": ["--api-key", "EXAMPLE-ARG-SECRET"]}, 1, "--api-key value"),
+    ]
+    for server, want_n, label in secret_cases:
+        try:
+            got_n = mc.count_secrets(server)
+        except Exception as e:  # a crash is a failure, not a skip
+            got_n = f"{type(e).__name__}"
+        check(got_n == want_n, f"mcp-config: {label}: counted {got_n}, want {want_n}")
+    launch_cases = [
+        ("cmd", ["/c", "npx", "-y", "@example/a@1.0.0"], ("runner", "@example/a@1.0.0")),
+        ("sh", ["-c", "npx @example/b"], ("runner", "@example/b")),
+        ("npm", ["exec", "@example/c@2.0.0"], ("runner", "@example/c@2.0.0")),
+        ("npm", ["x", "--", "@example/c"], ("runner", "@example/c")),
+        ("uvx", ["--python", "3.12", "pkg==1.2.3"], ("runner", "pkg==1.2.3")),
+        ("uvx", ["-p", "3.12", "pkg@1.2.3"], ("runner", "pkg@1.2.3")),
+        ("npx", ["--registry", "https://registry.example.invalid", "pkg@1.0.0"], ("runner", "pkg@1.0.0")),
+        ("npx", ["-p", "pkg@1.0.0", "pkg-bin"], ("runner", "pkg@1.0.0")),
+        ("env", ["NODE_ENV=production", "npx", "pkg@1.0.0"], ("runner", "pkg@1.0.0")),
+        ("npx -y pkg@1.0.0", [], ("runner", "pkg@1.0.0")),
+        ("bash", ["-c", "cd /srv && uvx pkg"], ("unknown", None)),
+        ("cmd", ["/q"], ("unknown", None)),
+        ("sh", ["-c", "exec npx @example/d"], ("runner", "@example/d")),
+        ("sh", ["-c", "FOO=1 npx @example/e@1.0.0"], ("runner", "@example/e@1.0.0")),
+        ("bash", ["-lc", "npx @example/f"], ("runner", "@example/f")),
+        ("uv", ["tool", "run", "--with", "extra", "pkg==2.0.0"], ("runner", "pkg==2.0.0")),
+        ("uvx", ["-w", "extra", "pkg"], ("runner", "pkg")),
+        ("bun", ["x", "pkg@1.0.0"], ("runner", "pkg@1.0.0")),
+        ("pipx", ["run", "--spec", "pkg==1.0.0", "pkg-cmd"], ("runner", "pkg==1.0.0")),
+        ("node", ["/opt/server.js"], ("neither", None)),
+        ("npm", ["run", "start"], ("neither", None)),
+    ]
+    for cmd, args, want in launch_cases:
+        got = mc.launch(cmd, args)
+        check(got == want, f"mcp-config: launch {cmd} {args}: got {got}, want {want}")
+    with tempfile.TemporaryDirectory() as td:
+        cfg = Path(td) / "unknown-only.json"
+        cfg.write_text(json.dumps({"mcpServers": {"x": {"command": "bash", "args": ["-c", "a && npx b"]}}}), encoding="utf-8")
+        p = subprocess.run([sys.executable, "-I", str(RED / "mcp_config.py"), str(cfg)], capture_output=True, text=True)
+        doc = yaml.safe_load(p.stdout) if p.returncode == 0 else {}
+        check(((doc.get("signals") or {}).get("mcp-unpinned") or {}).get("value") == "not-checked",
+              f"mcp-config: an unread launch with no unpinned server printed {p.stdout[-200:]}{p.stderr[-200:]}")
+    print("ok   mcp-config per-form secrets, references and launchers")
+
+    # coding-agent-settings branches the fixture does not reach
+    cases = [
+        ({"permissions": {"deny": ["Bash(rm:*)"]}}, "user", {"hook-fail-open": "not-checked", "hooks-user-disableable": "not-checked"},
+         "no hooks configured"),
+        ({"hooks": {"PreToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "x"}]}]},
+          "permissions": {"deny": ["Bash(rm:*)"]}}, "project",
+         {"hook-fail-open": True, "hooks-user-disableable": "not-checked"}, "hooks outside managed beside a deny rule"),
+        ({"hooks": {"PreToolUse": [{"matcher": "*", "hooks": [{"type": "command", "command": "x", "onFailure": "block"}]}]}},
+         "managed", {"hook-fail-open": False, "hooks-user-disableable": False}, "only managed hooks, all fail closed"),
+    ]
+    for data, scope, want, label in cases:
+        with tempfile.TemporaryDirectory() as td:
+            f = Path(td) / "settings.json"
+            f.write_text(json.dumps(data), encoding="utf-8")
+            p = subprocess.run([sys.executable, "-I", str(RED / "coding_agent_settings.py"), f"{scope}:{f}"],
+                               capture_output=True, text=True)
+            sig = (yaml.safe_load(p.stdout) or {}).get("signals") or {} if p.returncode == 0 else {}
+            for k, v in want.items():
+                check((sig.get(k) or {}).get("value") == v, f"coding-agent-settings: {label}: {k} is {sig.get(k)}, want {v}")
+    print("ok   coding-agent-settings prints not-checked where the files cannot show the answer")
+
     # chain: reducer output feeds route.py
     with tempfile.TemporaryDirectory() as td:
         ans = Path(td) / "answers.yaml"
