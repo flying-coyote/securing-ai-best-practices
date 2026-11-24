@@ -8,7 +8,7 @@ pins:
   - "OWASP Top 10 for LLM Applications 2026"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-17
+revalidate-by: 2027-04-14
 status: EMERGING
 ---
 
@@ -55,7 +55,7 @@ It does not mean the standards are wrong where they are silent, or that a deploy
 - `convergence` is `single-source` because, although two standards prescribe in-query scoping and provenance tracking, this stub names no independent implementation that demonstrates them, so the standards route in `CONTRIBUTING.md` does not complete. Dated 2026-11-10.
 - OWASP IDs are cited only in their 2026 form. The CoSAI control records at this commit carry their own mappings to the earlier edition, which this stub deliberately does not reproduce; re-mapping them is covered in `analysis/revalidation-and-pins.md`.
 - The CoSAI counts (37 controls, 36 risks, five controls on the poisoning risk, one control naming the RAG content component explicitly) were read from the YAML at the pinned commit on 2026-11-10.
-- `revalidate-by` is about four months out because both pins are young (the OWASP edition was published in August 2026) and a CoSAI commit that adds a retrieval access-control or retention control would change the third paragraph of the analysis.
+- `revalidate-by` is about five months out because both pins are young (the OWASP edition was published in August 2026) and a CoSAI commit that adds a retrieval access-control or retention control would change the third paragraph of the analysis.
 
 ## Sources
 

@@ -10,7 +10,7 @@ pins:
   - "Incumbent vendor documentation for fourteen tool categories as read 2026-11-09, five defaults re-read 2026-11-10"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-10
+revalidate-by: 2027-06-07
 status: EMERGING
 measurement-claims:
   - claim: "Across Syft, Grype, Trivy, ai-bom and cyclonedx-bom run three times over six AI artifacts (315 invocations, 88 of 88 tool-fixture pairs identical across runs), the pre-registered strict name match found 4 of 6 in some form (3 of 6 without Trivy rootfs mode, which was not pre-registered) and 1 of 6 as an AI artifact; the lenient post-run rule gives 5 of 6 (4 of 6 without Trivy rootfs mode) and 2 of 6; the Ollama blob store was found by no tool; one host"

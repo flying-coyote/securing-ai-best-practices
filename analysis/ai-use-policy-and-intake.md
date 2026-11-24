@@ -8,7 +8,7 @@ pins:
   - "ISO/IEC 42001 2023"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-10
+revalidate-by: 2027-04-06
 status: EMERGING
 ---
 
@@ -20,8 +20,8 @@ Evidence tier: Mixed. The structure is Tier A, because NIST AI RMF 1.0 and ISO/I
 
 For most organizations the first AI controls are an owner, an acceptable-use policy, an approved-tools list, an intake path that every new AI tool passes through, and a page of staff guidance, and telemetry comes after them, because a collection plan needs the approved list to know what it is collecting and a finding needs an owner to go to. The intake path is also where the configure-before-you-buy check runs, so it is the cheapest point at which to catch a purchase the organization already owns.
 
-1. Name one accountable owner for AI use and open a risk-register entry. Effort S. Tier A for the structure (NIST AI RMF 1.0 GOVERN 2.1 and 2.3; ISO/IEC 42001 clause 5.3).
-2. Write a one-page acceptable-use policy that says which data classes may go into which class of tool. Effort S. Tier A that a policy is expected (GOVERN 1; clause 5.2); Tier D for the content.
+1. Name one accountable owner for AI use and open a risk-register entry. Effort S. Tier A for the structure (NIST AI RMF 1.0 GOVERN 2.1 and 2.3, read at the primary; ISO/IEC 42001 clause 5.3 is cited by clause number only, since the standard's text is paywalled and was not read).
+2. Write a one-page acceptable-use policy that says which data classes may go into which class of tool. Effort S. Tier A that a policy is expected (GOVERN 1, read at the primary; ISO/IEC 42001 clause 5.2 by clause number only, text not read); Tier D for the content.
 3. Keep an approved-tools list keyed to deployment classes, with an owner and a re-review date per row. Effort S. Tier A for the inventory duty (GOVERN 1.6); Tier D for the shape.
 4. Stand up an intake path: one form, one reviewer, a stated turnaround, and a fixed set of checks, including whether an owned platform already covers the need and the five-state check (enabled, scoped, exported, alerted, owned) on whatever it would rely on. Effort M. Tier A for third-party structure (GOVERN 6.1); Tier D for the form.
 5. Give staff a short guidance page and collect an acknowledgement, which in the US also serves as monitoring notice. Effort S. Tier A for the statute, Tier B for how courts and counsel read it.
@@ -41,7 +41,7 @@ There is also an ordering reason. Telemetry for AI is a per-product decision, be
 
 ### The structure both standards share
 
-NIST AI RMF 1.0 makes Govern a cross-cutting function whose six categories run from policy and accountability through workforce diversity, culture and engagement to third-party risk (Tier A, NIST AI 100-1, January 2023; subcategory text read on the NIST AI Resource Center, 2026-11-10, which notes the framework is being updated). ISO/IEC 42001:2023 follows the harmonized management-system structure, so its policy, roles, competence and awareness duties sit in the same clause numbers as other ISO management-system standards (Tier A for the clause structure). The Annex A control numbers below were read through secondary summaries rather than the purchased text, which is why they carry a qualifier and a gap.
+NIST AI RMF 1.0 makes Govern a cross-cutting function whose six categories run from policy and accountability through workforce diversity, culture and engagement to third-party risk (Tier A, NIST AI 100-1, January 2023; subcategory text read on the NIST AI Resource Center, 2026-11-10, which notes the framework is being updated). ISO/IEC 42001:2023 follows the harmonized management-system structure, so its policy, roles, competence and awareness duties sit in the same clause numbers as other ISO management-system standards (Tier A for the standard; the clause numbers and titles used here, 4.1, 5.2, 5.3, 7.2 and 7.3, come from that shared structure and from a second model's confirmation on 2026-11-10, and I have not read them in the standard's own text, which is paywalled and whose site refused the fetcher). The Annex A control numbers below were read through secondary summaries rather than the purchased text, which is why they carry a qualifier and a gap.
 
 | Element | NIST AI RMF 1.0 (Govern) | ISO/IEC 42001:2023 | What a small organization writes |
 |---|---|---|---|
@@ -114,7 +114,7 @@ A larger organization with an established third-party risk and architecture-revi
 ## Notes
 
 - Convergence stays `single-source`. Both standards prescribe the policy and accountability elements, so the standards route under Decision 7 may apply to those two, but I have not documented an independent implementation record for this document, and the intake path and template are not prescribed by either standard in this form. The claim-level choice (Decision 16) is that the structure is cited at Tier A and every content recommendation at Tier D.
-- `revalidate-by` is four months out rather than six because NIST's own resource page says AI RMF 1.0 is being updated, and a revised Govern function would reopen the table.
+- `revalidate-by` is about five months out rather than seven or eight because NIST's own resource page says AI RMF 1.0 is being updated, and a revised Govern function would reopen the table.
 - No `measurement-claims` rows: nothing in this document is a re-runnable lab result.
 - Dated judgement markers, 2026-11-10: the ordering of policy before telemetry, the six-question intake form, the small-organization template and the advice to approve with conditions rather than decline are the author's judgement.
 
@@ -123,7 +123,7 @@ A larger organization with an established third-party risk and architecture-revi
 Tier A
 
 - NIST, Artificial Intelligence Risk Management Framework (AI RMF 1.0), NIST AI 100-1, January 2023, https://doi.org/10.6028/NIST.AI.100-1; Govern subcategory text read at https://airc.nist.gov/airmf-resources/airmf/5-sec-core/ on 2026-11-10.
-- ISO/IEC 42001:2023, Information technology, Artificial intelligence, Management system, https://www.iso.org/standard/42001 (clause structure; Annex A numbering via the secondary summaries below, see Gaps).
+- ISO/IEC 42001:2023, Information technology, Artificial intelligence, Management system, https://www.iso.org/standard/42001 (not read at the primary: the clause numbers rest on the harmonized management-system structure and a second model's confirmation, and the Annex A numbering on the secondary summaries below; see Gaps and the Unverified list in `SOURCES.md`).
 - CB Financial Services, Inc., Form 8-K, Item 1.05, date of report 2026-05-07, https://www.sec.gov/Archives/edgar/data/1605301/000160530126000021/cbfv-20260507.htm, read 2026-11-10.
 - 18 U.S.C. §2511(2)(d), https://www.law.cornell.edu/uscode/text/18/2511.
 

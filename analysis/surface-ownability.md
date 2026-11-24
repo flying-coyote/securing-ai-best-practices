@@ -8,7 +8,7 @@ pins:
   - "MITRE ATLAS v2026.10 (released 2026-10-28)"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-10
+revalidate-by: 2027-01-15
 status: EMERGING
 ---
 
@@ -144,7 +144,7 @@ CoSAI also maps generic Software supply chain (T0010.001) to MCP-server risks an
 
 - Banding (2026-11-10, Tier D). S5 and S6 placed in band two despite all-O rows, for the reason given above. S10 placed in band three although its rows are O, because the components are held by end users and there is no identity plane, so in practice no team can instrument them.
 - Wording of the recurring components (2026-11-10). I do not say the three are "owned on every surface", because the long view shows the identity provider absent on two surfaces, the audit record absent on five, and a network enforcement point present as a component on four. The defensible claim is the narrower one in the section above.
-- Revalidation is three months because the incident columns depend on ATLAS, and a new ATLAS release or a change to CoSAI's `components.yaml` (the registry was still changing at the time of reading) reopens this document. The step-count method is parent-or-self technique match against each risk's `mappings.mitre-atlas`; two of CoSAI's 24 mapped IDs (T0019 and T0024.002) are retired in v2026.10 and were carried to their successors before counting.
+- Revalidation is just over two months, inside the three-month ceiling for ATLAS-dependent documents, because the incident columns depend on ATLAS, and a new ATLAS release or a change to CoSAI's `components.yaml` (the registry was still changing at the time of reading) reopens this document. The step-count method is parent-or-self technique match against each risk's `mappings.mitre-atlas`; two of CoSAI's 24 mapped IDs (T0019 and T0024.002) are retired in v2026.10 and were carried to their successors before counting.
 - The telemetry, identity and inventory measurements that go with each surface (OCSF field coverage, SBOM tool visibility, manifest drift, retention cost) live in the documents those questions route to, cited by lab run there, not here.
 
 ## Sources

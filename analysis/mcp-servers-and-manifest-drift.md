@@ -11,7 +11,7 @@ pins:
   - "Claude Code, GitHub Copilot, OpenAI Codex, Cursor, Windsurf, Gemini CLI, Amazon Bedrock AgentCore, Kong AI Gateway, LiteLLM and Microsoft Foundry documentation as read 2026-11-09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-10
+revalidate-by: 2027-05-03
 status: EMERGING
 measurement-claims:
   - claim: "Snapshotting tools/list from three static MCP servers produced 0 drift events across 51 consecutive snapshot pairs (17 per server, 2 of each server's 17 across process restarts), under both raw and canonical hashing; one host, three servers on protocol 2025-06-18"

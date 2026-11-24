@@ -11,7 +11,7 @@ pins:
   - "CISA KEV catalogVersion 2026.11.09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-17
+revalidate-by: 2027-01-26
 status: EMERGING
 ---
 
@@ -65,7 +65,7 @@ Speakers are cited by surname from the two 2026 [un]prompted practitioner confer
 
 ## The sequence, as data
 
-The routing order within a priority band follows these eight groups. The family assignment is mine (Tier D) and is written as data so `scripts/route.py` can read it; a row listed under `row-overrides` takes its own group rather than its family's.
+Within a priority band, `scripts/route.py` orders actions by factor sum first and uses these eight groups to break ties. The family assignment is mine (Tier D) and is written as data so `scripts/route.py` can read it; a row listed under `row-overrides` takes its own group rather than its family's.
 
 ```yaml
 sequence-order:
@@ -165,10 +165,10 @@ The dated rows go on a calendar now; the signal rows are short enough for one pe
 
 | Date or signal | Event | Reopens rows |
 |---|---|---|
-| 2026-12-02 | EU AI Act Article 50 marking grace period ends for generative systems already on the market (Regulation (EU) 2026/1744) | 8 |
+| 2026-12-02 | EU AI Act: providers of generative systems placed on the market before 2 August 2026 must comply with the Article 50(2) output-marking duty by this date (Art. 111(4), added by Regulation (EU) 2026/1744, Art. 1(39)(b); Tier A, read 2026-11-24). Article 111(4) names providers, so this reaches an organization that ships a generative feature and not one that only deploys someone else's | none of the sixteen; the provider-side check is action 4 in `stubs/ai-you-ship.md` |
 | 2027-05-21 | Google Cloud Security Command Center Enterprise tier retired, automatic move to Premium (Tier B, vendor documentation) | 4, 10 |
-| 2027-12-02 | Stand-alone Annex III high-risk obligations, including Article 26 deployer duties, apply | 3, 8 |
-| 2028-08-02 | Annex I obligations apply | 8 |
+| 2027-12-02 | Chapter III, Sections 1 to 3, apply to systems that are high-risk under Article 6(2) and Annex III, and Section 3 is where the Article 26 deployer duties sit (Art. 113, third paragraph, point (c)(i), as replaced by Regulation (EU) 2026/1744, Art. 1(40)(b); Tier A, read 2026-11-24) | 3, 8 |
+| 2028-08-02 | The same sections apply to systems that are high-risk under Article 6(1) and Annex I (Art. 113, third paragraph, point (c)(ii), same amendment; Tier A, read 2026-11-24) | 8 |
 | Each build's sunset (at most twelve months) and each contract renewal | Build re-decision; export schema as a contract term | 1, 4, 10 |
 | A preview feature goes generally available, or a platform changes a logging default or the tier of its audit record | Content logging on by default; an audit log at a lower tier | 1, 4, 6, 8 |
 | A MITRE ATLAS release adds a case study on a surface you run | ATLAS has shipped monthly | 1, 10 |
@@ -193,13 +193,13 @@ The sequence is not a maturity score, and a regulated organization that owns a s
 - Status (2026-11-10): ships `EMERGING` ahead of the long-form article that argues the sequence (`DECISIONS.md` Decision 15) and gains a `follows:` line naming the article when it publishes.
 - Measurement claims: none. The lab figures the decisions rest on live in the routed documents, pinned to lab master at `91e44df` (the research branch merged there on 2026-11-10).
 - The 80 to 90 percent observation (dated 2026-11-09) is a perspective, not a measurement; any anecdote behind it comes from operational work before August 2026 or is stated generally.
-- Revalidate-by is three months out because ATLAS releases and the 2026-12-02 trigger fall inside the window. Products in the trigger table are examples of a trigger kind; nothing here says any named organization runs any product.
+- Revalidate-by is about two and a half months out, inside the three-month ceiling for ATLAS-dependent documents, because ATLAS releases and the 2026-12-02 trigger fall inside the window and this is one of the four documents every review reads. The three AI Act dates in the trigger table were read at the Official Journal text on 2026-11-24; the same amendment puts a second event on 2026-12-02 that the table does not carry, the start of application of the new Article 5(1) points (ba) and (bb) with Article 5(1a) and (1b) (Art. 113, third paragraph, point (a)), which I have not analysed. Products in the trigger table are examples of a trigger kind; nothing here says any named organization runs any product.
 
 ## Sources
 
 Tier A
 
-- Regulation (EU) 2024/1689 (AI Act), consolidated text CELEX 02024R1689-20260727, and amending Regulation (EU) 2026/1744, read 2026-11-09: https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+- Regulation (EU) 2024/1689 (AI Act), consolidated text CELEX 02024R1689-20260727, and amending Regulation (EU) 2026/1744 of 8 July 2026 (OJ L, 2026/1744, 24.7.2026, ELI http://data.europa.eu/eli/reg/2026/1744/oj), both read 2026-11-24 at the Publications Office, which serves the Official Journal text by CELEX number: https://publications.europa.eu/resource/celex/32026R1744 and https://publications.europa.eu/resource/celex/02024R1689-20260727. Before that date the amending regulation had not been read at the primary, because EUR-Lex returned an empty page to the fetcher on 2026-11-10 (and again on 2026-11-24), so the three dated trigger rows stood on a second model's confirmation until the read recorded in `VERIFICATION-LOG.md`.
 - CJEU, Case C-65/23, judgment of 19 December 2024: https://curia.europa.eu/juris/liste.jsf?num=C-65/23
 - Nasr, Carlini et al., "The Attacker Moves Second," arXiv 2510.09023, accepted at USENIX Security 2026 (figures from arXiv v1; authors affiliated with model vendors, flagged): https://arxiv.org/abs/2510.09023
 

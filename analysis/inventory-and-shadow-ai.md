@@ -10,7 +10,7 @@ pins:
   - "CoSAI secure-ai-tooling risk map 622605a1"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-04-10
+revalidate-by: 2027-05-11
 status: EMERGING
 measurement-claims:
   - claim: "Across nine planted shadow-AI surfaces scored as ten cells on one endpoint, the union of five discovery methods (Zeek, a DNS log, osquery, Syft, an egress allowlist) found 8, reached 1 only partially (a local OpenAI-compatible server seen as a port) and missed 1 (model weights in the Ollama store)"

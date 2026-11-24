@@ -9,7 +9,7 @@ pins:
   - "OCSF 1.9.0"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-17
+revalidate-by: 2027-02-05
 status: EMERGING
 measurement-claims:
   - claim: "A pre-registered prompt-injection signature rule over the OCSF message_context.prompt_text field was MISSED on all three seeds on the pre-registered DuckDB engine (case-sensitive LIKE) and NOISY on SQLite at precision 0.048; authored corpus, one host"
@@ -122,7 +122,7 @@ It does not mean these products are bad or their builders careless, since much o
 - The OpenAI statement that prompt injection is "unlikely to ever be fully solved" is cited only through TechCrunch coverage (Tier C, secondary), because the original returned 403, so it supports nothing above.
 - The Nasr et al. figures are from arXiv v1; if the camera-ready differs, the revalidation pass replaces them.
 - 2026-11-10: lab citations point at lab master `91e44df`; the first four runs were written against commit `e0aaadc` on branch hub/ai-research-2026-11-09, and their four RESULTS.md files are unchanged between the two, so the line ranges stand, while the T3 guardrail row was added later the same day straight from `91e44df`. Each run carries a VERIFIED-WITH-FIXES verdict from a second agent.
-- Revalidate-by is three months out because the claims are vendor pages that change monthly and the tool-poisoning reference pins ATLAS.
+- Revalidate-by is just under three months out because the claims are vendor pages that change monthly and the tool-poisoning reference pins ATLAS.
 - Build-versus-buy is in `build-buy-and-the-high-priest.md`; this document only covers reading what is offered.
 
 ## Sources

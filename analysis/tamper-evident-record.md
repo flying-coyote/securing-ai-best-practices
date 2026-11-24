@@ -12,7 +12,7 @@ pins:
   - "AWS CloudTrail and Amazon S3 Object Lock documentation as read 2026-11-10"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-10
+revalidate-by: 2027-06-10
 status: EMERGING
 measurement-claims:
   - claim: "In Claude Code 2.1.321 headless, the evidence of a PreToolUse hook or permission-rule decision lived in four places (session transcript, stream-json, debug log, OpenTelemetry) and only OpenTelemetry was a wire format; the transcript and debug log are local files under the user's own config and working paths; one host, one version, one run per cell"

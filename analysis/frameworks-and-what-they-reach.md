@@ -23,7 +23,7 @@ pins:
   - "atlas-d3fend-crosswalk 65cdab0"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-10
+revalidate-by: 2027-01-12
 status: EMERGING
 measurement-claims:
   - claim: "Of the 290 steps in ATLAS v2026.10's 27 Incident case studies, 235 (81.0%) reach some OCSF 1.9.0 field through the ATLAS-to-D3FEND crosswalk and 161 (55.5%) reach a specific one; the specific-versus-generic grades are one author's single pass and Tier D, and with the broad File and UserAccount artifacts set aside (not pre-registered) the specific share is 123 (42.4%)"
@@ -157,7 +157,7 @@ CoSAI's risk map at `622605a1` describes 42 components of an AI system with the 
 
 ### EU AI Act
 
-The AI Act, consolidated as CELEX 02024R1689-20260727 after amendment by Regulation (EU) 2026/1744, reaches obligations by role and risk class, with dated triggers such as the end of the Article 50 marking grace period on 2026-12-02 and stand-alone Annex III obligations from 2027-12-02 under Article 113 (Tier A, EUR-Lex). Alignment supports a claim that obligations are identified and assigned, and none about whether a control works. This is not legal advice; [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md) carries the logging provisions.
+The AI Act, consolidated as CELEX 02024R1689-20260727 after amendment by Regulation (EU) 2026/1744, reaches obligations by role and risk class, with dated triggers such as the 2026-12-02 date by which providers of generative systems already on the market must meet the Article 50(2) marking duty (Article 111(4)) and stand-alone Annex III obligations from 2027-12-02 under Article 113, third paragraph, point (c)(i) (Tier A, both articles read 2026-11-24 in the Official Journal text of Regulation (EU) 2026/1744 at the Publications Office). Alignment supports a claim that obligations are identified and assigned, and none about whether a control works. This is not legal advice; [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md) carries the logging provisions.
 
 ### Licence-restricted frameworks: SCF, CSA AICM and AIUC-1
 
@@ -183,7 +183,7 @@ The counts have limits. The incident weights are ATLAS-only, 27 incidents, and s
 ## Notes
 
 - 2026-11-10: `surfaces` lists all thirteen because no surface's `enables` list in `routing.yaml` names a frameworks-family key, and framework alignment applies to whichever surfaces an organization runs.
-- 2026-11-10: `revalidate-by` is three months out because the document cites ATLAS IDs and counts.
+- 2026-11-10, revised 2026-11-24: `revalidate-by` is two months out because the document cites ATLAS IDs and counts, more of them than any other document here, so it takes the earliest slot when the ATLAS-dependent documents were spread across January and early February 2027 to keep them from expiring in one week.
 - 2026-11-10: M1 ran as a partial run (grader complete, adjudication refused at a quota floor), so it sits beside the 55.5% without lifting it out of Tier D; whether a partial M1 is enough is a maintainer decision, not taken here.
 - 2026-11-10: lab citations point at sdw-lab-benchmarks master at 91e44df; the crosswalk is cited at 65cdab0, its initial public release.
 - 2026-11-10: the ATLAS overlap and STIX object counts were re-derived from the v2026.10 YAML and bundle for this document; the chain and burn-down counts were read from their verified outputs.

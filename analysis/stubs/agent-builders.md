@@ -1,7 +1,7 @@
 ---
 evidence-tier: Mixed
 convergence: single-source
-applies-to-signals: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed]
+applies-to-signals: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed, agent-builder-self-hosted-exposed]
 surfaces: [S6, S7]
 pins:
   - "CoSAI secure-ai-tooling 622605a1"
@@ -9,7 +9,7 @@ pins:
   - "CISA KEV catalog 2026.11.09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-12
+revalidate-by: 2027-02-08
 status: EMERGING
 ---
 
@@ -27,14 +27,17 @@ Read first: CoSAI's agent controls at commit `622605a1`, specifically `controlAg
 - `maker-credential-agents`: move agents off the maker's own connections onto either a dedicated least-privilege agent user or the invoking user's credential, so the agent cannot exceed the caller's authority (`controlAgentPluginPermissions`). Effort M to L, because existing flows break. Tier A and B.
 - `agent-external-sharing-unreviewed`: require authentication on every published agent, block the public and web channels by policy, and cap sharing to named groups. Effort S. Tier B.
 - `connector-sprawl-unreviewed`: treat the connector policy as the agent's tool allowlist and review it like one, including connectors that carry MCP tools (`controlToolRegistryAndDiscoveryIntegrity`). Effort M. Tier A and B.
+- `agent-builder-self-hosted-exposed`: for each builder the organization hosts itself, establish three facts and fix whichever fails: whether it is reachable from the internet, whether its version carries the fix for every CISA KEV entry against the product, and whether authentication is on, read from the running configuration. Effort S to check, M to fix. Tier A for the KEV and ATLAS record, D for the check.
 
-The order I would turn these on is sharing first because it is cheap, then connectors, then credentials, with the publish gate and inventory set up alongside the connector review (Tier D). The defaults below are as of 2026-11-09 and the review prints that date beside them.
+The order I would turn these on is sharing first because it is cheap, then connectors, then credentials, with the publish gate and inventory set up alongside the connector review, and the self-hosted check ahead of all of them where it applies (Tier D). The defaults below are as of 2026-11-09 and the review prints that date beside them.
 
 ## Why this matters
 
 On the CoSAI component map the organization owns most of what an S6 builder instantiates: the orchestration layer, the agent instructions, the tools, the node or connector catalogue, the hosting and the builder's own credential store, with the model rented through a direct API (Tier A for the component definitions; the ownership reading is mine, Tier D, and is set out in `../surface-ownability.md`). On S7 the cloud runs the serving and the registry, and the organization owns cloud IAM, the gateway where one is configured, and the cloud audit log. So these are surfaces where configuration is the organization's job, and the builders are often run by an automation or business-technology team outside central IT, which is why the family overlaps with shadow AI.
 
 The incident record reaches both surfaces through familiar doors. MITRE ATLAS case study CS0070 records exploitation attempts against exposed Langflow and n8n instances by an AI-agent-driven threat actor, and the CISA KEV catalogue 2026.11.09 lists six Langflow entries (five added in 2026, one of them filed under the vendor name IBM) and one n8n entry added 2026-03-11 (Tier A, re-counted from the catalogue file). CS0057 is stolen cloud credentials used to call a managed model past its guardrails (Tier A). In both cases the AI-specific part is what the compromised identity can reach afterwards, because a builder keeps model keys, connector tokens and often data behind one credential store, so a web-application compromise turns into access across every tool the flows call.
+
+That record is why the self-hosted row asks three plain questions before any governance setting, and why I would take it first: KEV names the seven entries as code injection (three), missing authentication, authorization bypass, origin validation and inclusion of functionality from an untrusted control sphere, all flaws in the builder itself (Tier A, vulnerability names read in the CISA feed on 2026-11-24, by which date the feed had moved to catalogVersion 2026.11.24 with the same seven Langflow and n8n entries as the pinned 2026.11.09), so what decides exposure is whether the instance can be reached, whether it is patched and whether it asks for a login. For reach, the fix is to take the instance off the internet or put it behind the access proxy or VPN the organization already runs. For patch state, the test is the vendor's fix for each KEV entry against the product, applied on the KEV cadence; the KEV record itself names no fixed version and points to the vendor's instructions, so the version comes from the vendor advisory. For authentication, the check covers the editor, the API and every published flow or webhook endpoint, and it is read from the running configuration because this stub has not read each product's default. Where an instance was reachable while unpatched, I would also rotate the model keys and connector tokens in its credential store, since those are what the compromise reaches (Tier A for the KEV and ATLAS record, D for the three-fact check, the order and the rotation).
 
 ## What the platforms ship (as of 2026-11-09)
 
@@ -62,7 +65,7 @@ Two things stand out from building the table. As far as the four SaaS builder pa
 
 ## What this does not mean
 
-A blocked connector or an authenticated channel does not make an agent safe to run, because the data policy governs what an agent is built with and Microsoft states that it offers no tenant policy over what the agent says back beyond built-in moderation (Tier B, Copilot Studio security and governance page). Moving an agent onto the invoking user's credential trades one problem for another, since the agent then carries each user's full access and becomes the confused deputy CoSAI's `controlAgentPluginPermissions` warns about if it does not check the caller at each hop. And self-hosted builders (n8n, Langflow, Flowise) have no admin console comparable to the rows above, so for those the controls are the hosting and network ones, which this stub does not cover.
+A blocked connector or an authenticated channel does not make an agent safe to run, because the data policy governs what an agent is built with and Microsoft states that it offers no tenant policy over what the agent says back beyond built-in moderation (Tier B, Copilot Studio security and governance page). Moving an agent onto the invoking user's credential trades one problem for another, since the agent then carries each user's full access and becomes the confused deputy CoSAI's `controlAgentPluginPermissions` warns about if it does not check the caller at each hop. And self-hosted builders (n8n, Langflow, Flowise) have no admin console comparable to the rows above, so for those the controls are the hosting and network ones, which this stub carries only as the three-fact check in the summary (internet reach, KEV patch state, authentication on) and has not researched per product, so a passed check says the known doors are shut and nothing about the builder's own publish, sharing or credential settings.
 
 ## Gaps
 
@@ -73,6 +76,7 @@ A blocked connector or an authenticated channel does not make an agent safe to r
 - Convergence is single-source because CoSAI's agent controls are a draft framework in a working repository and no second implementation of a publish-approval control is shown here, so the standards route does not apply.
 - No lab run this repo cites touches this family, so the frontmatter carries no `measurement-claims`.
 - The turn-on order stated in the summary (sharing first because it is cheap, then connectors, then credentials) is my practitioner judgement, Tier D, dated 2026-11-10; the bullet list itself follows the signal order in `routing.yaml`.
+- The `agent-builder-self-hosted-exposed` row and its action were added on 2026-11-24 after an outside review noted that the KEV entries cited here had no routed action. Its factor scores (reach 1, stakes 2, reversibility 1, blast 1, Medium, rising to High when the builder is internet-reachable) are my judgement, Tier D: stakes are 2 because the builder's store holds credentials, reversibility is 1 because rotating them takes effort, and blast is 1 because a builder is usually one team's surface. The KEV counts it rests on are the pinned 2026.11.09 counts already in this stub; the feed was read again on 2026-11-24 for the vulnerability names only, and the pin was not moved.
 - The ai-config-pointers set is a separate repository, the platforms layer beside this one (Decision 12), and it is not yet public, so this document calls it forthcoming and carries no link to it; its pages will be linked, never copied, once it has a public address.
 - The CoSAI control descriptions are paraphrased, and the KEV count was re-derived from catalogue 2026.11.09 on 2026-11-10.
 
