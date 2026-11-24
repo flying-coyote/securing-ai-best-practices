@@ -17,14 +17,23 @@ Usage:
 Rules, all read from routing.yaml (AUDIT-CONTEXT.md states them for agents):
 
   - A value of true or an integer above zero selects a key; false or 0 is an
-    answer of "no"; `unsure` or a missing answer is "not checked".
+    answer of "no"; `unsure` or a missing answer is "not checked";
+    `not-applicable` (signals only) says the row does not apply to this
+    organization, so the row is neither an action, clean nor a packet, and is
+    listed under `not-applicable`. In predicates and enabling it reads as no.
   - Derived rows (method D with a predicate) are evaluated in three-valued
     logic, so a predicate over an unanswered surface is unknown, never false.
     Where a row is both asked and derived and the two disagree, the derived
     value is used and the disagreement is reported under `conflicts`.
   - A row that some other row `enables` is eligible only when at least one of
     its enablers is selected, and a row with `requires` only when every
-    required key is selected. Ineligible rows are not asked.
+    required key is selected. Ineligible rows are not asked; an ineligible row
+    that was answered yes anyway (by the practitioner or a reducer) is never
+    dropped silently: it goes under `conflicts`, naming the enablers.
+  - A reducer's read value that disagrees with an owner-stated or believed
+    answer is reported under `conflicts`. A read no never overrides a stated
+    yes (a reducer sees only the files it was given), so the yes stands; a
+    read yes overrides a stated no.
   - A surface answered false is recorded as not run; its rows are suppressed
     and it goes into one batched how-do-you-know line.
   - Rows that share an interview question (identical text, or "Same question
@@ -41,8 +50,10 @@ Rules, all read from routing.yaml (AUDIT-CONTEXT.md states them for agents):
   - Ordering within a band reads the `sequence-order` block (a fenced YAML
     block in analysis/decision-sequence.md): a row named under `row-overrides`
     takes that group, any other row takes its family's group, and groups run
-    in the order the block lists them. Within a group, factor sum (descending)
-    and then row order in routing.yaml break ties. A missing or malformed block,
+    in the order the block lists them. Within a band, factor sum (descending)
+    sorts first, then the sequence group, then row order in routing.yaml. A
+    row an escalation raised to High keeps its own factor sum and carries
+    `escalated: true`, which the review prints as "High, by escalation". A missing or malformed block,
     a family in no group or in two, or an override naming an unknown key or
     group is an error, never a silent fall back to another order. The rule is
     recorded in the output as `ordering`.
@@ -64,8 +75,8 @@ import yaml
 
 BAND_RANK = {"High": 0, "Medium": 1, "Low": 2}
 CONFIDENCES = {"read", "owner-stated", "believed"}
-ORDERING = ("band, then sequence group from the sequence-order block in analysis/decision-sequence.md "
-            "(row-overrides first, else the row's family), then factor sum descending, then routing.yaml row order")
+ORDERING = ("band, then factor sum descending, then sequence group from the sequence-order block in "
+            "analysis/decision-sequence.md (row-overrides first, else the row's family), then routing.yaml row order")
 SEQUENCE_DOC = "analysis/decision-sequence.md"
 
 
@@ -127,7 +138,10 @@ def eval_predicate(expr: str, truth) -> bool | None:
 
 # ---------- loading ----------
 
-def norm_entry(name: str, raw) -> dict:
+NOT_APPLICABLE = "not-applicable"
+
+
+def norm_entry(name: str, raw, allow_na: bool = False) -> dict:
     if isinstance(raw, dict):
         val, conf = raw.get("value"), raw.get("confidence", "owner-stated")
     else:
@@ -136,8 +150,11 @@ def norm_entry(name: str, raw) -> dict:
         raise AnswersError(f"{name}: confidence '{conf}' not one of {sorted(CONFIDENCES)}")
     if val == "not-checked":
         val = "unsure"
+    if val == NOT_APPLICABLE and allow_na:
+        return {"value": val, "confidence": conf}
     if not (isinstance(val, bool) or (isinstance(val, int) and val >= 0) or val == "unsure"):
-        raise AnswersError(f"{name}: value {val!r} must be true, false, an integer of 0 or more, or unsure")
+        extra = ", unsure or not-applicable" if allow_na else " or unsure"
+        raise AnswersError(f"{name}: value {val!r} must be true, false, an integer of 0 or more{extra}")
     return {"value": val, "confidence": conf}
 
 
@@ -146,11 +163,19 @@ def selected(entry: dict | None) -> bool | None:
     if entry is None or entry["value"] == "unsure":
         return None
     v = entry["value"]
+    if v == NOT_APPLICABLE:
+        return False
     return bool(v) if isinstance(v, bool) else v > 0
 
 
-def merge(answers: dict, reducer_docs: list[dict]) -> tuple[dict, dict]:
-    signals = {k: norm_entry(k, v) for k, v in (answers.get("signals") or {}).items()}
+def fmt_value(e: dict) -> str:
+    v = e["value"]
+    return str(v).lower() if isinstance(v, bool) else str(v)
+
+
+def merge(answers: dict, reducer_docs: list[dict], conflicts: list | None = None) -> tuple[dict, dict]:
+    conflicts = conflicts if conflicts is not None else []
+    signals = {k: norm_entry(k, v, allow_na=True) for k, v in (answers.get("signals") or {}).items()}
     obs = {k: norm_entry(k, v) for k, v in (answers.get("observations") or {}).items()}
     for doc in reducer_docs:
         for k, v in (doc.get("observations") or {}).items():
@@ -167,6 +192,12 @@ def merge(answers: dict, reducer_docs: list[dict]) -> tuple[dict, dict]:
             if prev and prev["confidence"] == "read" and prev["value"] != "unsure":
                 a, b = prev["value"], e["value"]
                 e["value"] = (a or b) if isinstance(a, bool) or isinstance(b, bool) else a + b
+            elif prev and prev["value"] != "unsure" and selected(prev) != selected(e):
+                kept = selected(prev) is True  # a read no never overrides a stated yes
+                conflicts.append(f"{k}: {prev['confidence']} {fmt_value(prev)} but reducer {doc.get('reducer')} "
+                                 f"read {fmt_value(e)}; {'the stated yes stands' if kept else 'the read value is used'}")
+                if kept:
+                    continue
             signals[k] = e
     return signals, obs
 
@@ -181,7 +212,8 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
     specials = [s["key"] for s in data.get("special-keys") or []]
     owners = data.get("family-owners") or {}
 
-    signals, obs = merge(answers, reducer_docs)
+    conflicts = []
+    signals, obs = merge(answers, reducer_docs, conflicts)
 
     # resolve pattern instances (audit-log-off-coding-agent -> audit-log-off-<platform>)
     patterns = {r["pattern"].split("<", 1)[0]: r for r in rows if r.get("pattern")}
@@ -232,7 +264,6 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
 
     # derived rows, in routing.yaml order (predicates only reference earlier or asked keys)
     truth_cache: dict[str, bool | None] = {}
-    conflicts = []
     derived_selected = []
 
     def truth(k: str) -> bool | None:
@@ -288,7 +319,7 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
     def observed(n: str) -> bool:
         return truth(n) is True
 
-    actions, review, packets, clean = [], [], {}, []
+    actions, review, packets, clean, not_applicable = [], [], {}, [], []
     packeted: set[str] = set()
 
     def add_packet(r, key, why):
@@ -297,14 +328,28 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
 
     for r in rows:
         k = r["key"]
-        if r["weight"] == "INVENTORY" or not eligible(k):
+        if r["weight"] == "INVENTORY":
             continue
         keys_here = instances.get(k, []) if r.get("pattern") else [k]
+        if not eligible(k):
+            # an answer that selects an ineligible row is reported, never dropped
+            for kk in keys_here:
+                e = entry(kk)
+                if e is not None and e["value"] != NOT_APPLICABLE and selected(e) is True:
+                    need = (f"none of its enablers ({', '.join(enablers[k])}) is answered yes"
+                            if k in enablers and not any(truth(x) is True for x in enablers[k])
+                            else f"not every key it requires ({', '.join(r.get('requires') or [])}) is answered yes")
+                    conflicts.append(f"{kk}: {e['confidence']} {fmt_value(e)} but {need}, so the row is not routed; "
+                                     "confirm the surface answer")
+            continue
         if r.get("pattern") and not keys_here:
             add_packet(r, k, "not checked")
             continue
         for kk in keys_here:
             e = entry(kk)
+            if e is not None and e["value"] == NOT_APPLICABLE:
+                not_applicable.append(kk)
+                continue
             if r.get("predicate"):
                 sel = truth(k)
             else:
@@ -348,8 +393,8 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
         add_packet(r, r["key"], "not checked")
 
     def sort_items(items):
-        return [it for _, it in sorted(items, key=lambda t: (BAND_RANK[t[1]["band"]], t[1]["sequence-group"],
-                                                                -t[1]["factor-sum"], t[0], t[1]["key"]))]
+        return [it for _, it in sorted(items, key=lambda t: (BAND_RANK[t[1]["band"]], -t[1]["factor-sum"],
+                                                                t[1]["sequence-group"], t[0], t[1]["key"]))]
 
     actions_s, review_s = sort_items(actions), sort_items(review)
     docs = []
@@ -374,6 +419,8 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
         "conflicts": conflicts,
         "ordering": ORDERING,
     }
+    if not_applicable:
+        out["not-applicable"] = not_applicable
     if not reducer_docs and not any(
             e.get("confidence") == "read" for e in list(signals.values()) + list(obs.values())):
         out["questionnaire-only"] = True

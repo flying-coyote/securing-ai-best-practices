@@ -55,7 +55,7 @@ signals:                               # routing keys
   ai-subprocessor-review-absent: {value: unsure, confidence: believed}
 ```
 
-`interview-branch` is always derived from the first two answers (small-org when `org-size-small-mid` and `profile-rent-heavy` both hold, full otherwise) and never asked; write it down so the block reads on its own, and where it disagrees with the first two answers the derived branch wins and the disagreement is reported under `conflicts`. A value is `true`, `false`, an integer of zero or more, or `unsure`. Confidence is `read`, `owner-stated` or `believed`. Leave out what was not asked; a missing answer to a row that applies is "not checked", never clean. The Answers Block is the practitioner's own artefact, useful for a quarterly re-run, and the repo never keeps one.
+`interview-branch` is always derived from the first two answers (small-org when `org-size-small-mid` and `profile-rent-heavy` both hold, full otherwise) and never asked; write it down so the block reads on its own, and where it disagrees with the first two answers the derived branch wins and the disagreement is reported under `conflicts`. A value is `true`, `false`, an integer of zero or more, or `unsure`, and a signal (never an observation) may also take `not-applicable` when the practitioner says the row does not apply to this organization. Confidence is `read`, `owner-stated` or `believed`. Leave out what was not asked; a missing answer to a row that applies is "not checked", never clean. The Answers Block is the practitioner's own artefact, useful for a quarterly re-run, and the repo never keeps one.
 
 ## Routing
 
@@ -87,7 +87,7 @@ Question Packets for this family go to: IT administrator.
 | 7 | `surface-S3` | I/E | INVENTORY | enables `shadow-ai-method-none`, `shadow-ai-method-network-only`, `tenant-restriction-absent` | `analysis/surface-ownability.md` |
 | 8 | `surface-S4` | I/E | INVENTORY | enables `coding-agent-managed-tier-absent`, `hook-fail-open`, `hooks-user-disableable`, `mcp-allowlist-absent`, `mcp-unpinned`, `mcp-remote`, `agent-static-secrets` | `analysis/surface-ownability.md` |
 | 9 | `surface-S5` | I/E | INVENTORY | enables `mcp-allowlist-absent`, `mcp-unpinned`, `mcp-remote`, `mcp-manifest-snapshot-absent`, `agent-static-secrets`, `nhi-inventory-absent` | `analysis/surface-ownability.md` |
-| 10 | `surface-S6` | I/E | INVENTORY | enables `agent-publish-approval-absent`, `maker-credential-agents`, `agent-external-sharing-unreviewed`, `connector-sprawl-unreviewed`, `nhi-inventory-absent` | `analysis/surface-ownability.md` |
+| 10 | `surface-S6` | I/E | INVENTORY | enables `agent-publish-approval-absent`, `maker-credential-agents`, `agent-external-sharing-unreviewed`, `connector-sprawl-unreviewed`, `agent-builder-self-hosted-exposed`, `nhi-inventory-absent` | `analysis/surface-ownability.md` |
 | 11 | `surface-S7` | I/E | INVENTORY | enables `agent-publish-approval-absent`, `connector-sprawl-unreviewed`, `audit-log-off-<platform>`, `cloud-trail-default-only` | `analysis/surface-ownability.md` |
 | 12 | `surface-S8` | I/E | INVENTORY | enables `ai-gateway-absent`, `gateway-token-store-unreviewed`, `cloud-trail-default-only`, `agent-static-secrets`, `output-handling-unreviewed`, `pre-release-eval-absent`, `abuse-monitoring-absent` | `analysis/surface-ownability.md` |
 | 13 | `surface-S9` | I/E | INVENTORY | enables `inference-runtime-default-bind`, `model-store-unscanned`, `pickle-formats-present` | `analysis/surface-ownability.md` |
@@ -147,8 +147,8 @@ Question Packets for this family go to: incident response lead.
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
 | 50 | `agent-kill-switch-absent` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/stubs/ai-incident-response.md` |
-| 106 | `ai-playbook-absent` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/stubs/ai-incident-response.md` |
-| 107 | `model-rollback-untested` | I | REVIEW, Medium (0+0+1+2=3) |  | `analysis/stubs/ai-incident-response.md` |
+| 107 | `ai-playbook-absent` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/stubs/ai-incident-response.md` |
+| 108 | `model-rollback-untested` | I | REVIEW, Medium (0+0+1+2=3) |  | `analysis/stubs/ai-incident-response.md` |
 
 ### coding-agent
 
@@ -278,6 +278,7 @@ Question Packets for this family go to: low-code platform administrator.
 | 100 | `maker-credential-agents` | I | REVIEW, Medium (0+2+0+1=3) |  | `analysis/stubs/agent-builders.md` |
 | 101 | `agent-external-sharing-unreviewed` | I | REVIEW, Medium (2+1+0+0=3) |  | `analysis/stubs/agent-builders.md` |
 | 102 | `connector-sprawl-unreviewed` | I | REVIEW, Medium (0+1+0+2=3) |  | `analysis/stubs/agent-builders.md` |
+| 103 | `agent-builder-self-hosted-exposed` | I | PROBLEM, Medium (1+2+1+1=5); escalates: High when the builder is internet-reachable [when `surface-internet-reachable`] |  | `analysis/stubs/agent-builders.md` |
 
 ### ai-you-ship
 
@@ -285,9 +286,9 @@ Question Packets for this family go to: product engineering lead.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 103 | `output-handling-unreviewed` | I | PROBLEM, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
-| 104 | `pre-release-eval-absent` | I | REVIEW, Medium (2+0+0+1=3) |  | `analysis/stubs/ai-you-ship.md` |
-| 105 | `abuse-monitoring-absent` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
+| 104 | `output-handling-unreviewed` | I | PROBLEM, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
+| 105 | `pre-release-eval-absent` | I | REVIEW, Medium (2+0+0+1=3) |  | `analysis/stubs/ai-you-ship.md` |
+| 106 | `abuse-monitoring-absent` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
 
 ### Special keys (fetch nothing)
 
@@ -309,8 +310,9 @@ Route inclusively and deduplicate. Where a standards body publishes its own chec
 
 The matching rules, which `scripts/route.py` implements so a practitioner can check your routing against the table:
 
-- A value of true or above zero selects a key; false or zero is a no; `unsure` or missing is not checked.
-- A row that another row `enables` applies only when one of its enablers is selected, and a row with `requires` only when every required key is selected. Rows that do not apply are not asked.
+- A value of true or above zero selects a key; false or zero is a no; `unsure` or missing is not checked; `not-applicable` is reported as not applicable, never as clean, an action or a Question Packet, and reads as no where another row depends on it.
+- A row that another row `enables` applies only when one of its enablers is selected, and a row with `requires` only when every required key is selected. Rows that do not apply are not asked. An answer of yes to a row that does not apply, from the practitioner or a reducer, is never dropped: report it under `conflicts` and ask about the surface answer.
+- Where reducer output disagrees with an owner-stated or believed answer, report it under `conflicts`. A reducer's no never overrides a stated yes, because a reducer reads only the files it was given; a reducer's yes overrides a stated no.
 - A surface answered no is recorded as not run, its rows are suppressed, and all such surfaces share one how-do-you-know line in the Question Packets. A surface answered unsure becomes a packet for the IT administrator.
 - Rows that share one interview question (the same text before the "selects this key" note, or "Same question as") are one question: answering one answers the rest as no.
 - A pattern key such as `audit-log-off-<platform>` is answered per platform, as `audit-log-off-coding-agent` and so on, using the closed platform list.
@@ -338,7 +340,7 @@ Priority is how bad the condition is if it is true, and it is published per sign
 A sum of 6 to 8 is High, 3 to 5 is Medium, and 0 to 2 is Low. A row's escalation applies only when its condition was observed. A `believed` observation caps the band at Medium and adds a confirm-with role. Confidence is a separate axis: print the backing doc's frontmatter `evidence-tier` and `convergence` beside every action, and the specific claim's tier where the doc is Mixed.
 
 <!-- ordering:start (rendered from routing.yaml priority-rubric.ordering by scripts/render-audit-context.py; do not edit by hand) -->
-Within a band, order actions by three keys in turn, which is exactly what the reference mapper does and is the whole ordering rule: the sequence group from the `sequence-order` block in `analysis/decision-sequence.md` (a row named under `row-overrides` takes that group, any other row takes its family's group, and groups run in the order the block lists them), then factor sum, highest first, then the row's `#` (its position in `routing.yaml`, shown in the routing tables), lowest first. Tier does not break ties, because it is confidence and never priority, and effort does not either: print each action's effort (S, M or L) beside it as information for whoever schedules the work, and never sort by it, whatever the organization's size. Order REVIEW rows the same way, in their own list after the PROBLEM rows.
+Within a band, order actions by three keys in turn, which is exactly what the reference mapper does and is the whole ordering rule: factor sum, highest first, then the sequence group from the `sequence-order` block in `analysis/decision-sequence.md` (a row named under `row-overrides` takes that group, any other row takes its family's group, and groups run in the order the block lists them), then the row's `#` (its position in `routing.yaml`, shown in the routing tables), lowest first. The rubric's factors therefore rank first and the sequence, which is the author's Tier D judgement, only orders rows of equal factor sum. A row that an escalation raised to High keeps its own factor sum, so it sorts among the High rows by that sum, and the review prints its band as "High, by escalation". Tier does not break ties, because it is confidence and never priority, and effort does not either: print each action's effort (S, M or L) beside it as information for whoever schedules the work, and never sort by it, whatever the organization's size. Order REVIEW rows the same way, in their own list after the PROBLEM rows.
 <!-- ordering:end -->
 
 The ordering perspectives are the author's practitioner judgement at Tier D; they order actions and never raise one.

@@ -1,0 +1,36 @@
+{
+ "mcpServers": {
+  "win-wrapped": {
+   "command": "cmd",
+   "args": ["/c", "npx", "-y", "@example/win-mcp@3.1.0"],
+   "env": {
+    "API_TOKEN": "env:API_TOKEN",
+    "VAULT_KEY": "op://vault-dave/mcp/credential",
+    "MAX_TOKENS": "4096",
+    "AUTH_MODE": "oauth"
+   }
+  },
+  "shell-wrapped": {
+   "command": "sh",
+   "args": ["-c", "npx @example/shell-mcp"],
+   "env": ["ACCESS_TOKEN=EXAMPLE-LISTENV-SECRET-dave", "LOG_LEVEL=debug"]
+  },
+  "npm-exec": {
+   "command": "npm",
+   "args": ["exec", "--", "@example/npm-mcp@1.0.0", "--max-tokens", "4096"]
+  },
+  "uvx-option": {
+   "command": "uvx",
+   "args": ["--python", "3.12", "example-mcp==1.2.3"]
+  },
+  "shell-chain": {
+   "command": "bash",
+   "args": ["-c", "cd /srv/dave-host.corp.example.net && uvx some-mcp"]
+  },
+  "wiki": {
+   "type": "streamable-http",
+   "url": "https://wiki.app01.corp.example.net/mcp",
+   "headers": {"Authorization": "Bearer ${WIKI_TOKEN}"}
+  }
+ }
+}

@@ -108,9 +108,10 @@ jobs:
       # README and ONE-LINE-PROMPT carry one block; it must be byte-identical
       # in both, and after a release it must pin the newest tag's commit. The
       # script never runs git, so the tag is resolved here. On the tagged
-      # commit itself the blocks still carry the placeholder (a commit cannot
-      # hold its own SHA), so the SHA comparison starts on the commit that
-      # bumps them.
+      # commit itself the blocks carry the placeholder (a commit cannot hold
+      # its own SHA, and the stamp step resets them), so the SHA comparison
+      # starts on the commit that bumps them. In every mode it also fails when
+      # a fetched or bundled file names another release's tag or SHA.
       - name: Prompt blocks identical and pinned to the newest release
         run: |
           set -euo pipefail
@@ -327,8 +328,21 @@ jobs:
             const probe = fs.readFileSync(process.env.PROBE_FILE, 'utf8');
             const external = process.env.EXTERNAL || `not run (check-links ${process.env.LINKS_RESULT})`;
             const dangling = process.env.DANGLING || 'unknown';
-            const tally = (probe.match(/sources-probed=\d+ broken=(\d+) refused=(\d+) moved=(\d+)/) || []).slice(1).map(Number);
-            const probeClean = tally.length === 3 && tally.every(n => n === 0);
+            // Read both tally lines by field name, and fail closed: a missing line or
+            // field reads as not clean, never as zero. The pins line counts unknown
+            // (a moved-past-pin probe that failed) beside broken, refused and moved;
+            // the SOURCES.md line counts broken URLs against clean, while refused
+            // ones (usually a bot filter) are listed in the body for a hand check.
+            const fields = (prefix) => {
+              const line = probe.split('\n').find(l => l.startsWith(prefix + '='));
+              if (!line) return null;
+              return Object.fromEntries(line.trim().split(/\s+/).map(kv => kv.split('=')).map(([k, v]) => [k, Number(v)]));
+            };
+            const pinsTally = fields('sources-probed');
+            const urlTally = fields('source-urls-probed');
+            const zero = (t, keys) => t !== null && keys.every(k => Number.isInteger(t[k]) && t[k] === 0);
+            const probeClean = zero(pinsTally, ['broken', 'refused', 'moved', 'unknown'])
+              && zero(urlTally, ['broken']);
             const clean = external === 'clean' && dangling === '0' && probeClean;
             const today = new Date().toISOString().slice(0, 10);
             const run = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;

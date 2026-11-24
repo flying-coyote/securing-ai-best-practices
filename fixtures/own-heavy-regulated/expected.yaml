@@ -23,11 +23,11 @@ derived:
 - profile-own-heavy
 top-actions:
 - pickle-formats-present
-- inference-runtime-default-bind
 - agent-kill-switch-absent
+- inference-runtime-default-bind
+- containment-pre-authorized-broad
 - ai-analyst-ungraded
 - model-store-unscanned
-- containment-pre-authorized-broad
 - mapping-treated-as-coverage
 actions:
 - key: pickle-formats-present
@@ -38,6 +38,14 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/models-you-hold.md
+- key: agent-kill-switch-absent
+  weight: PROBLEM
+  band: High
+  sequence-group: 7
+  factor-sum: 6
+  confidence: owner-stated
+  docs:
+  - analysis/stubs/ai-incident-response.md
 - key: inference-runtime-default-bind
   weight: PROBLEM
   band: High
@@ -47,14 +55,15 @@ actions:
   docs:
   - analysis/models-you-hold.md
   escalated: true
-- key: agent-kill-switch-absent
+- key: containment-pre-authorized-broad
   weight: PROBLEM
-  band: High
+  band: Medium
   sequence-group: 7
   factor-sum: 6
-  confidence: owner-stated
+  confidence: believed
   docs:
-  - analysis/stubs/ai-incident-response.md
+  - analysis/evaluating-ai-in-the-soc.md
+  capped-by-belief: true
 - key: ai-analyst-ungraded
   weight: PROBLEM
   band: Medium
@@ -71,15 +80,6 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/models-you-hold.md
-- key: containment-pre-authorized-broad
-  weight: PROBLEM
-  band: Medium
-  sequence-group: 7
-  factor-sum: 6
-  confidence: believed
-  docs:
-  - analysis/evaluating-ai-in-the-soc.md
-  capped-by-belief: true
 - key: mapping-treated-as-coverage
   weight: PROBLEM
   band: Medium
@@ -231,5 +231,5 @@ clean:
 - sensitivity-labels-absent
 - restricted-search-unset
 conflicts: []
-ordering: band, then sequence group from the sequence-order block in analysis/decision-sequence.md (row-overrides first, else the row's family), then factor sum descending, then routing.yaml row order
+ordering: band, then factor sum descending, then sequence group from the sequence-order block in analysis/decision-sequence.md (row-overrides first, else the row's family), then routing.yaml row order
 questionnaire-only: true

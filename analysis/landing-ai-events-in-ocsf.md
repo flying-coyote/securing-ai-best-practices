@@ -13,7 +13,7 @@ pins:
   - "OWASP Agent Observability Standard OCSF mapping at commit 9a9bc37 (lab run R2)"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-10
+revalidate-by: 2027-05-24
 status: EMERGING
 measurement-claims:
   - claim: "Recording one MCP tools/call as 33 facts, OCSF main with the ai_operation profile on API Activity typed 24, the OCSF #1754 draft class 22, OpenTelemetry GenAI plus MCP 19, and OWASP AOS on OCSF 11 (8 under the page's other example), with AOS putting 22 facts in unmapped; stdio only, agent and model identity supplied by the harness"

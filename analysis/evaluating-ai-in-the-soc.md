@@ -12,7 +12,7 @@ pins:
   - "OpenSec arXiv-2601.21083-v3"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-10
+revalidate-by: 2027-06-02
 status: EMERGING
 measurement-claims:
   - claim: "Over a synthetic OCSF 1.9.0 api_activity store with the ai_operation profile, at 2,000 benign sessions per seed over three seeds, the only rule that reached DETECTED on both planted chain shapes and all four plant strata was the session rule that walks delegation to the root session and qualifies the exfiltration leg by content, at precision 1.0, recall 1.0 and 0 false positives on every seed in SQLite and DuckDB 1.5.3; the clean score rests on a fixture credential string and a fixed burst threshold, and the lookalike rates were chosen by the run author"

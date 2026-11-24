@@ -6,7 +6,7 @@ Paste one block into an agent and it interviews you about how your organization 
 > Status: release v2026.12.1, stamped 2026-11-11. On the tagged commit the blocks below carry the `<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, and on the default branch they carry the tagged commit. Either way, the release's full commit SHA, its tag and the SHA-256 of the offline bundle are in `RELEASES.md`.
 <!-- pre-release:end -->
 
-26 routable docs, 107 signals, 5 stubs, last derived 2026-11-10.
+26 routable docs, 108 signals, 5 stubs, last derived 2026-11-10.
 
 ## What this is, and what it is not
 

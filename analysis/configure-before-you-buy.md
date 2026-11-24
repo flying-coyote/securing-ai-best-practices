@@ -9,7 +9,7 @@ pins:
   - "CISA BOD 25-01 2024-12-17"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-31
+revalidate-by: 2027-04-02
 status: EMERGING
 ---
 
@@ -23,7 +23,8 @@ Before an organization buys anything for AI security, it should find out what it
 
 - Build a per-platform-family list of the AI governance features the organization is entitled to, which are available at its licence tier (GA or preview, with the date read), and which are enabled in its own tenant, read from the licence portal and the admin console rather than from memory. Effort M. Tier B for the agency precedent; Tier D for the three-column shape.
 - Audit each enabled feature through five states (enabled, scoped, exported, alerted, owned) and grade it at the highest state where every earlier state is a yes. Effort M. Tier A for why scope, alert tuning and ownership each fail on their own; Tier D for the scoring rule.
-- Turn on the content channels the AI platforms ship switched off, and export each record to a store the organization owns before the vendor's retention window closes. Effort S per feature. Tier B (vendor documentation; see the default-state table, as of 2026-11-09).
+- Turn on now the audit and metadata records the AI platforms ship switched off, and export each record to a store the organization owns before the vendor's retention window closes. Effort S per feature. Tier B (vendor documentation; see the default-state table, as of 2026-11-09).
+- Leave the content channels (prompt and response text) off until the capture-tier decision in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md) is made, then turn on only the tier it allows. Effort M. Tier D for the gate; not legal advice.
 - For a small or mid-sized organization, aim for enabled, scoped and exported with a named quarterly review, keep "alerted" for the few records that matter most, and record "accepted" as a disposition when a gap is a deliberate choice. Effort S. Tier D.
 - Decide in the order turn on, evaluate, buy, build, and put two preconditions in front of any build: a review body that can decline it, and a core platform the organization has already accepted long-term lock-in to. Effort S to decide. Tier D.
 - Make the AI tool intake path run this check, so a request for a new tool first asks whether an owned feature already reaches the need. Effort S. Tier D.
@@ -84,7 +85,7 @@ Step four is the decision order, turn on, evaluate, buy, build, because each ste
 
 ## Default-state table: the content channels that ship off
 
-These are the vendors' published defaults for the product, not any tenant's configuration, and the review prints "as of" the row's date beside anything drawn from it. The fuller version of each row (console path, licence verbatim, route-to destination) will sit on that product's page in the forthcoming ai-config-pointers set, and the rows will link those pages once it is public.
+These are the vendors' published defaults for the product, not any tenant's configuration, and the review prints "as of" the row's date beside anything drawn from it. The table mixes two kinds of row that take different decisions. The audit and metadata rows (CloudTrail, the Purview, Cursor and GitHub audit logs, whose rows say they carry no prompt text, and the Claude Code export without its content flags) can be turned on and exported now. The rows that write prompt and response text (Bedrock model invocation logging, Vertex AI request-response logging, the Gemini Enterprise prompt-and-response setting and the Claude Code content flags) are content capture, which for EU staff is lawful only under conditions and for a US-only workforce still wants notice, so they wait for the capture-tier decision in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md). Two rows I could not sort from the vendor page alone: the Vertex AI Data Access audit-logging page and the Azure OpenAI monitoring page, both re-read 2026-11-24, describe when the record is written and do not say whether it carries prompt text, so I would turn each on in one project, read a sample record, and treat it as an audit record only if the text is absent (Tier B for what each page says, D for the sorting; not legal advice). The fuller version of each row (console path, licence verbatim, route-to destination) will sit on that product's page in the forthcoming ai-config-pointers set, and the rows will link those pages once it is public.
 
 | Platform family | Setting | Default | Where the record lands | last-checked |
 |---|---|---|---|---|
@@ -129,7 +130,7 @@ Tier A, peer-reviewed and standards
 - Xu, Zhang, Huang et al., "Do Not Blame Users for Misconfigurations", SOSP 2013, https://doi.org/10.1145/2517349.2522727 (abstract).
 - Alahmadi, Axon and Martinovic, "99% False Positives: A Qualitative Study of SOC Analysts' Perspectives on Security Alarms", USENIX Security 2022, https://www.usenix.org/conference/usenixsecurity22/presentation/alahmadi.
 - Uetz, Herzog, Hackländer, Schwarz and Henze, "You Cannot Escape Me: Detecting Evasions of SIEM Rules in Enterprise Networks", USENIX Security 2024, https://arxiv.org/abs/2311.10197.
-- Wool, "Trends in Firewall Configuration Errors: Measuring the Holes in Swiss Cheese", IEEE Internet Computing 2010, https://doi.org/10.1109/mic.2010.29.
+- Wool, "Trends in Firewall Configuration Errors: Measuring the Holes in Swiss Cheese", IEEE Internet Computing 2010, https://doi.org/10.1109/mic.2010.29 (the 42 percent and the 84 rule-sets read in the body of the arXiv version, 0911.1240, on 2026-11-24).
 - Weichselbaum, Spagnuolo, Lekies and Janc, "CSP Is Dead, Long Live CSP!", CCS 2016, https://doi.org/10.1145/2976749.2978363.
 - Álvarez, Nuño, Bulnes et al., "Network Security Misconfigurations in Spanish Organisations: An Empirical Study", Computer Networks 2026, https://doi.org/10.1016/j.comnet.2026.112631 (abstract).
 - Rahman et al., "Security Smells in Ansible and Chef Scripts", ACM TOSEM 2021, https://doi.org/10.1145/3408897 (20.5 to 32.9 percent of scripts with a finding); "Security Misconfigurations in Open Source Kubernetes Manifests", ACM TOSEM 2023, https://doi.org/10.1145/3579639 (15.7 to 20.2 percent of manifests).
@@ -137,7 +138,7 @@ Tier A, peer-reviewed and standards
 
 Tier B, agency guidance, practitioners and vendor documentation of what a feature does
 
-- NSA and CISA, "NSA and CISA Red and Blue Teams Share Top Ten Cybersecurity Misconfigurations", AA23-278A, 2023-10-05, https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-278a (re-read 2026-11-10).
+- NSA and CISA, "NSA and CISA Red and Blue Teams Share Top Ten Cybersecurity Misconfigurations", AA23-278A, 2023-10-05, https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-278a (read at cisa.gov on 2026-11-24 through a page-reading tool, since a direct request is refused with HTTP 403; the tool returned the order of the list, both quoted sentences and the Windows and Active Directory caveat, and they match, though a tool that answers questions over a page is a weaker read than the page itself; the verification pass of 2026-11-10 could not fetch the page and had only a second model's confirmation, so the earlier "re-read 2026-11-10" on this line overstated it).
 - CISA, BOD 25-01 implementation guidance, issued 2024-12-17, https://www.cisa.gov/news-events/directives/bod-25-01-implementation-guidance-implementing-secure-practices-cloud-services.
 - CISA, ScubaGear, https://github.com/cisagov/ScubaGear.
 - Center for Internet Security, "CIS Introduces v2.0 of the CIS Community Defense Model", https://www.cisecurity.org/insights/blog/cis-introduces-v2-0-of-the-cis-community-defense-model (re-read 2026-11-10).

@@ -13,7 +13,7 @@ pins:
   - "Ollama, llama.cpp server (master), vLLM (latest) and LM Studio documentation as read 2026-11-10"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-10
+revalidate-by: 2027-02-03
 status: EMERGING
 measurement-claims:
   - claim: "Pointed at six artifacts (a named GGUF file, the same weights in Ollama's store, a safetensors directory, an npm and a pip MCP server, a VS Code extension), Syft, Trivy, ai-bom and cyclonedx-bom found 4 of 6 in some form and 1 of 6 typed as an AI artifact under the pre-registered name match (3 of 6 found without the non-pre-registered Trivy rootfs mode); a lenient path rule added at scoring raises that to 5 of 6 and 2 of 6; no tool saw the Ollama store and no model component carried a usable PURL or CPE; one host, one fixture set, 3 identical runs"
@@ -113,7 +113,7 @@ The vLLM row is the one I would put in front of a platform team, because an oper
 
 Cisco Talos queried Shodan for Ollama banners and default ports, found 1,139 exposed servers, and found 214 of them, about 18.8%, actively hosting live models and responding to requests without authentication; the authors list the limits, including Shodan coverage and a bias toward default ports (Tier B, Cisco blog, 2025-09-01, read 2026-11-10). SentinelLABS and Censys reported a much larger longitudinal count, which I could not read at the primary and so do not repeat. Either way, the exposed population is a configuration choice layered on a runtime that ships without authentication.
 
-The KEV catalogue points the same way. As of catalogVersion 2026.11.09 (1,773 entries, released 2026-11-09T19:54Z and still the current version when I re-pulled the feed on 2026-11-10), KEV holds no entry for Ollama, vLLM, NVIDIA Triton, TorchServe, llama.cpp, LM Studio, LMDeploy, PyTorch, Hugging Face Transformers or any NVIDIA product; the nearest are Ray (CVE-2025-62593, code injection, added 2026-08-17), a common distributed serving and training layer, and MLflow (CVE-2026-64849, server-side request forgery, added 2026-08-19), a model registry, while the remaining AI-adjacent entries are LiteLLM, Langflow and n8n, which [ai-apis-and-the-gateway.md](ai-apis-and-the-gateway.md) covers (Tier A, CISA KEV, re-pulled 2026-11-10). I would be careful with what that absence means, since KEV requires reliable evidence of exploitation and the inference-engine CVEs above exist; my reading is that the exploited 2026 surface sits in orchestration, gateways and the layers around serving rather than in the inference engines, and that the risk for a held runtime is exposure and stolen compute far more than an engine exploit (Tier D).
+The KEV catalogue points the same way. As of catalogVersion 2026.11.09 (1,773 entries, released 2026-11-09T19:54Z and still the current version when I re-pulled the feed on 2026-11-10), KEV holds no entry for Ollama, vLLM, NVIDIA Triton, TorchServe, llama.cpp, LM Studio, LMDeploy, PyTorch, Hugging Face Transformers or any NVIDIA product; the nearest are Ray (CVE-2025-62593, code injection, added 2026-08-17), a common distributed serving and training layer, and MLflow (CVE-2026-64849, server-side request forgery, added 2026-08-19), a model registry, while the remaining AI-adjacent entries are LiteLLM, a gateway that [ai-apis-and-the-gateway.md](ai-apis-and-the-gateway.md) covers, and Langflow and n8n, self-hosted agent builders that the gateway document only counts and whose exposure and patch check is in [stubs/agent-builders.md](stubs/agent-builders.md) (Tier A, CISA KEV, re-pulled 2026-11-10). I would be careful with what that absence means, since KEV requires reliable evidence of exploitation and the inference-engine CVEs above exist; my reading is that the exploited 2026 surface sits in orchestration, gateways and the layers around serving rather than in the inference engines, and that the risk for a held runtime is exposure and stolen compute far more than an engine exploit (Tier D).
 
 ## Finding local models nobody approved
 
@@ -151,7 +151,7 @@ It does not mean SBOM tooling is useless for AI, since in R4 it handled MCP serv
 - 2026-11-10: lab citations use the master form `sdw-lab-benchmarks@91e44df`, where R4, R8 and T5 are merged (their RESULTS files last changed at `7301388`, `7301388` and `e0aaadc`); do not change them back to the pre-merge branch form some shipped docs still use.
 - 2026-11-10: the KEV paragraph is a dated reading of catalogVersion 2026.11.09, re-pulled on 2026-11-10, and reopens when an inference engine is added, a trigger `revalidation-and-pins.md` lists.
 - 2026-11-10: lab numbers were re-derived from the RESULTS files at 91e44df, CVEs from the NVD API, runtime rows from each project's page, ATLAS IDs from the v2026.10 release file and CoSAI statements from the YAML at 622605a1.
-- 2026-11-10: the practice order, the scanner-as-filter reading and the KEV reading are my judgement (Tier D); `revalidate-by` is three months out because the document cites ATLAS IDs.
+- 2026-11-10: the practice order, the scanner-as-filter reading and the KEV reading are my judgement (Tier D); `revalidate-by` is just under three months out because the document cites ATLAS IDs.
 
 ## Sources
 

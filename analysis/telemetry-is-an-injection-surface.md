@@ -12,7 +12,7 @@ pins:
   - "pySigma 2.0.3, pySigma-backend-sqlite 2.1.1, DuckDB 1.5.3 (lab run atlas-ocsf-observables)"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-10
+revalidate-by: 2027-01-29
 status: EMERGING
 measurement-claims:
   - claim: "With an instruction planted in 25% of non-null rows of one adversary-controlled field per table (527 planted values per store), gemma4:e4b saw the planted text in 15 of 15 hunts over planted stores and followed it in 0 of 15, under every rendering sampled including raw; 0 of 15 is consistent with a true follow rate up to about 18% (one-sided 95% exact bound), 0 of 9 on the visible channel up to about 28%; one host, one small quantized local model, one blunt benign instruction"
@@ -130,7 +130,7 @@ The strip is also wrong in places. A field whose invisible character is the subj
 
 - Decision 16 choices: the T8b counts are quoted per model and the follow-rate bounds are the run's own one-sided 95% exact figures; the Nasr et al. detector range is quoted for the Protect AI detector from Table 7 of arXiv v1, not from the camera-ready, and the paper's ">90% for most" is its abstract's figure across all 12 defenses.
 - Paper tiers follow [evidence-tiers.md](evidence-tiers.md), with an affiliation flag where authors test their own or a rival's product.
-- The ATLAS case-study, incident and mitigation counts are my count of `employs` and mitigation edges in the ATLAS v2026.10 YAML (sha256 prefix `ac41ee9f`), dated 2026-11-10, and they are why this document revalidates three months out.
+- The ATLAS case-study, incident and mitigation counts are my count of `employs` and mitigation edges in the ATLAS v2026.10 YAML (sha256 prefix `ac41ee9f`), dated 2026-11-10, and they are why this document revalidates inside three months.
 - 2026-11-17: the Anthropic and OpenAI guidance paragraph was added from readings at both publishers; it cites what each vendor says to configure and no rate, and it changes no grade, count or position in this document.
 - 2026-11-22: the vendor-guidance lead was corrected to say the two pages differ on where untrusted text enters (Anthropic: tool results; OpenAI: user messages) and agree on keeping it out of the highest-precedence message. No grade, count or position changed.
 - The escape-at-the-query-tool position is a judgement dated 2026-11-10; it departs from the repo's reducer sanitizer, which deletes, because a reducer's output is counts and never evidence.

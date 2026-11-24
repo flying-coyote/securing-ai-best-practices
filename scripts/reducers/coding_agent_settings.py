@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reduce coding-agent settings and hooks files to counts and three signals.
+"""Reduce coding-agent settings and hooks files to counts and four signals.
 
 Input: any number of files, each optionally prefixed with its scope as
 `managed:PATH`, `user:PATH`, `project:PATH` or `local:PATH`. Without a prefix
@@ -28,10 +28,16 @@ Signals, each reported only as far as the files can show it:
       inputs; not-checked otherwise, because a missing file on one machine is
       not proof that no managed tier exists
   hook-fail-open    true when any configured hook lacks its product's
-      fail-closed setting; false when every hook has it or none is configured
+      fail-closed setting; false when every hook has it; not-checked when the
+      files configure no hook, because files without hooks do not show how
+      hooks configured elsewhere fail
   hooks-user-disableable  true when hooks are configured outside the managed
       tier and no deny rule exists in any file, since a user's own local
-      settings can switch such hooks off while a deny rule has no such switch
+      settings can switch such hooks off; false when every configured hook is
+      in the managed tier; not-checked when no hook is configured, or when
+      hooks sit outside the managed tier beside deny rules, because the
+      reducer does not read what a deny rule covers and so cannot tell whether
+      any of them stops a user switching the hooks off
   mcp-allowlist-absent  from a Claude Code managed file only: false when
       `allowManagedMcpServersOnly` is true and `allowedMcpServers` is
       non-empty, true otherwise; not-checked with no Claude Code managed file
@@ -128,8 +134,11 @@ def main(argv: list[str]) -> int:
             outside += len(hs)
     signals = {
         "coding-agent-managed-tier-absent": False if managed_seen else NOT_CHECKED,
-        "hook-fail-open": hooks_total > fail_closed,
-        "hooks-user-disableable": outside > 0 and deny == 0,
+        "hook-fail-open": (hooks_total > fail_closed) if hooks_total else NOT_CHECKED,
+        "hooks-user-disableable": (NOT_CHECKED if not hooks_total
+                                   else True if outside and not deny
+                                   else NOT_CHECKED if outside
+                                   else False),
         "mcp-allowlist-absent": (not allowlist_enforced) if cc_managed_seen else NOT_CHECKED,
     }
     emit("coding-agent-settings", 1,

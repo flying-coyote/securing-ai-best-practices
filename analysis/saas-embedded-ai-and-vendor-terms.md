@@ -6,7 +6,7 @@ surfaces: [S1, S2, S6]
 pins: []
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-17
+revalidate-by: 2027-03-12
 status: EMERGING
 ---
 
@@ -22,7 +22,8 @@ AI inside SaaS you already pay for arrives through the vendor's release train ra
 - For each product with AI features, find the training-on-your-data statement, decide whether it is a setting, a contractual promise or an opt-out you have to request, and set or request it. Effort S per product. Tier B.
 - Subscribe to each vendor's sub-processor list and treat a new model provider on it as a change you review, the way GDPR Article 28(2) already expects a processor to give notice of. Effort S. Tier A for the obligation, B for the lists.
 - Check residency and capacity routing separately from the training answer, because at least two vendors in the table, Microsoft and ServiceNow, route inference to other regions or to a partner cloud under load through a setting or statement separate from their training answer, which for Microsoft is a no-training statement and for ServiceNow is a data-sharing setting that is on by default. Effort S. Tier B.
-- Turn on the AI content or audit record where the product has one, since in several products it is off until someone enables it. Effort S to M. Tier B.
+- Turn on the AI audit record where the product has one, since in several products it is off until someone enables it. Effort S to M. Tier B.
+- Leave any record of prompt and response text off until the capture-tier decision in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md) is made. Effort S. Tier D for the gate; not legal advice.
 - Send the eight-question vendor AI questionnaire below to the vendors whose answers you cannot find in public documentation, and file the replies with a date. Effort M. Tier D.
 
 Every default in the table below carries the date it was read, and the review prints that date beside anything drawn from it.
