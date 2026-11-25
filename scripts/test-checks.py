@@ -146,6 +146,29 @@ def expect(label: str, proc: subprocess.CompletedProcess, ok: bool, needle: str 
         print(f"ok   {label}")
 
 
+def check(label: str, good: bool, detail: str = ""):
+    """Record a check computed in the test itself (not from one process's exit code)."""
+    results.append((good, label))
+    print(f"ok   {label}" if good else f"FAIL {label}: {detail[-800:]}")
+
+
+def route_out(r: Path, answers: str, *reducers: str) -> tuple[dict, subprocess.CompletedProcess]:
+    """Run route.py on an Answers Block written into the copy; return its parsed output (empty on failure)."""
+    a = r / "answers-under-test.yaml"
+    a.write_text(answers, encoding="utf-8")
+    paths = []
+    for i, text in enumerate(reducers):
+        q = r / f"reducer-under-test-{i}.yaml"
+        q.write_text(text, encoding="utf-8")
+        paths.append(str(q))
+    p = run(["route.py", "--root", str(r), str(a), *paths], r)
+    return (yaml.safe_load(p.stdout) or {}) if p.returncode == 0 else {}, p
+
+
+def packet_keys(out: dict) -> list[str]:
+    return [e["key"] for v in (out.get("question-packets") or {}).values() for e in v]
+
+
 def edit(path: Path, old: str, new: str):
     text = path.read_text(encoding="utf-8")
     assert old in text, f"{path.name}: '{old[:40]}' not found"
@@ -328,9 +351,108 @@ def main() -> int:
                         and "hook-fail-open" not in packeted
                         and not any(x["key"] == "hook-fail-open" for x in out.get("actions", []) + out.get("review", [])),
                         "route: not-applicable is neither clean, an action nor a packet"))
-        a.write_text("answers-block: 1\nobservations:\n  surface-internet-reachable: not-applicable\n", encoding="utf-8")
+        a.write_text("answers-block: 1\nobservations:\n  runtime-internet-reachable: not-applicable\n", encoding="utf-8")
         expect("route.py: not-applicable is refused for an observation",
                run(["route.py", "--root", str(r), str(a)], r), False, "must be")
+
+    # route.py: the small-org branch, gates, follow-ups and the other routing rules the review findings asked for
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        short = yaml.safe_load((r / "fixtures/small-org-short/expected.yaml").read_text(encoding="utf-8"))
+        pk = packet_keys(short)
+        check("route: small-org asks only its own questions; unasked rows are not-asked, never packets",
+              not {"delegation-record-absent", "record-in-agent-reach", "coverage-view-absent"} & set(pk)
+              and {"delegation-record-absent", "record-in-agent-reach", "coverage-view-absent"} <= set(short.get("not-asked", []))
+              and "anything-else" in pk and "plan-tier-below-audit" in pk, str(pk))
+        data = yaml.safe_load((r / "routing.yaml").read_text(encoding="utf-8"))
+        claims = []
+        for b in ("small-org", "full"):
+            claims += re.findall(r"(\d+) on fixtures/([a-z-]+)", str(data["interview-branches"][b].get("target", "")))
+        got = {n: yaml.safe_load((r / "fixtures" / n / "expected.yaml").read_text(encoding="utf-8")).get("questions-asked")
+               for _, n in claims}
+        check("route: the question counts routing.yaml claims are the ones route.py measures on the fixtures",
+              len(claims) >= 3 and all(got[n] == int(c) for c, n in claims), f"{claims} vs {got}")
+        # DPIA and works council are gated on capture and jurisdiction
+        out, p = route_out(r, "answers-block: 1\nsignals:\n  org-size-large-regulated: true\n  jurisdiction-us: true\n"
+                              "  content-channel-off: true\n  dpia-absent: false\n  works-council-unconsulted: false\n")
+        rows = [x["key"] for x in out.get("actions", []) + out.get("review", [])] + out.get("clean", []) + packet_keys(out)
+        check("route: a US-only block with no capture shows the DPIA and works-council rows nowhere",
+              p.returncode == 0 and "dpia-absent" not in rows and "works-council-unconsulted" not in rows, p.stdout + p.stderr)
+        out, p = route_out(r, "answers-block: 1\nsignals:\n  org-size-large-regulated: true\n  content-channel-on: true\n")
+        check("route: capture on with jurisdiction unanswered keeps the DPIA row as a packet",
+              "dpia-absent" in packet_keys(out), p.stdout + p.stderr)
+        # a believed answer keeps its band; a believed escalation input adds the deadline too
+        out, p = route_out(r, "answers-block: 1\nobservations:\n  runtime-internet-reachable: {value: true, confidence: believed}\n"
+                              "signals:\n  org-size-large-regulated: true\n  surface-S4: true\n  surface-S9: true\n"
+                              "  agent-static-secrets: {value: true, confidence: believed}\n"
+                              "  inference-runtime-default-bind: {value: true, confidence: owner-stated}\n")
+        acts = {x["key"]: x for x in out.get("actions", [])}
+        check("route: a believed High stays High with a confirm deadline, and so does a believed escalation",
+              acts.get("agent-static-secrets", {}).get("band") == "High" and "confirm-within-days" in acts["agent-static-secrets"]
+              and acts.get("inference-runtime-default-bind", {}).get("band") == "High"
+              and "confirm-within-days" in acts["inference-runtime-default-bind"], p.stdout + p.stderr)
+        # every platform a present surface implies is packeted; a platform whose surface is no is a conflict
+        out, p = route_out(r, "answers-block: 1\nsignals:\n  org-size-large-regulated: true\n  surface-S2: true\n  surface-S3: true\n"
+                              "  surface-S4: false\n  audit-log-off-office-suite-assistant: true\n  audit-log-off-coding-agent: true\n")
+        check("route: one platform answered still packets the others a present surface implies",
+              "audit-log-off-browser" in packet_keys(out)
+              and any(c.startswith("audit-log-off-coding-agent:") for c in out.get("conflicts", []))
+              and "audit-log-off-coding-agent" not in [x["key"] for x in out.get("actions", [])], p.stdout + p.stderr)
+        check("route: an unknown escalation input on a selected row is a follow-up question on the full branch",
+              "internet-reachable-office-suite-assistant" in packet_keys(out), p.stdout)
+        # a family not run suppresses its rows and joins the how-do-you-know line
+        out, p = route_out(r, "answers-block: 1\nsignals:\n  org-size-large-regulated: true\n  surface-S1: true\n"
+                              "  family-not-run-saas: true\n")
+        check("route: family-not-run suppresses the family's rows and is asked how-do-you-know",
+              out.get("families-not-run") == ["saas"] and "saas-ai-toggles-unreviewed" not in packet_keys(out)
+              and any("family-not-run-saas" in e["why"] for e in out.get("question-packets", {}).get("security lead", [])),
+              p.stdout + p.stderr)
+        # on-trigger is a value only the capture tiers accept; a stub-backed action is a declared gap
+        out, p = route_out(r, "answers-block: 1\nsignals:\n  org-size-large-regulated: true\n"
+                              "  prompt-capture-tier-delta: on-trigger\n  agent-kill-switch-absent: true\n")
+        rev = {x["key"]: x for x in out.get("review", [])}
+        acts = {x["key"]: x for x in out.get("actions", [])}
+        check("route: on-trigger selects a capture tier and is quoted; a stub-backed action carries declared-gap",
+              rev.get("prompt-capture-tier-delta", {}).get("answered") == "on-trigger"
+              and acts.get("agent-kill-switch-absent", {}).get("declared-gap") is True
+              and "priority-basis" in out, p.stdout + p.stderr)
+        _, p = route_out(r, "answers-block: 1\nsignals:\n  ai-aup-absent: on-trigger\n")
+        expect("route.py: on-trigger is refused on a row that does not list it", p, False, "must be")
+        # reducer output: named sources only, once each, counts printed as floors
+        red = "reducer: entra-consent-grants\nversion: 1\nobservations:\n  ai-apps-with-grants: 3\nsignals: {}\n"
+        _, p = route_out(r, "answers-block: 1\nsignals:\n  org-size-large-regulated: true\n", red, red)
+        expect("route.py: a second block from the same reducer is refused, never summed", p, False, "second output")
+        _, p = route_out(r, "answers-block: 1\nsignals: {}\n", "reducer: totally-real\nversion: 1\nobservations: {}\nsignals: {}\n")
+        expect("route.py: a reducer routing.yaml does not name is refused", p, False, "not one routing.yaml names")
+        out, p = route_out(r, "answers-block: 1\nsignals:\n  org-size-large-regulated: true\n", red)
+        check("route: read counts are printed as floors", out.get("counts-at-least") == {"ai-apps-with-grants": 3}, p.stdout)
+
+    # check-routing-coverage: the new joins fail closed
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        doc = r / "analysis/tamper-evident-record.md"
+        edit(doc, "\nstatus: EMERGING\n", "\nstatus: EMERGNIG\n")
+        expect("routing coverage: a mistyped status fails instead of exempting the doc",
+               run(["check-routing-coverage.py", "--root", str(r)], r), False, "not one the canonical template lists")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "routing.yaml", ', question: "Is that runtime reachable from the internet?"}', "}")
+        expect("routing coverage: an interview escalation input with no question fails",
+               run(["check-routing-coverage.py", "--root", str(r)], r), False, "has no question")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "routing.yaml", "  - key: delegation-record-absent\n    family: identity\n", "  - key: delegation-record-absent\n    family: identity\n    method: [I, E]\n")
+        text = (r / "routing.yaml").read_text(encoding="utf-8")
+        i = text.index("  - key: delegation-record-absent")
+        j = text.index("    method: [I]\n", i)
+        (r / "routing.yaml").write_text(text[:j] + text[j + len("    method: [I]\n"):], encoding="utf-8")
+        expect("routing coverage: a row collected by E with no reducer behind it fails",
+               run(["check-routing-coverage.py", "--root", str(r)], r), False, "no shipped reducer prints it")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "AUDIT-CONTEXT.md", "Always fetch these four", "Always fetch these five")
+        expect("routing coverage: an always-fetch count that disagrees with AUDIT-CONTEXT fails",
+               run(["check-routing-coverage.py", "--root", str(r)], r), False, "Always fetch these five")
 
     seq_doc = "analysis/decision-sequence.md"
     with tempfile.TemporaryDirectory() as td:

@@ -79,6 +79,12 @@ def render(data: dict) -> str:
         "four factor scores (reach + stakes + reversibility + blast). Collected: I interview, E export or "
         "reducer output, D derived by the stated predicate."
     )
+    so = (data.get("interview-branches") or {}).get("small-org") or {}
+    if so.get("asks"):
+        lines += ["", "Small-org branch (`interview-branches.small-org` in `routing.yaml`): after the two first questions, "
+                  "ask the surface questions for " + ", ".join(so.get("families") or []) + ", then only these rows, each "
+                  "where its surfaces make it eligible: " + ", ".join(f"`{k}`" for k in so["asks"]) + ". Offer everything "
+                  "else as one \"anything else?\" question. Target: " + str(so.get("target", ""))]
     families: dict[str, list] = {}
     for n, row in enumerate(data.get("signals", []), 1):
         families.setdefault(row.get("family", "other"), []).append((n, row))
@@ -99,6 +105,13 @@ def render(data: dict) -> str:
                 cond.append("enables " + ", ".join(f"`{k}`" for k in r["enables"]))
             if r.get("values"):
                 cond.append("platform values: " + ", ".join(r["values"]))
+            if r.get("also-accepts"):
+                cond.append("also accepts " + ", ".join(r["also-accepts"]))
+            if r.get("implies-no"):
+                cond.append("a yes answers " + ", ".join(f"`{k}`" for k in r["implies-no"]) + " as no")
+            if r.get("platform-of"):
+                cond.append("asked per platform each present surface implies: "
+                            + ", ".join(f"{sf} {pf}" for sf, pf in r["platform-of"].items()))
             if r.get("owner"):
                 cond.append(f"packets to {r['owner']}")
             docs = ", ".join(f"`{d}`" for d in r.get("docs", []))

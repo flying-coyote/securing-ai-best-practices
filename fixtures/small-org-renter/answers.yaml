@@ -4,14 +4,18 @@
 # two coding agents and a product team calling a model API directly. Nothing
 # here describes a real organization.
 #
-# What this fixture exercises: the small-org branch (five top actions); a
-# derived profile key (profile-rent-heavy computed from three surfaces answered
-# no); an escalation whose condition is observed (oauth-grants-unreviewed rises
-# to High on the consent-grant count) and one whose condition is not
-# (audit-log-off-office-suite-assistant stays Medium); the believed cap
-# (agent-static-secrets, High by its factors, capped to Medium); unsure and
-# missing answers becoming Question Packets; surfaces answered no batched into
-# one how-do-you-know line; and a pattern-key instance.
+# What this fixture exercises: the small-org branch (five top actions) with
+# far more answers than that branch asks, because answers volunteered to rows
+# outside its asks list are still routed while the rows nobody answered go
+# under not-asked; a derived profile key (profile-rent-heavy computed from
+# three surfaces answered no); an escalation whose condition is observed
+# (oauth-grants-unreviewed rises to High on the consent-grant count) and one
+# whose condition is not (audit-log-off-office-suite-assistant stays Medium);
+# a believed High (agent-static-secrets) keeping its band with a confirm
+# deadline; unsure answers becoming Question Packets; the browser and
+# coding-agent audit logs packeted although the office-suite one was answered;
+# surfaces answered no batched into one how-do-you-know line; and the DPIA rows
+# absent for a US-only organization that captures no content.
 answers-block: 1
 interview-branch: small-org
 overrides: []
