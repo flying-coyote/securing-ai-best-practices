@@ -5,7 +5,7 @@ actions and Question Packets out, computed only from routing.yaml.
 
 An agent running the one-line review does this matching itself. This script
 exists so that anyone can check the agent's routing against the table, and so
-that CI can hold the table to three golden fixtures: if a change to
+that CI can hold the table to the golden fixtures: if a change to
 routing.yaml moves a fixture's doc list or top actions, the change shows up as
 a failing diff that has to be accepted on purpose.
 
@@ -21,29 +21,55 @@ Rules, all read from routing.yaml (AUDIT-CONTEXT.md states them for agents):
     `not-applicable` (signals only) says the row does not apply to this
     organization, so the row is neither an action, clean nor a packet, and is
     listed under `not-applicable`. In predicates and enabling it reads as no.
+    A row may list other values under `also-accepts` (the capture tiers take
+    `on-trigger`); such a value selects the row and is quoted as `answered`.
   - Derived rows (method D with a predicate) are evaluated in three-valued
     logic, so a predicate over an unanswered surface is unknown, never false.
     Where a row is both asked and derived and the two disagree, the derived
     value is used and the disagreement is reported under `conflicts`.
   - A row that some other row `enables` is eligible only when at least one of
     its enablers is selected, and a row with `requires` only when every
-    required key is selected. Ineligible rows are not asked; an ineligible row
-    that was answered yes anyway (by the practitioner or a reducer) is never
-    dropped silently: it goes under `conflicts`, naming the enablers.
+    required key is selected; while a required key is unknown and none is a
+    no, the row is still asked, and packeted with the condition named.
+    Ineligible rows are not asked; an ineligible row that was answered yes
+    anyway (by the practitioner or a reducer) is never dropped silently: it
+    goes under `conflicts`, naming the enablers.
+  - Reducer output is accepted only from a reducer routing.yaml names as an
+    observation source, and once per reducer; a second block from the same
+    reducer is refused rather than summed. Read counts are listed under
+    `counts-at-least`, because a reducer counts only what the export shows.
   - A reducer's read value that disagrees with an owner-stated or believed
     answer is reported under `conflicts`. A read no never overrides a stated
     yes (a reducer sees only the files it was given), so the yes stands; a
     read yes overrides a stated no.
-  - A surface answered false is recorded as not run; its rows are suppressed
-    and it goes into one batched how-do-you-know line.
+  - A surface answered false, or a `family-not-run-<family>: true` signal, is
+    recorded as not run; its rows are suppressed and it goes into one batched
+    how-do-you-know packet line. A row's `implies-no` keys read as no once
+    that row is answered yes (the rent-or-own question answers S9, S11, S12).
+  - A pattern row is asked once for every platform a present surface implies
+    (`platform-of`), whichever platforms were answered; an instance whose
+    surface is answered no is not routed, and a yes to it is a conflict.
   - Rows that share an interview question (identical text, or "Same question
     as <key>") are one question: answering one answers the others as no.
   - An escalation applies only when every name in its escalate-if is observed
-    (a key selected, or an observation above zero or true). The band becomes
-    High and the weight becomes escalate-weight if given.
-  - A believed observation caps the band at Medium, and every believed,
-    unsure or missing answer to an eligible PROBLEM or REVIEW row becomes a
-    Question Packet entry for the row's owning role.
+    (a key selected, or an observation above zero or true); on a pattern row
+    `<platform>` in a name is that instance's platform. The band becomes
+    High and the weight becomes escalate-weight if given. An interview
+    escalation input still unknown on a selected row becomes a follow-up
+    packet, unless another input is already a no.
+  - A believed answer, or an escalation resting on a believed observation,
+    keeps its band and carries `confirm-within-days` from routing.yaml. Every
+    believed, unsure or missing answer to an eligible PROBLEM or REVIEW row
+    becomes a Question Packet entry for the row's owning role.
+  - On the small-org branch only the first questions, the surfaces in
+    `interview-branches.small-org.families` and the rows in its `asks` list
+    are asked; a row or surface outside them that nobody answered goes under
+    `not-asked`, covered by one `anything-else` packet, while an answer given
+    anyway is routed as usual. `questions-asked` counts the interview
+    questions the branch asks this organization.
+  - An item whose docs are all under analysis/stubs/ carries `declared-gap`,
+    and the output records `priority-basis`: the scores are the author's
+    judgement (Tier D).
   - INVENTORY rows fetch nothing. Docs are the four Always Fetch docs, then the
     docs of selected actions, then of selected review rows, deduplicated in
     that order.
@@ -78,6 +104,9 @@ CONFIDENCES = {"read", "owner-stated", "believed"}
 ORDERING = ("band, then factor sum descending, then sequence group from the sequence-order block in "
             "analysis/decision-sequence.md (row-overrides first, else the row's family), then routing.yaml row order")
 SEQUENCE_DOC = "analysis/decision-sequence.md"
+STUB_DIR = "analysis/stubs/"
+PRIORITY_BASIS = ("the factor scores, escalations, enables lists and sequence groups behind this ranking are the "
+                  "author's judgement (Tier D), published in routing.yaml and analysis/decision-sequence.md")
 
 
 class AnswersError(ValueError):
@@ -139,9 +168,10 @@ def eval_predicate(expr: str, truth) -> bool | None:
 # ---------- loading ----------
 
 NOT_APPLICABLE = "not-applicable"
+FAMILY_NOT_RUN = "family-not-run-"
 
 
-def norm_entry(name: str, raw, allow_na: bool = False) -> dict:
+def norm_entry(name: str, raw, allow_na: bool = False, extra: tuple = ()) -> dict:
     if isinstance(raw, dict):
         val, conf = raw.get("value"), raw.get("confidence", "owner-stated")
     else:
@@ -150,7 +180,7 @@ def norm_entry(name: str, raw, allow_na: bool = False) -> dict:
         raise AnswersError(f"{name}: confidence '{conf}' not one of {sorted(CONFIDENCES)}")
     if val == "not-checked":
         val = "unsure"
-    if val == NOT_APPLICABLE and allow_na:
+    if (val == NOT_APPLICABLE and allow_na) or (isinstance(val, str) and val in extra):
         return {"value": val, "confidence": conf}
     if not (isinstance(val, bool) or (isinstance(val, int) and val >= 0) or val == "unsure"):
         extra = ", unsure or not-applicable" if allow_na else " or unsure"
@@ -165,6 +195,8 @@ def selected(entry: dict | None) -> bool | None:
     v = entry["value"]
     if v == NOT_APPLICABLE:
         return False
+    if isinstance(v, str):
+        return True  # a value the row itself declares under also-accepts, such as on-trigger, selects it
     return bool(v) if isinstance(v, bool) else v > 0
 
 
@@ -173,9 +205,12 @@ def fmt_value(e: dict) -> str:
     return str(v).lower() if isinstance(v, bool) else str(v)
 
 
-def merge(answers: dict, reducer_docs: list[dict], conflicts: list | None = None) -> tuple[dict, dict]:
+def merge(answers: dict, reducer_docs: list[dict], conflicts: list | None = None,
+          extra_values: dict | None = None) -> tuple[dict, dict]:
     conflicts = conflicts if conflicts is not None else []
-    signals = {k: norm_entry(k, v, allow_na=True) for k, v in (answers.get("signals") or {}).items()}
+    extra_values = extra_values or {}
+    signals = {k: norm_entry(k, v, allow_na=True, extra=tuple(extra_values.get(k, ())))
+               for k, v in (answers.get("signals") or {}).items()}
     obs = {k: norm_entry(k, v) for k, v in (answers.get("observations") or {}).items()}
     for doc in reducer_docs:
         for k, v in (doc.get("observations") or {}).items():
@@ -208,18 +243,29 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
     rows = data["signals"]
     by_key = {r["key"]: r for r in rows}
     order = {r["key"]: i for i, r in enumerate(rows)}
-    observations_decl = set((data.get("observations") or {}).keys())
-    specials = [s["key"] for s in data.get("special-keys") or []]
+    obs_meta = data.get("observations") or {}
+    observations_decl = set(obs_meta.keys())
     owners = data.get("family-owners") or {}
 
     conflicts = []
-    signals, obs = merge(answers, reducer_docs, conflicts)
+    signals, obs = merge(answers, reducer_docs, conflicts,
+                         {r["key"]: r.get("also-accepts") or [] for r in rows if r.get("also-accepts")})
 
     # resolve pattern instances (audit-log-off-coding-agent -> audit-log-off-<platform>)
     patterns = {r["pattern"].split("<", 1)[0]: r for r in rows if r.get("pattern")}
     instances: dict[str, list[str]] = {}
+    families = {r.get("family") for r in rows}
+    fam_not_run: list[str] = []
     for k in list(signals):
         if k in by_key:
+            continue
+        if k.startswith(FAMILY_NOT_RUN):
+            fam = k[len(FAMILY_NOT_RUN):]
+            if fam not in families:
+                raise AnswersError(f"{k}: '{fam}' is not a routing family")
+            if selected(signals[k]):
+                fam_not_run.append(fam)
+            del signals[k]
             continue
         for prefix, r in patterns.items():
             if k.startswith(prefix):
@@ -230,9 +276,20 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
                 break
         else:
             raise AnswersError(f"{k}: not a routing key")
+    platforms = {v for r in rows if r.get("pattern") for v in r.get("values", [])}
+    obs_patterns = [o.split("<", 1)[0] for o in observations_decl if "<platform>" in o]
     for k in obs:
-        if k not in observations_decl:
+        if k in observations_decl:
+            continue
+        pre = next((p for p in obs_patterns if k.startswith(p)), None)
+        if pre is None:
             raise AnswersError(f"observation '{k}' is not declared in routing.yaml")
+        if k[len(pre):] not in platforms:
+            raise AnswersError(f"observation '{k}': '{k[len(pre):]}' is not in the closed platform list")
+        observations_decl.add(k)
+
+    def is_obs(k: str) -> bool:
+        return k in observations_decl or any(k.startswith(p) and k[len(p):] in platforms for p in obs_patterns)
     overrides = list(answers.get("overrides") or [])
     for o in overrides:
         if not o.startswith("profile-override-") or o == "profile-override-":
@@ -264,12 +321,16 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
 
     # derived rows, in routing.yaml order (predicates only reference earlier or asked keys)
     truth_cache: dict[str, bool | None] = {}
+    implied_by: dict[str, list[str]] = {}
+    for r in rows:
+        for n in r.get("implies-no") or []:
+            implied_by.setdefault(n, []).append(r["key"])
     derived_selected = []
 
     def truth(k: str) -> bool | None:
         if k in truth_cache:
             return truth_cache[k]
-        if k in observations_decl:
+        if is_obs(k):
             return selected(obs.get(k))
         r = by_key.get(k)
         if r is None:
@@ -288,6 +349,9 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
             v = selected(entry(k))
             if v is None and k in group_of and answered_in_group(k):
                 v = False
+            if v is None and any(selected(entry(o)) is True and not any(selected(entry(x)) is True for x in by_key[o]["implies-no"])
+                                 for o in implied_by.get(k, [])):
+                v = False  # answered by that row's question ("no to all three"), unless a surface it names was answered yes
         truth_cache[k] = v
         return v
 
@@ -311,18 +375,43 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
         for n in r.get("enables", []) or []:
             enablers.setdefault(n, []).append(r["key"])
 
-    def eligible(k: str) -> bool:
+    def eligible(k: str) -> bool | None:
+        """True, False, or None when a required key is still unknown (and none is a no)."""
+        if by_key[k].get("family") in fam_not_run:
+            return False
         if k in enablers and not any(truth(e) is True for e in enablers[k]):
             return False
-        return all(truth(q) is True for q in by_key[k].get("requires", []) or [])
+        req = [truth(q) for q in by_key[k].get("requires", []) or []]
+        if False in req:
+            return False
+        return None if None in req else True
 
     def observed(n: str) -> bool:
         return truth(n) is True
 
+    def believed(n: str) -> bool:
+        e = obs.get(n) if is_obs(n) else entry(n)
+        return bool(e) and e["confidence"] == "believed"
+
+    confirm_days = (data.get("priority-rubric") or {}).get("confirm-believed-within-days")
+
     actions, review, packets, clean, not_applicable = [], [], {}, [], []
     packeted: set[str] = set()
 
-    def add_packet(r, key, why):
+    ib = data.get("interview-branches") or {}
+    so = ib.get("small-org") or {}
+    first_groups = {group_of[q] for q in ib.get("first-questions") or []}
+    fam_surfaces = {f"surface-{f}" for f in so.get("families") or []}
+    asked_groups = first_groups | {group_of.get(q, q) for q in list(so.get("asks") or []) + sorted(fam_surfaces)}
+    not_asked: list[str] = []
+
+    def add_packet(r, key, why, followup=False):
+        # the small-org branch asks only its own questions; anything else not checked is offered as one question
+        # (an explicit unsure stays a packet: it was asked and could not be answered)
+        if branch == "small-org" and signals.get(key) is None and obs.get(key) is None and (
+                followup or group_of.get(r["key"], r["key"]) not in asked_groups):
+            not_asked.append(key)
+            return
         role = r.get("owner") or owners.get(r.get("family"), "security lead")
         packets.setdefault(role, []).append({"key": key, "why": why})
 
@@ -331,20 +420,41 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
         if r["weight"] == "INVENTORY":
             continue
         keys_here = instances.get(k, []) if r.get("pattern") else [k]
-        if not eligible(k):
+        elig = eligible(k)
+        if elig is False:
             # an answer that selects an ineligible row is reported, never dropped
             for kk in keys_here:
                 e = entry(kk)
                 if e is not None and e["value"] != NOT_APPLICABLE and selected(e) is True:
-                    need = (f"none of its enablers ({', '.join(enablers[k])}) is answered yes"
+                    need = (f"its family is recorded as {FAMILY_NOT_RUN}{r.get('family')}" if r.get("family") in fam_not_run
+                            else f"none of its enablers ({', '.join(enablers[k])}) is answered yes"
                             if k in enablers and not any(truth(x) is True for x in enablers[k])
                             else f"not every key it requires ({', '.join(r.get('requires') or [])}) is answered yes")
                     conflicts.append(f"{kk}: {e['confidence']} {fmt_value(e)} but {need}, so the row is not routed; "
                                      "confirm the surface answer")
             continue
-        if r.get("pattern") and not keys_here:
-            add_packet(r, k, "not checked")
-            continue
+        if r.get("pattern"):
+            prefix = r["pattern"].split("<", 1)[0]
+            surf_of = {pf: sf for sf, pf in (r.get("platform-of") or {}).items()}
+            answered_pf = {kk[len(prefix):] for kk in keys_here}
+            implied = [pf for sf, pf in (r.get("platform-of") or {}).items() if truth(sf) is True]
+            # every platform a present surface implies is asked, whether or not another platform was answered
+            for pf in implied:
+                if pf not in answered_pf:
+                    add_packet(r, prefix + pf, "not checked")
+            if not keys_here and not implied:
+                add_packet(r, k, "not checked")
+            kept = []
+            for kk in keys_here:
+                sf = surf_of.get(kk[len(prefix):])
+                e = entry(kk)
+                if sf and truth(sf) is False:
+                    if e is not None and selected(e) is True:
+                        conflicts.append(f"{kk}: {e['confidence']} {fmt_value(e)} but {sf} is answered no, so the "
+                                         "row is not routed; confirm the surface answer")
+                    continue
+                kept.append(kk)
+            keys_here = kept
         for kk in keys_here:
             e = entry(kk)
             if e is not None and e["value"] == NOT_APPLICABLE:
@@ -360,9 +470,15 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
             if sel is None:
                 # one packet per interview question, addressed by the group's first key
                 head = group_of.get(kk, kk)
+                unknown_req = [q for q in r.get("requires") or [] if truth(q) is None]
+                # a requirement still unknown is itself asked; when it shares a question already packeted, say nothing more
+                if not elig and all(group_of.get(q, q) in packeted for q in unknown_req):
+                    continue
                 if head not in packeted and (not r.get("predicate") or "I" in r.get("method", [])):
                     packeted.add(head)
-                    add_packet(by_key.get(head, r), head, "not checked")
+                    why = "not checked" if elig else (
+                        "not checked; applies if " + " and ".join(r.get("requires") or []) + " holds, which is not checked either")
+                    add_packet(by_key.get(head, r), head, why)
                 continue
             if conf == "believed":
                 add_packet(r, kk, "believed only")
@@ -373,24 +489,62 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
                 continue
             pr = r.get("priority") or {}
             f = pr.get("factors", {})
-            band, weight, escalated, capped = pr.get("band"), r["weight"], False, False
-            cond = pr.get("escalate-if") or []
+            band, weight, escalated = pr.get("band"), r["weight"], False
+            plat = kk[len(r["pattern"].split("<", 1)[0]):] if r.get("pattern") else None
+            cond = [n.replace("<platform>", plat) if plat else n for n in pr.get("escalate-if") or []]
+            confirm = conf == "believed"
+            # an escalation input from the interview that is still unknown is a follow-up question,
+            # unless another input is already a no and the escalation cannot apply
+            if cond and not any(truth(n) is False for n in cond):
+                for n, raw in zip(cond, pr.get("escalate-if") or []):
+                    if truth(n) is None and (obs_meta.get(raw) or {}).get("from") == "interview":
+                        add_packet(r, n, f"escalation input for {kk}, not checked", followup=True)
             if cond and all(observed(n) for n in cond):
                 band, escalated = "High", True
                 weight = pr.get("escalate-weight", weight)
-            if conf == "believed" and band == "High":
-                band, capped = "Medium", True
+                confirm = confirm or any(believed(n) for n in cond)
             item = {"key": kk, "weight": weight, "band": band, "sequence-group": seq[k] + 1, "factor-sum": sum(f.values()),
                     "confidence": conf, "docs": list(r.get("docs", []))}
+            if e is not None and isinstance(e["value"], str):
+                item["answered"] = e["value"]
+            if item["docs"] and all(d.startswith(STUB_DIR) for d in item["docs"]):
+                item["declared-gap"] = True  # backed only by a stub: print "declared gap" on the action line
             if escalated:
                 item["escalated"] = True
-            if capped:
-                item["capped-by-belief"] = True
+            if confirm:
+                # doubt about a condition never lowers its rank; it adds a deadline to confirm it
+                item["confirm-within-days"] = confirm_days
             (actions if weight == "PROBLEM" else review).append((order[k], item))
 
     for s_ in unknown_surfaces:
         r = by_key[f"surface-{s_}"]
         add_packet(r, r["key"], "not checked")
+    if branch == "small-org":
+        unknown_surfaces = [s_ for s_ in unknown_surfaces if f"surface-{s_}" in fam_surfaces]
+    if not_asked:
+        packets.setdefault(owners.get("profile", "security lead"), []).append(
+            {"key": "anything-else", "why": f"one question covering the {len(not_asked)} rows and surfaces this branch "
+                                            "does not ask, listed under not-asked"})
+    if not_run or fam_not_run:
+        packets.setdefault(owners.get("profile", "security lead"), []).append(
+            {"key": "how-do-you-know", "why": "one question for everything answered as not run: "
+                                              + ", ".join(not_run + [FAMILY_NOT_RUN + f for f in fam_not_run])})
+
+    # the questions this branch asks this organization, counted one per interview question (rows sharing a question count once)
+    def askable(r) -> bool:
+        k = r["key"]
+        if "I" not in r.get("method", []):
+            return False
+        if re.fullmatch(r"surface-S\d+", k):
+            if truth(k) is False and not selected(entry(k)) is False:
+                return False  # answered by an earlier question (implies-no)
+            return branch == "full" or k in fam_surfaces
+        if group_of[k] in first_groups:
+            return True
+        if eligible(k) is False:
+            return False
+        return branch == "full" or group_of[k] in asked_groups
+    questions_asked = len({group_of[r["key"]] for r in rows if askable(r)}) + (1 if not_asked else 0)
 
     def sort_items(items):
         return [it for _, it in sorted(items, key=lambda t: (BAND_RANK[t[1]["band"]], -t[1]["factor-sum"],
@@ -409,6 +563,7 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
         "surfaces-present": present,
         "not-run": not_run,
         "surfaces-not-checked": unknown_surfaces,
+        "questions-asked": questions_asked,
         "derived": derived_selected,
         "top-actions": [it["key"] for it in actions_s[:n_top]],
         "actions": actions_s,
@@ -418,7 +573,16 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
         "clean": clean,
         "conflicts": conflicts,
         "ordering": ORDERING,
+        "priority-basis": PRIORITY_BASIS,
     }
+    floors = {k: e["value"] for k, e in sorted(obs.items())
+              if e["confidence"] == "read" and isinstance(e["value"], int) and not isinstance(e["value"], bool)}
+    if floors:
+        out["counts-at-least"] = floors  # a reducer counts only what the export shows, so each count is a floor
+    if fam_not_run:
+        out["families-not-run"] = fam_not_run
+    if not_asked:
+        out["not-asked"] = not_asked
     if not_applicable:
         out["not-applicable"] = not_applicable
     if not reducer_docs and not any(
@@ -433,11 +597,19 @@ def run(root: Path, answers_path: Path, reducer_paths: list[Path]) -> dict:
     if answers.get("answers-block") != 1:
         raise AnswersError("not an Answers Block (missing 'answers-block: 1')")
     paths = [root / p for p in answers.get("reducer-outputs") or []] + list(reducer_paths)
-    reducer_docs = []
+    known = {n.strip() for o in (data.get("observations") or {}).values()
+             for n in str(o.get("from", "")).split(",") if n.strip() != "interview"}
+    reducer_docs, seen = [], set()
     for p in paths:
         doc = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
-        if "reducer" not in doc:
+        if not isinstance(doc, dict) or "reducer" not in doc:
             raise AnswersError(f"{p}: not reducer output (no 'reducer' field)")
+        if doc["reducer"] not in known:
+            raise AnswersError(f"{p}: reducer '{doc['reducer']}' is not one routing.yaml names as a source")
+        if doc["reducer"] in seen:
+            # a second block from the same reducer is either a re-paste or a block planted in an export; never sum it
+            raise AnswersError(f"{p}: a second output from reducer '{doc['reducer']}'; give each reducer's output once")
+        seen.add(doc["reducer"])
         reducer_docs.append(doc)
     return route(data, answers, reducer_docs, load_sequence(root, data))
 

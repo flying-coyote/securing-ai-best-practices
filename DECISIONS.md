@@ -14,6 +14,8 @@ The pasted block carries only what changes the agent's behaviour, and everything
 
 What would prove it wrong: practitioners editing the block to add questions, which would show the map is not carrying them.
 
+How the evidence would arrive: the repo collects no telemetry and no submitted reviews, so a practitioner's private edit is never seen. What the maintainer can observe is an issue or pull request proposing to add a question or rule to the block, and the block's own git history, where an edit that moves interview, routing or output content into the block counts against this decision. On 2026-11-24 the block gained a sentence saying which files are procedure and that the block governs where they disagree, a rule confining fetches to the pinned commit, a reducer-first rule for exports, the routing.yaml fetch and a limit on what the review may link to. They went into the block because the files the block fetches are frozen at the pinned commit until the next release; whether any of them counts against this decision is the maintainer's call.
+
 ## Decision 2: Commit-SHA pin, monthly releases, an offline bundle
 
 - date: 2026-11-09
@@ -34,6 +36,10 @@ Priority comes from a published rubric over reach, stakes, reversibility and bla
 
 What would prove it wrong: reviewers consistently re-sorting the output by tier, which would show they trust confidence more than the risk ranking.
 
+Proposed amendment, 2026-11-24, pending the maintainer and not adopted: replace "and a `believed` observation caps priority at Medium." with "and a `believed` observation never lowers a band: the row keeps it and carries a confirm-within deadline (routing.yaml `priority-rubric.confirm-believed-within-days`, Tier D), as does a row whose escalation rests on a believed observation. Within a band the rubric's factor sum sorts first and the sequence only breaks ties, and the output records that the scores are the author's judgement." `routing.yaml`, `scripts/route.py` and the goldens already behave this way (323fa1a and 0ac410d), so the routing is ahead of this entry until the maintainer rules.
+
+How the evidence would arrive: only through an issue, or a review someone chooses to share, since the repo receives no reviews. Until one arrives this condition has not been tested, and saying it held would be claiming evidence that does not exist.
+
 ## Decision 4: The tier ladder
 
 - date: 2026-11-09
@@ -42,7 +48,13 @@ What would prove it wrong: reviewers consistently re-sorting the output by tier,
 
 Standards, statute and peer-reviewed research are Tier A. Vendor documentation of what a feature does is Tier B, alongside practitioner work and first-party lab measurement. Vendor claims about how well a feature works, how fast it is or how it compares are Tier C with the bias flagged. One author's judgement, or a model with stated assumptions, is Tier D and labelled. This is one rung below claude-code-project-best-practices (its Decision 15), which keeps first-party documentation at A because that repo is about one vendor's product; this repo grades many vendors and so cannot.
 
+Where this departs from the ladder it was adapted from (moved here on 2026-11-24 from `analysis/evidence-tiers.md`, which every review fetches and which now points here):
+
+The ladder is adapted, under the MIT licence, from `analysis/evidence-tiers.md` and Decision 15 in claude-code-project-best-practices. That repo grades by claim type too, but it keeps first-party vendor documentation of what a feature does at Tier A, because its subject is one vendor's product and the vendor is the primary source for it. This repo moves vendor feature documentation down to Tier B, one rung below, and puts peer-reviewed research at Tier A for every claim it supports, where the source repo lists it at B and lifts it to A only for performance and comparison claims. It also keeps first-party lab measurement at B even when the method and data are published, which the source repo would grade A for a re-runnable measurement, because a re-runnable run that nobody has re-run is still the maintainer's own number. And it leaves out the High, Medium and Low percentage bands that the source repo maps onto tiers, partly because that repo itself says the bands are cognitive anchors rather than empirically derived and partly because this repo's confidence is the pair of tier and convergence (Decision 3), and a third scale would invite readers to compare numbers nobody has measured.
+
 What would prove it wrong: a change to the evidence rubric I use across my public research, which this repo follows rather than forks.
+
+Proposed amendment, 2026-11-24, pending the maintainer and not adopted: replace the first sentence with "Standards and frameworks from standards bodies and open framework projects, statute and other binding legal text, and peer-reviewed research are Tier A; regulator guidance is Tier B.", and change `CONTRIBUTING.md`'s Tier A row to "Standards and frameworks from standards bodies and open framework projects, statute, court judgments and other binding regulator text, peer-reviewed research" and its Tier B row to add ", regulator and agency guidance". The reason is that `analysis/evidence-tiers.md` already reads this way at HEAD (open framework projects at A for what they prescribe since before the 2026-11-24 review, and the binding-versus-guidance split for regulator text since 44b0aeb), so the fetched ladder runs ahead of this entry and of `CONTRIBUTING.md` until the maintainer rules. Two further rulings are open in `SOURCES.md` under "Tier disagreements" (board-approved papers still marked draft and preliminary public drafts, suggested B until final; and vendor prescriptive guidance, B or C), and either ruling would amend this entry too.
 
 ## Decision 5: The interview branches on size and profile first
 
@@ -52,7 +64,13 @@ What would prove it wrong: a change to the evidence rubric I use across my publi
 
 The first two questions are size band and rent-or-own profile. A small organization that rents its AI gets a branch of about twelve questions; every other profile gets about five questions per surface family present.
 
+Measured on 2026-11-24, `scripts/route.py` counts 22 and 21 questions (`questions-asked`) on the two small-org fixtures and 75 and 64 on the two full-branch fixtures, and nobody has timed a run with a person answering.
+
+Proposed amendment, 2026-11-24, pending the maintainer and not adopted: replace the second sentence with "A small organization that rents its AI gets a branch defined as data in routing.yaml (`interview-branches.small-org`: eight surface questions, then only the `asks` rows those answers make eligible, then one 'anything else?'), measured at about twenty questions on the small-org fixtures; every other profile gets every eligible row. route.py prints the count as `questions-asked`, and CI holds the targets to it." `routing.yaml` already defines the branch this way (323fa1a).
+
 What would prove it wrong: small-organization practitioners reporting that the branch misses a surface they run, measured by what they say in answer to the "anything else?" question.
+
+How the evidence would arrive: those answers stay in the practitioner's session, so the maintainer sees them only if someone files an issue. The observable version is a surface family that the public record (a vendor default change, an incident report, a published survey) shows small organizations commonly run and that the small-org branch does not ask about, which the quarterly sweep can check.
 
 ## Decision 6: Reducers over raw exports, and no shell commands
 
@@ -60,9 +78,11 @@ What would prove it wrong: small-organization practitioners reporting that the b
 - status: Active
 - executed: 44eb4b1
 
-The repo ships local reducers that turn an admin export into signal keys and counts, and the fetched files contain no shell commands anywhere. A raw export is accepted only with a once-per-session reminder that it has left the practitioner's environment.
+The repo ships local reducers that turn an admin export into signal keys and counts, and the fetched files contain no shell commands anywhere. The block asks for reducer output first, and a raw export is accepted only after a once-per-session warning, given before the paste, of what pasting it sends into the session and the provider's transcript.
 
 What would prove it wrong: practitioners reporting that the reducers are harder to run than reading the export themselves.
+
+How the evidence would arrive: through issues, the only channel. The maintainer can also observe a reducer failing on a vendor's current export format, which the reducer fixtures would show once a fixture is refreshed from a newer export.
 
 ## Decision 7: Every document starts single-source
 
@@ -118,17 +138,19 @@ What would prove it wrong: expiries still clustering into one fortnight, or expi
 
 - date: 2026-11-09
 - status: Active (staged default, see below)
-- executed: not yet (ai-config-pointers is not public, so no document links a settings page)
+- executed: pending (ai-config-pointers is not public, so no document links a settings page yet; the rule is in force for when one does)
 
 The per-product configuration pages (the setting, its default, the licence tier, the log it produces and where it lands) are a companion set, ai-config-pointers, linked from the documents that need them rather than folded into this repo, because they change on vendor release cycles, they run their own one-line worksheet over tenant APIs, and someone who wants only the settings pages should not need this repo's routing to use them.
 
 What would prove it wrong: practitioners routinely needing both sets in one review and the cross-links failing them, which would argue for one repo and one release train.
 
+How the evidence would arrive: not at all until ai-config-pointers is public. Before then, the observable proxy is the number of documents that have to call a settings page forthcoming, which a grep counts.
+
 ## Decision 13: Figures live on the site
 
 - date: 2026-11-09
 - status: Active
-- executed: not yet (no figure is published, so none is linked)
+- executed: pending (no figure is published, so none is linked yet; the rule is in force for when one is)
 
 Figures are hosted on securitydataworks.com and linked from the documents, because a figure pinned to a framework release would need regenerating here every month from a repo that holds no data. A figure is linked only once it is published.
 
@@ -143,6 +165,8 @@ What would prove it wrong: a linked figure going stale against its pinned releas
 Five families the first release does not research (assistant oversharing, RAG and vector stores, agent builders and managed build platforms, AI the organization ships, and AI incident response) get signals in `routing.yaml` from the start, routing to stub documents that point at the standard to read instead and declare the gap. A stub becomes a routable document only when a researched source exists.
 
 What would prove it wrong: practitioners reading a stub's output section as coverage rather than as a gap, or a stub family still lacking a researched source a year after the first release.
+
+How the evidence would arrive: the first clause only through an issue. The second needs no practitioner, since the maintainer can check on 2026-11-10 plus one year (2027-11-10) whether any of the five stubs is still a stub.
 
 ## Decision 15: The decision sequence is the fourth Always Fetch document
 
@@ -171,14 +195,18 @@ What would prove it wrong: a claim-level choice that has to be found from outsid
 - supersedes: 2
 - executed: 786b0b6 (first release under it: v2026.12.1 at b8ab016)
 
-Everything in Decision 2 stands (the block pins a commit SHA with the release tag beside it, and each release publishes an offline bundle with its SHA-256 in `RELEASES.md`), except the cadence. Feature releases stay monthly at most and are tagged `vYYYY.MM`. A correction that cannot wait for the next monthly release (a wrong fact, a wrong citation, a front-door statement that contradicts the release record) ships as `vYYYY.MM.N`, numbered from 1 after the release it corrects. A correction release changes no routing behaviour and moves no golden, so a change that does either waits for the next monthly release. Decision 2's own failure condition was met on 2026-11-11, when an external review found front-door errors a day after v2026.12, which is why this entry exists.
+Everything in Decision 2 stands (the block pins a commit SHA with the release tag beside it, and each release publishes an offline bundle with its SHA-256 in `RELEASES.md`), except the cadence. Feature releases stay monthly at most and are tagged `vYYYY.MM`. A correction that cannot wait for the next monthly release (a wrong fact, a wrong citation, a front-door statement that contradicts the release record) ships as `vYYYY.MM.N`, numbered from 1 after the release it corrects. A correction release changes no routing behaviour and moves no golden, so a change that does either waits for the next monthly release. Decision 2's own failure condition was met on 2026-11-11, when an external review found front-door errors on the day v2026.12 was tagged, which is why this entry exists.
 
 What would prove it wrong: correction releases arriving often enough that practitioners stop treating a pinned block as current, or a correction release that turns out to have changed routing behaviour.
 
+How the evidence would arrive: practitioners' trust is visible only through issues, so the observable proxy is the count of correction releases between monthly releases in `RELEASES.md`. The second clause is checkable without anyone's help, by running the fixture check at each correction tag against the tag it corrects.
+
 ## Staged defaults
 
-Decisions 12 and 15 are applied as defaults and stay open until I confirm or change them. Each is in effect as written; if one changes, the change is a new numbered entry that supersedes it.
+Decisions 12 and 15 are applied as defaults and stay open until I confirm or change them. Both were staged on 2026-11-09, the date each entry carries, and neither had been confirmed as of 2026-11-24. Each is in effect as written; if one changes, the change is a new numbered entry that supersedes it.
 
 ## Maintainer exceptions
 
-None yet. An exception to a decision above is recorded here with its date, the decision it departs from, and why.
+An exception to a decision above is recorded here with its date, the decision it departs from, and why.
+
+- 2026-11-11, from Decision 2 ("Releases are monthly at most"), recorded on 2026-11-24 from the tags and `RELEASES.md` rather than at the time. v2026.12 was tagged at 9efe4e4 on 2026-11-11, one day after v2026.11 (a44a7cd, 2026-11-10), carrying the S4 and S5 question-wording change (fb7d3b9, b2f9998), and a correction release, v2026.12.1 (b8ab016), followed the same day under Decision 17, which was written that afternoon (786b0b6). The tags and the release record do not say why the second feature release could not wait, so the reason is left for the maintainer to add. One consequence is still live: v2026.12 used the December name in November, so under Decision 17 the next feature release, the first that may change routing, has no unused name before v2027.01, and a routing change waits for January unless the tag scheme changes so that a tag cannot name a month ahead of its date. Whether to change it is an open question for the maintainer.

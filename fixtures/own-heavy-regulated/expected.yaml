@@ -19,13 +19,14 @@ not-run:
 - S8
 - S12
 surfaces-not-checked: []
+questions-asked: 64
 derived:
 - profile-own-heavy
 top-actions:
 - pickle-formats-present
 - agent-kill-switch-absent
-- inference-runtime-default-bind
 - containment-pre-authorized-broad
+- inference-runtime-default-bind
 - ai-analyst-ungraded
 - model-store-unscanned
 - mapping-treated-as-coverage
@@ -46,6 +47,16 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  declared-gap: true
+- key: containment-pre-authorized-broad
+  weight: PROBLEM
+  band: High
+  sequence-group: 7
+  factor-sum: 6
+  confidence: believed
+  docs:
+  - analysis/evaluating-ai-in-the-soc.md
+  confirm-within-days: 7
 - key: inference-runtime-default-bind
   weight: PROBLEM
   band: High
@@ -55,15 +66,6 @@ actions:
   docs:
   - analysis/models-you-hold.md
   escalated: true
-- key: containment-pre-authorized-broad
-  weight: PROBLEM
-  band: Medium
-  sequence-group: 7
-  factor-sum: 6
-  confidence: believed
-  docs:
-  - analysis/evaluating-ai-in-the-soc.md
-  capped-by-belief: true
 - key: ai-analyst-ungraded
   weight: PROBLEM
   band: Medium
@@ -129,6 +131,7 @@ review:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  declared-gap: true
 - key: model-rollback-untested
   weight: REVIEW
   band: Medium
@@ -137,6 +140,7 @@ review:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  declared-gap: true
 - key: custom-build-planned
   weight: REVIEW
   band: Medium
@@ -211,11 +215,26 @@ question-packets:
   SOC manager:
   - key: containment-pre-authorized-broad
     why: believed only
+  identity team:
+  - key: ai-gateway-absent
+    why: not checked
+  product engineering lead:
+  - key: output-handling-unreviewed
+    why: not checked
+  - key: pre-release-eval-absent
+    why: not checked
+  - key: abuse-monitoring-absent
+    why: not checked
+  - key: shipped-feature-tool-scope-unreviewed
+    why: not checked
+  - key: shipped-feature-tenant-isolation-unknown
+    why: not checked
+  security lead:
+  - key: how-do-you-know
+    why: 'one question for everything answered as not run: S3, S4, S5, S6, S7, S8, S12'
 clean:
 - surface-unknown
 - audit-log-off-office-suite-assistant
-- dpia-absent
-- works-council-unconsulted
 - oauth-grants-unreviewed
 - saas-ai-toggles-unreviewed
 - vendor-training-optout-unknown
@@ -232,4 +251,5 @@ clean:
 - restricted-search-unset
 conflicts: []
 ordering: band, then factor sum descending, then sequence group from the sequence-order block in analysis/decision-sequence.md (row-overrides first, else the row's family), then routing.yaml row order
+priority-basis: the factor scores, escalations, enables lists and sequence groups behind this ranking are the author's judgement (Tier D), published in routing.yaml and analysis/decision-sequence.md
 questionnaire-only: true

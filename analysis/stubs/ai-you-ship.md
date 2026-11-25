@@ -1,7 +1,7 @@
 ---
 evidence-tier: Mixed
 convergence: single-source
-applies-to-signals: [output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent]
+applies-to-signals: [output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
 surfaces: [S8]
 pins:
   - "OWASP Top 10 for LLM Applications 2026"
@@ -19,7 +19,7 @@ Evidence tier: Mixed, A for what the three standards prescribe and where the AI 
 
 ## Summary for the review
 
-This repo studied S8 as the place where an organization consumes a model API, and it has not studied the case where the organization wraps that API in a feature and ships it to its own customers, so for the three signals that route here the review should send the reader to the standards and say plainly that the repo carries no measured evidence of its own. The standards are specific enough to act on while that gap stays open.
+This document is a stub: its four actions rest on the OWASP Top 10 for LLM Applications 2026, NIST AI 600-1 and the AI Act text (Tier A for what they prescribe), and on no measurement or research of this repo's own. This repo studied S8 as the place where an organization consumes a model API, and it has not studied the case where the organization wraps that API in a feature and ships it to its own customers, so for the three signals that route here the review should send the reader to the standards and say plainly that the repo carries no measured evidence of its own. The standards are specific enough to act on while that gap stays open.
 
 1. If `output-handling-unreviewed` is set, review every place a shipped feature's model output reaches another system or a person (a rendered page, a query, a shell, a downstream API, an email) against LLM10:2026 Improper Output Handling in the OWASP Top 10 for LLM Applications 2026 edition, and treat the output as untrusted input at each of those places, which is the zero-trust stance that entry's prevention list opens with. Effort M. Tier A for the risk category.
 2. If `pre-release-eval-absent` is set, put a security and misuse evaluation in front of each release, including model-version changes the provider makes underneath you, using NIST AI 600-1's red-teaming and adversarial-testing actions (MS-2.7-007, MS-4.2-001) as the checklist. Effort M to L. Tier A.
@@ -34,7 +34,7 @@ When a product team builds a customer-facing feature on a model API, the organiz
 
 The OWASP Top 10 for LLM Applications 2026 edition names LLM10:2026 Improper Output Handling and LLM06:2026 Unbounded Consumption as entries in their own right, the second covering cost abuse and model cloning through excessive inference as well as service disruption (Tier A for the categories, read 2026-11-10 from the published PDF), and the repo points at the list rather than explaining it, per `CONTRIBUTING.md`.
 
-NIST AI 600-1, the Generative AI Profile of the AI RMF (July 2024), carries suggested actions that map onto two of the three signals with little interpretation (Tier A, read 2026-11-10 from the published PDF):
+NIST AI 600-1, the Generative AI Profile of the AI RMF (July 2024), carries suggested actions that map onto two of the first three signals (output handling, pre-release evaluation and abuse monitoring; the tool-scope and tenant-isolation rows came later) with little interpretation (Tier A, read 2026-11-10 from the published PDF):
 
 - MS-2.7-007, AI red-teaming to assess resilience against abuse that facilitates attacks on other systems, GAI attacks such as prompt injection, and ML attacks such as model extraction and sponge examples.
 - MS-4.2-001, adversarial testing at a regular cadence to map misuse scenarios and unintended outputs.
@@ -50,11 +50,12 @@ The EU AI Act reaches a shipped feature in two different ways, and the differenc
 
 ## What this does not mean
 
-It does not mean the repo considers shipped AI features low-risk because it routes them to a stub. The routing priority for `output-handling-unreviewed` is PROBLEM for a reason, since output that reaches a renderer or an interpreter unvalidated is a familiar injection class with a model in front of it. It also does not mean the consumer-side documents are irrelevant, because a shipped feature still calls the model API through the organization's own keys and gateway, and the gateway and identity guidance applies to those calls as it does to internal use.
+It does not mean the repo considers shipped AI features low-risk because it routes them to a stub. The `output-handling-unreviewed` row carries weight PROBLEM and band Medium in `routing.yaml` for a reason, since output that reaches a renderer or an interpreter unvalidated is a familiar injection class with a model in front of it. It also does not mean the consumer-side documents are irrelevant, because a shipped feature still calls the model API through the organization's own keys and gateway, and the gateway and identity guidance applies to those calls as it does to internal use.
 
 ## Gaps
 
 - **Gap: provider-side S8 evidence**. The repo has no measured or researched evidence on securing AI features an organization ships to its customers: no output-handling test, no pre-release evaluation study and no abuse-monitoring signal study, and its S8 reading is the consumer one. **Needs**: a desk study mapping the three signals to the OWASP 2026 entries, the NIST AI 600-1 action IDs above and AI Act Articles 9, 15(5), 50, 72 and 73, plus a lab bench that runs a fixed corpus of injection payloads through a sample customer-facing feature into three sinks (an HTML renderer, a SQL query, a downstream tool call) and counts how many reach each sink with and without output validation, re-run on each model-version change so it doubles as the pre-release evaluation the second signal asks about.
+- **Gap: tool scope and tenant isolation are asked but not researched**. A shipped feature that calls tools on a customer's behalf, or serves several customers from one model context or index, can leak across customers or act beyond what a customer asked. Two REVIEW rows now ask about it (`shipped-feature-tool-scope-unreviewed` and `shipped-feature-tenant-isolation-unknown`, added 2026-11-24 with factor scores that are my judgement, Tier D), and both route to this stub, so the review prints them as declared gaps. **Needs**: a researched source on per-customer isolation of context, memory and retrieval and on scoping the tools a shipped feature can call, which would turn this stub into a routable document.
 
 ## Notes
 

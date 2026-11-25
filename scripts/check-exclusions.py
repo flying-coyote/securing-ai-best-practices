@@ -17,6 +17,27 @@ The ones below are mechanical, so they are checked mechanically:
   not-legal-advice the not-legal-advice sentence missing from either prompt
                    block, from the Structured Output Format, or from the law
                    document once it exists
+  undecodable      a file that is not valid UTF-8, which fails rather than
+                   being skipped, since a skipped file is an unscanned one
+  hidden-char      an invisible or control character (Unicode tags, zero-width
+                   and bidi controls, other format and control characters, as
+                   reducers/text_sanitize.py defines them, and the U+2028 and
+                   U+2029 separators) in tracked text, since
+                   the review hands these files to an agent; the reducer
+                   fixtures carry them on purpose and are exempt
+  secret-shaped    a string shaped like a live credential (provider key
+                   prefixes, a private-key header); the line is never printed,
+                   and the reducer fixtures and their test are exempt
+
+Every file git tracks under the root is scanned (every file on disk when the
+root is not a git checkout, as in the test copies), except known binary types
+and the skipped folders, so a new extension is not silently left out and an
+untracked local file does not fail the run.
+
+With --messages FILE (or - for standard input) it scans commit-message text
+instead of the tree, for the local-path, crosswalk, hidden-char and
+secret-shaped rules. The script never runs git; CI writes the pull request's
+or push's commit messages to a file and passes it.
 
 The employer and identifier denylist is deliberately not here. It runs as a
 local pre-push hook that reads a file outside the repo, because a check backed
@@ -27,17 +48,33 @@ test do not match themselves.
 
 Usage:
     python scripts/check-exclusions.py [--root DIR]
+    python scripts/check-exclusions.py --messages FILE|-
 
 Exit 0 when nothing is found, 1 when anything is.
 """
 
 import argparse
 import re
+import subprocess
 import sys
 from pathlib import Path
 
-SCAN_SUFFIXES = {".md", ".yaml", ".yml", ".py", ".sh", ".json", ".csv", ".txt"}
-SKIP_DIRS = {".git", "__pycache__", "node_modules", "dist"}
+BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".tgz", ".tar",
+                   ".woff", ".woff2", ".ttf", ".otf", ".pyc"}
+SKIP_DIRS = {".git", "__pycache__", "node_modules", "dist", ".venv", "venv"}
+# Fixtures that carry hidden characters and secret-shaped strings on purpose, to
+# test that the reducers strip and never print them.
+HIDDEN_EXEMPT = ("scripts/reducers/fixtures/",)
+SECRET_EXEMPT = ("scripts/reducers/fixtures/", "scripts/test-reducers.py")
+SECRET_SHAPES = re.compile(
+    r"(?<![A-Za-z0-9])(sk-(ant-|proj-)[A-Za-z0-9_-]{16,}|sk-[A-Za-z0-9]{32,}|gh[pousr]_[A-Za-z0-9]{30,}"
+    r"|github_pat_[A-Za-z0-9_]{30,}|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|glpat-[A-Za-z0-9_-]{20,}"
+    r"|AIza[0-9A-Za-z_-]{35}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
+
+LINE_SEPARATORS = {"\u2028", "\u2029"}
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "reducers"))
+from text_sanitize import scrub  # noqa: E402
 
 TMP = "/" + "tmp" + "/"
 LOCAL_PATHS = [
@@ -56,8 +93,13 @@ LAW_DOC = "analysis/prompt-capture-and-the-law.md"
 
 
 def iter_files(root: Path):
-    for p in sorted(root.rglob("*")):
-        if not p.is_file() or p.suffix not in SCAN_SUFFIXES:
+    try:
+        out = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=True).stdout
+        tracked = [root / f for f in out.decode("utf-8", "surrogateescape").split("\0") if f]
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        tracked = []
+    for p in sorted(tracked or root.rglob("*")):
+        if not p.is_file() or p.suffix.lower() in BINARY_SUFFIXES:
             continue
         if any(part in SKIP_DIRS for part in p.relative_to(root).parts):
             continue
@@ -83,32 +125,77 @@ def section(text: str, heading: str) -> str:
     return "".join(out) if out is not None else ""
 
 
+def line_hits(rel: str, i: int, line: str, messages: bool = False) -> list[tuple[str, str, int, str]]:
+    """The per-line rules. Commit messages get the local-path, crosswalk,
+    hidden and secret rules; a temporary path, an OWASP ID or a source: line in
+    a message is harmless (a message may well name /tmp/links.txt)."""
+    out = []
+    if not messages and TMP in line and SOURCE_LINE.match(line):
+        out.append(("tmp-source", rel, i, line.strip()))
+    for lp in LOCAL_PATHS:
+        if lp in line:
+            out.append(("local-path", rel, i, line.strip()))
+            break
+    if CROSSWALK in line:
+        out.append(("licensed-crosswalk", rel, i, line.strip()))
+    if not messages and OWASP_2025.search(line):
+        out.append(("owasp-2025-id", rel, i, line.strip()))
+    if not rel.startswith(HIDDEN_EXEMPT):
+        cleaned, removed = scrub(line.rstrip("\r"))
+        # U+2028 and U+2029 are separators (category Zl and Zp), not format
+        # characters, so scrub keeps them, but they break a line invisibly.
+        seps = sum(cleaned.count(c) for c in LINE_SEPARATORS)
+        cleaned = "".join(c for c in cleaned if c not in LINE_SEPARATORS)
+        removed += seps
+        if removed:
+            kept = set(cleaned)
+            names = sorted({f"U+{ord(c):04X}" for c in line.rstrip("\r") if c not in kept})
+            out.append(("hidden-char", rel, i, f"{removed} invisible or control character(s): {', '.join(names[:6])}"))
+    if not rel.startswith(SECRET_EXEMPT):
+        m = SECRET_SHAPES.search(line)
+        if m:
+            out.append(("secret-shaped", rel, i, f"a string shaped like a credential at column {m.start() + 1} "
+                                                 "(not printed)"))
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--root", default=".")
+    ap.add_argument("--messages", metavar="FILE", help="scan commit-message text from FILE (- for stdin) instead")
     args = ap.parse_args()
     root = Path(args.root)
     hits: list[tuple[str, str, int, str]] = []
     scanned = 0
 
+    if args.messages:
+        raw = sys.stdin.buffer.read() if args.messages == "-" else Path(args.messages).read_bytes()
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            print("FAIL undecodable commit-message text is not valid UTF-8")
+            return 1
+        for i, line in enumerate(text.split("\n"), 1):
+            hits += line_hits("commit messages", i, line, messages=True)
+        print(f"scanned {len(text.split(chr(10)))} commit-message lines")
+        for rule, rel, line, txt in hits:
+            print(f"FAIL {rule} {rel}:{line}: {txt[:160]}")
+        if not hits:
+            print("PASS no greppable exclusion found in the commit messages")
+        return 1 if hits else 0
+
     for p in iter_files(root):
         rel = p.relative_to(root).as_posix()
         try:
-            lines = p.read_text(encoding="utf-8").splitlines()
+            # split on newline only: str.splitlines also breaks on U+2028, U+0085
+            # and the like, which would hide them from the hidden-char rule
+            lines = p.read_text(encoding="utf-8").split("\n")
         except UnicodeDecodeError:
+            hits.append(("undecodable", rel, 0, "not valid UTF-8, so it was not scanned"))
             continue
         scanned += 1
         for i, line in enumerate(lines, 1):
-            if TMP in line and SOURCE_LINE.match(line):
-                hits.append(("tmp-source", rel, i, line.strip()))
-            for lp in LOCAL_PATHS:
-                if lp in line:
-                    hits.append(("local-path", rel, i, line.strip()))
-                    break
-            if CROSSWALK in line:
-                hits.append(("licensed-crosswalk", rel, i, line.strip()))
-            if OWASP_2025.search(line):
-                hits.append(("owasp-2025-id", rel, i, line.strip()))
+            hits += line_hits(rel, i, line)
 
     # the not-legal-advice sentence
     required = []

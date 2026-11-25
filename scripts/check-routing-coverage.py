@@ -20,9 +20,19 @@ depends on. The checks:
      the template excluded) is named by at least one routing row, lists only
      routing keys or special keys in applies-to-signals, and lists every key
      whose row routes to it.
-  7. The four Always Fetch docs are named in routing.yaml.
+  7. The Always Fetch docs are named in routing.yaml, and their count is the
+     one AUDIT-CONTEXT.md's "Always fetch these N" sentence states, with each
+     doc named there.
   8. AUDIT-CONTEXT.md's rendered routing section and Priority rubric ordering
      rule match routing.yaml (render-audit-context.py --check).
+  9. A doc whose status is not one the canonical template lists fails, rather
+     than being skipped as unshipped.
+ 10. Every escalation input has a source: an interview observation carries a
+     question, and every other source it names is a reducer shipped in
+     scripts/reducers/. A row collected by E is a key some shipped reducer
+     prints, or escalates on a count one prints.
+ 11. The small-org branch's families are surfaces and its asks are routing
+     keys.
 
 Docs a row names that are not written yet are counted and printed, and do not
 fail the run until --release is given, because the repo is built one doc at a
@@ -46,6 +56,26 @@ WEIGHTS = {"PROBLEM", "REVIEW", "INVENTORY"}
 METHODS = {"I", "E", "D"}
 SHIPPED = {"PRODUCTION", "EMERGING"}
 TEMPLATE = "analysis/CANONICAL-DOC-TEMPLATE.md"
+REDUCERS = Path(__file__).resolve().parent / "reducers"
+NUMBERS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8}
+
+
+def known_statuses(root: Path) -> set[str]:
+    """The status values the canonical template lists (its `status: A | B | ...` line)."""
+    t = root / TEMPLATE
+    m = re.search(r"^status: ([A-Z]+(?: \| [A-Z]+)+)", t.read_text(encoding="utf-8"), re.M) if t.is_file() else None
+    return set(m.group(1).split(" | ")) if m else SHIPPED
+
+
+def shipped_reducers() -> tuple[set[str], set[str]]:
+    """Reducer names (from each emit call) and the signal keys their SIGNALS sets allow."""
+    names, sigs = set(), set()
+    for f in sorted(REDUCERS.glob("*.py")) if REDUCERS.is_dir() else []:
+        src = f.read_text(encoding="utf-8")
+        names |= set(re.findall(r'emit\(\s*"([a-z0-9-]+)"', src))
+        for body in re.findall(r"^SIGNALS = \{(.*?)\}", src, re.M | re.S):
+            sigs |= set(re.findall(r'"([a-z0-9<>-]+)"', body))
+    return names, sigs
 
 
 def frontmatter(path: Path) -> dict | None:
@@ -160,11 +190,55 @@ def main() -> int:
             if not non_inv:
                 errors.append(f"{k}: enables no non-INVENTORY key")
 
-    if len(data.get("always-fetch") or []) != 4:
-        errors.append(f"always-fetch lists {len(data.get('always-fetch') or [])} docs, the design fixes four")
+    af = data.get("always-fetch") or []
+    try:
+        ac_text = (root / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
+    except OSError:
+        ac_text = ""
+    m = re.search(r"^Always fetch these (\w+)[^:]*:(.*)$", ac_text, re.M)
+    if not m:
+        errors.append("AUDIT-CONTEXT.md has no 'Always fetch these N' sentence to hold always-fetch to")
+    else:
+        stated = NUMBERS.get(m.group(1).lower(), int(m.group(1)) if m.group(1).isdigit() else None)
+        if stated != len(af):
+            errors.append(f"always-fetch lists {len(af)} docs but AUDIT-CONTEXT.md says 'Always fetch these {m.group(1)}'")
+        for d in af:
+            if f"`{d}`" not in m.group(2):
+                errors.append(f"always-fetch doc {d} is not named in AUDIT-CONTEXT.md's Always fetch sentence")
+
+    # escalation inputs and method E have something behind them
+    red_names, red_signals = shipped_reducers()
+    obs_meta = data.get("observations") or {}
+    for name, meta in obs_meta.items():
+        for src in [x.strip() for x in str((meta or {}).get("from", "")).split(",") if x.strip()]:
+            if src == "interview":
+                if not (meta or {}).get("question"):
+                    errors.append(f"observation '{name}' is from the interview but has no question")
+            elif src not in red_names:
+                errors.append(f"observation '{name}' names source '{src}', which is no reducer in scripts/reducers/")
+    for r in rows:
+        if "E" not in (r.get("method") or []):
+            continue
+        esc = (r.get("priority") or {}).get("escalate-if") or []
+        from_reducer = any(n in obs_meta and "interview" not in str(obs_meta[n].get("from", "")) for n in esc)
+        if r.get("key") not in red_signals and not from_reducer:
+            errors.append(f"{r.get('key')}: collected by E, but no shipped reducer prints it or a count it escalates on")
+
+    # the small-org branch names real surfaces and keys
+    so = (data.get("interview-branches") or {}).get("small-org") or {}
+    for f in so.get("families") or []:
+        if f"surface-{f}" not in keyset:
+            errors.append(f"interview-branches.small-org.families names '{f}', which is not a surface")
+    for k in so.get("asks") or []:
+        if k not in keyset:
+            errors.append(f"interview-branches.small-org.asks names '{k}', which is not a routing key")
+    for k in (data.get("interview-branches") or {}).get("first-questions") or []:
+        if k not in keyset:
+            errors.append(f"interview-branches.first-questions names '{k}', which is not a routing key")
 
     # docs on disk
     shipped, checked_docs = [], 0
+    statuses = known_statuses(root)
     for p in sorted((root / "analysis").rglob("*.md")) if (root / "analysis").is_dir() else []:
         rel = p.relative_to(root).as_posix()
         if rel == TEMPLATE:
@@ -172,6 +246,9 @@ def main() -> int:
         fm = frontmatter(p)
         if fm is None:
             errors.append(f"{rel}: no frontmatter")
+            continue
+        if fm.get("status") not in statuses:
+            errors.append(f"{rel}: status '{fm.get('status')}' is not one the canonical template lists {sorted(statuses)}")
             continue
         if fm.get("status") not in SHIPPED:
             continue

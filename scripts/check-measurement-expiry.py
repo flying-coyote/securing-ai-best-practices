@@ -68,7 +68,9 @@ class MeasurementExpiryChecker:
     def _check_pattern_file(self, pattern_file: Path, today):
         """Check a single pattern file for expired measurements."""
         try:
-            content = pattern_file.read_text()
+            # UTF-8 explicitly: the locale default is cp1252 on Windows and can be
+            # ASCII in a bare container, and either misreads or raises on these docs.
+            content = pattern_file.read_text(encoding="utf-8")
 
             # Extract YAML frontmatter
             frontmatter = self._extract_frontmatter(content)
@@ -82,8 +84,8 @@ class MeasurementExpiryChecker:
 
             claims = frontmatter["measurement-claims"]
             if not isinstance(claims, list):
-                print(f"   ⚠️  Invalid measurement-claims format in {pattern_file}")
-                return
+                # Upstream warned and returned, so a mistyped block counted as current.
+                raise ValueError("measurement-claims is not a list")
 
             # Check each claim
             for claim in claims:
@@ -109,7 +111,7 @@ class MeasurementExpiryChecker:
     def _check_claim(self, pattern_file: Path, claim: Dict, today):
         """Check a single measurement claim for expiry."""
         if not isinstance(claim, dict):
-            return
+            raise ValueError(f"a measurement claim is not a mapping: {str(claim)[:60]!r}")
 
         # Required fields
         claim_text = claim.get("claim", "Unknown claim")
@@ -118,8 +120,10 @@ class MeasurementExpiryChecker:
         revalidate_str = claim.get("revalidate")
 
         if not revalidate_str:
-            # No revalidate date, skip
-            return
+            # Upstream skipped an undated claim, which made leaving the date off
+            # the way to never expire. A claim with no `revalidate` (a date, or
+            # `never` for one that cannot be re-run) is an error.
+            raise ValueError(f"measurement claim has no revalidate date: {str(claim_text)[:60]!r}")
 
         # `revalidate: never` marks a measurement that CANNOT be re-run — the
         # measured artifact is gone, private, or was mutated by a later step.

@@ -79,6 +79,11 @@ DEFAULT_EXCLUDES = {".git", "node_modules", ".graphify-venv", "graphify-out",
                     ".understand-anything", ".venv"}
 
 MD_LINK = re.compile(r"\[[^\]]*\]\(\s*<?([^)>\s]+)")
+# A reference-style link definition: `[label]: target "optional title"`.
+# Footnote definitions (`[^1]: text`) are not links and are skipped.
+REF_DEF = re.compile(r"^ {0,3}\[(?!\^)[^\]]+\]:\s*<?([^\s>]+)>?", re.M)
+HEADING = re.compile(r"^ {0,3}#{1,6}\s+(.*?)\s*#*\s*$", re.M)
+HTML_ANCHOR = re.compile(r"""<a\s+[^>]*?(?:name|id)\s*=\s*["']([^"']+)["']""", re.I)
 AT_IMPORT = re.compile(r"(?:^|\s)@([A-Za-z0-9_./-]+\.md)\b")
 BACKTICK = re.compile(r"`([^`\n]+)`")
 # A bare path mentioned in prose: at least one slash or a .md suffix.
@@ -301,6 +306,36 @@ def classify_currency(text: str) -> str:
     return "absent"
 
 
+def github_slug(heading: str) -> str:
+    """The anchor GitHub generates for a heading: inline links reduced to their
+    text and emphasis markers dropped, lower-cased, punctuation other than
+    hyphens and in-word underscores removed, spaces turned into hyphens."""
+    h = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", heading)
+    h = h.replace("`", "").replace("*", "")
+    h = re.sub(r"(?<!\w)_+|_+(?!\w)", "", h)  # emphasis underscores; snake_case keeps its own
+    h = h.strip().lower()
+    h = re.sub(r"[^\w\- ]", "", h)
+    return h.replace(" ", "-")
+
+
+def anchors_of(text: str) -> set[str]:
+    """Every anchor a markdown file offers: heading slugs (with GitHub's -1, -2
+    suffixes for repeats) and explicit <a name/id> anchors. Headings inside
+    fenced code blocks are not headings."""
+    out: set[str] = set()
+    seen: dict[str, int] = {}
+    for h in HEADING.findall(FENCE.sub("", text)):
+        s = github_slug(h)
+        if s in seen:
+            seen[s] += 1
+            out.add(f"{s}-{seen[s]}")
+        else:
+            seen[s] = 0
+            out.add(s)
+    out |= set(HTML_ANCHOR.findall(text))
+    return out
+
+
 def report_links(root: Path, corpus: set[str]) -> int:
     """Classify every internal markdown link. Counts are reproducible.
 
@@ -311,8 +346,25 @@ def report_links(root: Path, corpus: set[str]) -> int:
       outside-repo   file:// or a path escaping the repo -- unresolvable to
                      any other reader
       placeholder    a template stand-in ({target}, path/to/file.md)
-      dangling       target exists nowhere
+      dangling       target exists nowhere, or it is a markdown file (this one,
+                     for a bare #anchor) with no heading or explicit anchor
+                     matching the link's #fragment
+
+    Inline links and reference-style definitions (`[label]: path`) are both
+    read; a fragment is compared case-insensitively against GitHub's heading
+    slugs.
     """
+    anchor_cache: dict[str, set[str]] = {}
+
+    def has_anchor(rel: str, frag: str) -> bool:
+        if rel not in anchor_cache:
+            try:
+                anchor_cache[rel] = {a.lower() for a in anchors_of(
+                    (root / rel).read_text(encoding="utf-8", errors="replace"))}
+            except OSError:
+                anchor_cache[rel] = set()
+        return frag.lower() in anchor_cache[rel]
+
     counts = {k: {"live": 0, "archive": 0}
               for k in ("resolves", "root-relative", "outside-repo",
                         "placeholder", "dangling")}
@@ -324,9 +376,21 @@ def report_links(root: Path, corpus: set[str]) -> int:
             text = strip_code((root / f).read_text(encoding="utf-8", errors="replace"))
         except OSError:
             continue
-        for raw in MD_LINK.findall(text):
-            tgt = raw.strip().strip("<>").split("#", 1)[0].split("?", 1)[0].strip()
-            if not tgt or tgt.startswith(("http://", "https://", "mailto:", "#")):
+        for raw in MD_LINK.findall(text) + REF_DEF.findall(text):
+            raw = raw.strip().strip("<>")
+            if raw.startswith(("http://", "https://", "mailto:")):
+                continue
+            frag = raw.split("#", 1)[1].strip() if "#" in raw else ""
+            tgt = raw.split("#", 1)[0].split("?", 1)[0].strip()
+            if not tgt:
+                if frag:  # a same-file anchor
+                    total += 1
+                    if has_anchor(f, frag):
+                        counts["resolves"][lane] += 1
+                    else:
+                        counts["dangling"][lane] += 1
+                        if lane == "live":
+                            dangling_live.append(f"{f}  ->  #{frag} (no such heading)")
                 continue
             total += 1
             cand = os.path.normpath(Path(f).parent / tgt).replace(os.sep, "/")
@@ -338,6 +402,11 @@ def report_links(root: Path, corpus: set[str]) -> int:
                 counts["outside-repo"][lane] += 1
                 continue
             if cand in corpus or (root / cand).exists():
+                if frag and cand.endswith(".md") and not has_anchor(cand, frag):
+                    counts["dangling"][lane] += 1
+                    if lane == "live":
+                        dangling_live.append(f"{f}  ->  {tgt}#{frag} (no such heading)")
+                    continue
                 counts["resolves"][lane] += 1
             elif PLACEHOLDER.search(tgt):
                 counts["placeholder"][lane] += 1

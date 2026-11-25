@@ -18,15 +18,24 @@
 # Optional: SECURING_AI_DENYLIST_WORDS=1 matches whole words only (grep -w),
 # which cuts false positives from short terms.
 #
-# Install (from the repo root):
+# Install (from the repo root), and copy again whenever this file changes:
 #   cp scripts/hooks/pre-push-employer-denylist.sh .git/hooks/pre-push
 #   chmod +x .git/hooks/pre-push
 #   export SECURING_AI_DENYLIST="$HOME/.config/securing-ai/denylist.txt"
+# A symlink would never go stale, but it would run whatever the checked-out
+# branch carries, so a branch could disable the check for its own push.
 #
 # Modes:
 #   As a git pre-push hook: reads "<local ref> <local sha> <remote ref> <remote sha>"
-#     lines on stdin and scans, for each pushed range, the commit messages and
-#     every added line of the diff (including file paths).
+#     lines on stdin and scans, for each pushed range: the commit messages and
+#     the author and committer names and emails; the local and remote ref names;
+#     an annotated tag's own message; every added line of the diff (file paths
+#     included); the new path of every added, copied, modified or renamed file,
+#     so a pure rename or a binary file is still checked by name; and the
+#     contents of every added or modified binary file (a NUL byte in its first
+#     8000 bytes, git's own test), which a diff shows as no added line at all.
+#     Matching treats every input as text (grep -a), so a non-UTF-8 or binary
+#     byte beside a term cannot hide it.
 #   --scan-paths FILE...: scans the named files directly, with no git involved.
 #     Useful to test a denylist, or to check a draft before committing it.
 #
@@ -54,11 +63,14 @@ denylist="${SECURING_AI_DENYLIST:-}"
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 terms="$tmpdir/terms"
-# Strip comments, surrounding whitespace and blank lines.
-sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^#/d' -e '/^$/d' "$denylist" > "$terms"
+# Strip a UTF-8 byte-order mark from the first line (an editor on Windows adds
+# one, and it would glue itself to the first term), then comments, surrounding
+# whitespace (a CR from CRLF line ends included) and blank lines.
+bom="$(printf '\357\273\277')"
+sed -e "1s/^${bom}//" -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^#/d' -e '/^$/d' "$denylist" > "$terms"
 [[ -s "$terms" ]] || die_setup "denylist file '$denylist' holds no terms."
 
-grep_opts=(-i -F -o -f "$terms")
+grep_opts=(-a -i -F -o -f "$terms")
 if [[ "${SECURING_AI_DENYLIST_WORDS:-0}" == "1" ]]; then
   grep_opts=(-w "${grep_opts[@]}")
 fi
@@ -99,10 +111,35 @@ else
     fi
     msgs="$tmpdir/msgs"
     added="$tmpdir/added"
-    git log --format='%B' "${range[@]}" > "$msgs"
-    git log -p --no-color --format='' "${range[@]}" | grep '^+' > "$added" || true
-    report "commit messages for $remote_ref" "$msgs"
+    paths="$tmpdir/paths"
+    refs="$tmpdir/refs"
+    blobs="$tmpdir/blobs"
+    printf '%s\n%s\n' "$local_ref" "$remote_ref" > "$refs"
+    git log --format='%an%n%ae%n%cn%n%ce%n%B' "${range[@]}" > "$msgs"
+    if [[ "$(git cat-file -t "$local_sha")" == "tag" ]]; then
+      git cat-file tag "$local_sha" >> "$msgs"
+    fi
+    git log -p --no-color --format='' "${range[@]}" | grep -a '^+' > "$added" || true
+    git log --format='' --name-only -M --diff-filter=ACMR "${range[@]}" > "$paths"
+    : > "$blobs"
+    git log --format='' --raw --no-abbrev --no-renames --diff-filter=AM "${range[@]}" \
+      | awk '{print $4}' | sort -u | while read -r blob; do
+          [[ -n "$blob" ]] || continue
+          # Written to a file first: piping a large blob into head would end
+          # git with SIGPIPE, which pipefail turns into a failed hook.
+          git cat-file blob "$blob" > "$tmpdir/blob"
+          head8k="$(head -c 8000 "$tmpdir/blob" | wc -c)"
+          nonul="$(head -c 8000 "$tmpdir/blob" | tr -d '\000' | wc -c)"
+          if [[ "$head8k" -ne "$nonul" ]]; then
+            cat "$tmpdir/blob" >> "$blobs"
+            printf '\n' >> "$blobs"
+          fi
+        done
+    report "commit messages, authors and committers for $remote_ref" "$msgs"
+    report "ref names for $remote_ref" "$refs"
     report "added lines for $remote_ref" "$added"
+    report "file paths for $remote_ref" "$paths"
+    report "binary file contents for $remote_ref" "$blobs"
   done
 fi
 

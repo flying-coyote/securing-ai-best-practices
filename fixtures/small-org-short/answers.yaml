@@ -1,0 +1,47 @@
+# Synthetic fixture: a 150-person design and software studio, no sector
+# regulator, one person part-time on security. It rents what the rent-or-own
+# default names for its size: the office-suite assistant, AI features in SaaS
+# it pays for, coding agents, and one managed model platform in its cloud.
+# Nothing here describes a real organization.
+#
+# What this fixture exercises: the small-org branch as the interview runs it,
+# answering only the questions that branch asks (the two first questions, the
+# eight surface questions in interview-branches.small-org.families, and the
+# rows in its asks list that those answers make eligible), so route.py's
+# questions-asked is the measured length of a small-org interview; the
+# rent-or-own answer standing for the three owned surfaces (implies-no);
+# every other eligible row and surface offered as one anything-else question
+# and listed under not-asked rather than as packets; a pattern key answered
+# per platform; a believed answer that keeps its band and gains a confirm
+# deadline; an unsure answer becoming a packet; and no reducer output
+# (questionnaire-only).
+answers-block: 1
+interview-branch: small-org
+overrides: []
+signals:
+  # the two first questions
+  org-size-small-mid: {value: true, confidence: owner-stated}
+  profile-rent-heavy: {value: true, confidence: owner-stated}
+  # the eight small-org surface questions
+  surface-S1: {value: true, confidence: owner-stated}
+  surface-S2: {value: true, confidence: owner-stated}
+  surface-S3: {value: false, confidence: owner-stated}
+  surface-S4: {value: true, confidence: owner-stated}
+  surface-S6: {value: false, confidence: owner-stated}
+  surface-S7: {value: true, confidence: owner-stated}
+  surface-S8: {value: false, confidence: owner-stated}
+  surface-S10: {value: false, confidence: owner-stated}
+  # the asks those surfaces make eligible
+  saas-ai-toggles-unreviewed: {value: true, confidence: owner-stated}
+  oauth-grants-unreviewed: {value: false, confidence: owner-stated}
+  grounding-permissions-unreviewed: {value: true, confidence: owner-stated}
+  plan-tier-below-audit: {value: unsure, confidence: believed}
+  audit-log-off-office-suite-assistant: {value: false, confidence: owner-stated}
+  audit-log-off-coding-agent: {value: true, confidence: owner-stated}
+  audit-log-off-managed-model-platform: {value: true, confidence: believed}
+  coding-agent-managed-tier-absent: {value: true, confidence: owner-stated}
+  agent-static-secrets: {value: true, confidence: believed}
+  ai-gateway-absent: {value: true, confidence: owner-stated}
+  agent-publish-approval-absent: {value: false, confidence: owner-stated}
+  ai-aup-absent: {value: false, confidence: owner-stated}
+  agent-kill-switch-absent: {value: true, confidence: owner-stated}

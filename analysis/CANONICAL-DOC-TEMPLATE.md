@@ -36,6 +36,7 @@ measurement-claims:                           # optional; re-runnable claims onl
     source: "sdw-lab-benchmarks@<commit> <run folder>/RESULTS.md"
     date: YYYY-MM-DD
     revalidate: YYYY-MM-DD                    # or: never, with a one-line reason below
+    replication: none | partial | same-host | independent
 ---
 ```
 
@@ -51,6 +52,7 @@ measurement-claims:                           # optional; re-runnable claims onl
 | `status` | `PRODUCTION` validated and active; `EMERGING` not yet validated or carrying a declared gap; `RETIRING` deferring to a cleared replacement; `RETIRED` tombstone; `REFERENCE` imported reference; `ARCHIVED` superseded. |
 | `follows`, `replacement-by` | The two absorption lanes (see `CONTRIBUTING.md` and `ABSORPTION-MAP.md`). |
 | `measurement-claims` | Dated quantitative claims something can re-run, each pinned to a commit, release or dated primary. A frozen claim takes `revalidate: never` with a one-line reason in the notes. Judgements, perspectives and models with stated assumptions do not go here; they carry a dated prose marker and, where they are repo-level, a pointer to `DECISIONS.md`. |
+| `replication` | Per measurement claim, how far the result has been reproduced: `none` (one run, not re-run), `partial` (a verifier re-ran some of it), `same-host` (re-run in full on the same host or set-up) or `independent` (re-run by someone else on other hardware). Only `independent` speaks to the lab-placement gap in `evidence-tiers.md`; the tier stays B either way. |
 
 ## Size budget
 
@@ -108,4 +110,4 @@ Cite at the point of the claim, with the tier: "(Tier A, GDPR Article 35)", "(Ti
 
 ## Gaps
 
-- **Gap: size budget**. The word limits above are a starting estimate, not a measurement. **Needs**: a full review's context use measured on each of the three fixtures, in at least two agents.
+- **Gap: size budget**. The word limits above are a starting estimate, not a measurement. **Needs**: a full review's context use measured on each of the four fixtures, in at least two agents.

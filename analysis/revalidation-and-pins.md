@@ -7,7 +7,7 @@ pins:
   - "MITRE ATLAS v2026.10"
   - "MITRE ATT&CK Enterprise v20.1"
   - "MITRE D3FEND 1.6.0"
-  - "OCSF 1.9.0"
+  - "OCSF 1.10.0"
   - "MCP specification 2026-07-28"
   - "CoSAI secure-ai-tooling 622605a1"
   - "NIST CSF 2.0"
@@ -31,14 +31,17 @@ measurement-claims:
     source: "atlas-d3fend-crosswalk@66b7726 VERSION-DIFF-2026-11.md §1 (re-derivable with scripts/01_diff_atlas_releases.py over the stix-atlas.json release assets)"
     date: 2026-11-02
     revalidate: never
+    replication: none
   - claim: "Moving the MCP Python SDK from 1.30.0 to 2.3.0 on the same protocol revision added OTel spans (0 to 11 client and 12 server), moved a raising tool's failure cause from the client's text to server stderr and dropped the per-request stderr line (10 to 0), while moving from revision 2025-11-25 to 2026-07-28 on the same SDK removed the initialize handshake and the Mcp-Session-Id header and added the Mcp-Method header (11 of 11 POSTs) and per-request _meta; one fixture server, single host under contention, pre-registration frozen by agent and not reviewed by the maintainer, VERIFIED-WITH-FIXES"
     source: "sdw-lab-benchmarks@91e44df t8a-mcp-before-after/RESULTS.md:44-46, :51-62"
     date: 2026-11-10
     revalidate: 2027-04-10
+    replication: same-host
   - claim: "CISA KEV catalogVersion 2026.11.09 (1,773 entries) lists, among entries added during 2026, three BerriAI LiteLLM entries (2026-05-08, 2026-06-08, 2026-09-02), one MLflow entry (2026-08-19), one Ray entry (2026-08-17), five Langflow entries (a sixth dates from 2025-05-05) and one n8n entry, and no entry for vLLM or Ollama"
     source: "CISA KEV kev.json catalogVersion 2026.11.09, released 2026-11-09T19:54Z"
     date: 2026-11-09
     revalidate: 2027-01-10
+    replication: none
 ---
 
 # Revalidation and pins: what reopens a decision
@@ -47,7 +50,7 @@ Evidence tier: Mixed. The release records, STIX diffs, statute dates and catalog
 
 ## Summary for the review
 
-A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12.1; pins last verified 2026-11-10. If the review date is past 2027-02-10, print that these pins are unverified since then.
+A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12.1; pins last verified 2026-11-10. If the review date is past 2027-01-19, print that these pins are unverified since then.
 
 - Print the release tag from `RELEASES.md`, the pins list and the last-verified date in the "Staleness and open revalidation triggers" section of every output. Effort S. Tier D.
 - Record the framework version on every mapping row, rule tag and coverage record that cites an ATLAS, ATT&CK, OWASP or CoSAI ID, because ATLAS removed eight technique IDs in four releases without tombstones. Effort S. Tier A for the removal, B for the practice.
@@ -72,7 +75,7 @@ Checked 2026-11-09 and 2026-11-10, and 2026-11-17 for the NIST AI 600-1 and AI 1
 | MITRE ATLAS | v2026.10, data format 6.1.0, YAML sha256 prefix `ac41ee9f` | 2026-10-28 | `frameworks-and-what-they-reach.md`; every ATLAS ID in a routing row's reason | atlas-data releases | 2026-11-09 |
 | MITRE ATT&CK Enterprise | v20.1 (collection modified 2026-11-05, attack-stix-data commit `f59b03e`) | v20.0 on 2026-10-13 | overlap claims in `frameworks-and-what-they-reach.md`; the injection and exfiltration rows of `agent-identity-and-delegation.md` | attack-stix-data | 2026-11-09 |
 | MITRE D3FEND | 1.6.0 (tag `91629ab`) | 2026-08-31 | defence mappings in `frameworks-and-what-they-reach.md` | d3fend-ontology releases | 2026-11-09 |
-| OCSF | 1.9.0 | 2026-08-03 | `landing-ai-events-in-ocsf.md`; the landing section of `coding-agent-hooks-and-policy.md`; `tamper-evident-record.md` | ocsf-schema releases and #1754 | 2026-11-09 |
+| OCSF | 1.10.0 (release tag `1.10`, commit `2d20903`) | 2026-11-20 | `landing-ai-events-in-ocsf.md`; `tamper-evident-record.md`; `mcp-servers-and-manifest-drift.md`; the `delegation` table in `agent-identity-and-delegation.md`; documents still pinned to 1.9.0 are behind and due a re-read | ocsf-schema releases and #1754 | 2026-11-24 |
 | MCP specification | revision 2026-07-28 | 2026-07-28 | `mcp-servers-and-manifest-drift.md`; `landing-ai-events-in-ocsf.md` | specification changelog | 2026-11-09 |
 | CoSAI secure-ai-tooling risk map | `main` at `622605a1`, 42 components | 2026-10-21 | `surface-ownability.md`; every CoSAI component ID in the repo | the repository's `main` | 2026-11-09 |
 | NIST CSF | 2.0 | February 2024 | the CSF column in `frameworks-and-what-they-reach.md` | CSRC | 2026-11-09 |
@@ -97,7 +100,7 @@ ATT&CK handles the same situation with tombstones, which is the contrast that sh
 
 MCP is the case where one pin is not enough. In a lab run against one fixture server, moving the official Python SDK from 1.30.0 to 2.3.0 while keeping the older 2025-11-25 revision added OpenTelemetry spans (from 0 to 11 client and 12 server spans), moved a raising tool's failure cause from the text the client sees to the server's stderr, and dropped the per-request stderr line (from 10 lines to 0), while moving from 2025-11-25 to 2026-07-28 on the same SDK removed the `initialize` handshake and the `Mcp-Session-Id` header and added the `Mcp-Method` routing header on 11 of 11 POSTs and per-request `_meta` (Tier B, sdw-lab-benchmarks@91e44df `t8a-mcp-before-after/RESULTS.md:44-46, :51-62`; one host under contention, so no latency claim, a pre-registration frozen by the agent and not reviewed by the maintainer, verdict VERIFIED-WITH-FIXES). A team that upgrades the SDK but pins the old revision gets the first set of changes and not the second, which is why the repo asks for both values and why `mcp-spec-pre-2026-07` routes to the MCP documents rather than here.
 
-OCSF, CoSAI and the OWASP lists change less often but in ways that rename what a control points at. OCSF 1.9.0 is pinned; the AI Agent Activity class draft (#1754) is not in a release, and an OCSF release that carries it, or that adds a weights digest to `ai_model`, reopens the landing guidance. CoSAI's component list is the canon every surface row in this repo is keyed to, so a commit past `622605a1` that renames or splits a component reopens `surface-ownability.md` before anything else. OWASP published a 2026 edition of the LLM Top 10 on 2026-08-03, so any control text keyed to an LLM0x:2025 ID needs re-mapping, and I have not read a published crosswalk between the two editions, which is listed as a gap below.
+OCSF, CoSAI and the OWASP lists change less often but in ways that rename what a control points at. OCSF 1.10.0 is pinned since its release on 2026-11-20, which added the `ai_capability` and `ai_status` objects and the `delegation` scopes, audience and expiry that earlier documents described as main-only; the AI Agent Activity class draft (#1754) is still not in a release, and an OCSF release that carries it, or that adds a weights digest to `ai_model`, reopens the landing guidance. CoSAI's component list is the canon every surface row in this repo is keyed to, so a commit past `622605a1` that renames or splits a component reopens `surface-ownability.md` before anything else. OWASP published a 2026 edition of the LLM Top 10 on 2026-08-03, so any control text keyed to an LLM0x:2025 ID needs re-mapping, and I have not read a published crosswalk between the two editions, which is listed as a gap below.
 
 The NIST rows pin three different things, and only one of them is an absence. The SP 800-53 overlay row pins "none published", because the project, renamed on 2026-10-20 from COSAiS to Control Overlays for Super Intelligence Systems (COSIS), has put out only a concept paper and an annotated outline (Tier A, CSRC). The IR 8596 row pins a draft, the initial preliminary draft of 2025-12-16, and the AI RMF row pins a final publication, 1.0 of January 2023, which nist.gov says "is being revised" with no draft of the revision out (Tier A, CSRC and nist.gov). So I would not spend on a mapping to the overlays until a public draft exists, and the repo will not write an overlay explainer before then, while a mapping to IR 8596 is a mapping to a draft that has to be redone when the next one lands, and a mapping to AI RMF 1.0 is a mapping to a final text that the revision will reopen (Tier D for the advice). The AI 600-1 (July 2024) and adversarial machine learning taxonomy AI 100-2 E2025 (final 2025-03-24) rows, like CSF 2.0 and AI RMF 1.0, pin final publications, and the second already has a successor in draft, NIST SP 2400-102 E2026, published as an initial public draft on 2026-11-09 with comments due 2026-12-18, which CSRC says "builds on the historical NIST AI 100-2 series" (Tier A, CSRC, read 2026-11-17), so the pin stays on the final edition until the draft is final.
 
@@ -150,8 +153,10 @@ Pinning is also not a substitute for reading. The pins say which version the rep
 ## Notes
 
 - 2026-11-24: an outside review counted 24 of the 31 documents' `revalidate-by` dates inside the five weeks from 2027-02-10 to 2027-03-17, which is the clustering Decision 11 names as the thing that would prove the stagger wrong, so the dates were spread again across January to June 2027 with five in each month and six in May. The nine documents that pin ATLAS sit at three months or sooner (five between 2027-01-12 and 2027-01-29, four between 2027-02-03 and 2027-02-10), and the January dates are under the three-month floor in Decision 11 on purpose, since nine documents cannot share one week and earlier is the safer direction for a framework that ships monthly. The other twenty-two run from late February to late June, vendor-default documents first and the ones resting on standards and literature last. Per-claim `revalidate` dates in `measurement-claims` were not moved.
+- 2026-11-24: the OCSF pin moved from 1.9.0 to 1.10.0 after the 2026-11-20 release; `check-pins.py` now counts the documents still pinned to 1.9.0 as behind, which is intended, because their claims were read against 1.9.0 and each is a revalidation task rather than an error.
 - The ATLAS release diff takes `revalidate: never` because it compares two frozen, tagged releases; re-running it on the same assets gives the same counts, and the next release gets its own row rather than an update to this one.
-- KEV sits in the pin list so `RELEASES.md` can record which snapshot a release read. Because the catalogue changes several times a week, the newest-known versions file passed to `check-pins.py --current` should not list KEV, or this document would fail between weekly reviews; the weekly review bumps the KEV pin by hand.
+- KEV sits in the pin list so `RELEASES.md` can record which snapshot a release read. Because the catalogue changes several times a week, the newest-known versions file passed to `check-pins.py --current` should not list KEV, or this document would fail between weekly reviews; the weekly review bumps the KEV pin by hand, in every document that pins it and in the same commit, after re-checking the entries those documents cite against the new catalogue version. `last-verified` follows the same logic: it moves when a document's sources are re-read, and an edit that changes a claim without re-reading the rest leaves it where it is and says in the document's Notes what changed and on what date, so the field never claims a verification that did not happen.
+- The `replication` values on the measurement claims: the lab row is `same-host` because the run's verifier re-ran all of its cells on the original host (`t8a-mcp-before-after/VERIFICATION.md`); the ATLAS diff and the KEV row are `none` because they are reads of published data, which anyone can repeat but nobody else has.
 - ATT&CK's site dates v19.x from 28 April 2026, while the v19.2 STIX tag was cut 2026-08-05; both are right for what they describe, and the pin uses the STIX collection's own version (Tier A).
 - The ISO/IEC 42001 row rests on a national standards body's catalogue page because iso.org returned 403; treat the "text unchanged" statement as Tier C until read at the primary.
 - The vendor retention windows referenced in the dated table live as default-state rows with their own `last-checked` dates in `telemetry-by-surface.md`, not here, so this document carries no vendor default.
@@ -165,7 +170,7 @@ Tier A
 - MITRE ATLAS data releases, v2026.06 to v2026.10, https://github.com/mitre-atlas/atlas-data/releases (v2026.10 released 2026-10-28; `ATLAS-2026.10.yaml` and `stix-atlas.json` read 2026-11-02 and 2026-11-10).
 - MITRE ATT&CK STIX data, https://github.com/mitre-attack/attack-stix-data (v20.0 2026-10-13; v20.1 collection modified 2026-11-05, commit `f59b03e`), and https://attack.mitre.org/resources/versions/ (read 2026-11-02).
 - MITRE D3FEND ontology, https://github.com/d3fend/d3fend-ontology (release 1.6.0, tag `91629ab`; `develop` read 2026-11-02 and 2026-11-05).
-- OCSF schema, https://github.com/ocsf/ocsf-schema (1.9.0, 2026-08-03; #1754 read 2026-11-09).
+- OCSF schema, https://github.com/ocsf/ocsf-schema (1.9.0, 2026-08-03; #1754 read 2026-11-09). Release 1.10.0, https://github.com/ocsf/ocsf-schema/releases/tag/1.10, published 2026-11-20 at commit `2d20903`, release notes read 2026-11-24; the `v1.10.0` tag points at the next commit, `9695d9b`, a post-release version bump to 1.11.0-dev with no schema change, so the pin names `2d20903`; #1754 still open and draft at `08d6f53` on 2026-11-24.
 - Model Context Protocol specification, revision 2026-07-28, https://modelcontextprotocol.io/specification/2026-07-28 (read 2026-11-09).
 - CoSAI secure-ai-tooling, https://github.com/cosai-oasis/secure-ai-tooling (`risk-map/yaml/components.yaml` at `622605a1`, 2026-10-21; head re-checked 2026-11-09).
 - NIST CSF 2.0 and quick-start guides, https://csrc.nist.gov/news/2026/two-new-csf-2-0-quick-start-guides (read 2026-11-09).

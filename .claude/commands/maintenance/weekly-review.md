@@ -2,7 +2,7 @@
 
 Run the weekly mechanical review of this repository. The prompt is standalone, so run it in a fresh session with the working directory at the repo root, and everything it needs is either in this file or derivable from disk. Derive every count and date from disk on each run rather than trusting what a document says about itself, because the README's count line and the root-doc currency markers are exactly the claims this review exists to check.
 
-This review is mechanical. Judgement work (re-reading absorbers, reading upstream release notes, re-checking the default-state table) belongs to the quarterly sweep, which writes a dated file under `scans/` named `scans/SCAN-YYYY-MM-DD.md`, and this review only reports how many days have passed since the newest one. Adapted from the weekly review in claude-code-project-best-practices (MIT).
+This review is mechanical. Judgement work (re-reading absorbers, reading upstream release notes, re-checking the default-state table) belongs to the quarterly sweep, which writes a dated file under `scans/` named `scans/SCAN-YYYY-MM-DD.md`, and this review only reports how many days have passed since the newest one. Each run of this review appends its self-test line to `scans/weekly-review-log.md` and commits it (steps 14 and 15), so whether the review has been running is answered by that file's history rather than by anyone's memory. The review never fetches `scans/`, and nothing in the release bundle reads it. Adapted from the weekly review in claude-code-project-best-practices (MIT).
 
 Every step writes its scratch output into one temporary directory, so start with:
 
@@ -126,7 +126,7 @@ WR=$(mktemp -d)
 
    `map_rows` should equal `routable + stubs`, one row per routable document and per stub; every document carrying `follows:` needs a `follow`-lane row and every `replacement-by:` document a `retire-toward`-lane row, which is worth spot-checking by name and not only by count; and `lane_conflicts` must be 0, because the two fields are mutually exclusive. The `none yet` test comes first because that line can say no sweep has run while still carrying the date of the map's initial fill, which is not a sweep date, and the `head -1` matters because a line carrying two dates would otherwise produce a two-line value that parses as no date and silently disables the age check. If `map_verified` is more than 100 days old, or is `none` once the repository is more than 100 days old (see step 12 for the first-commit date), add an absorption sweep to next week's priorities. The map is derived, so on any conflict the per-document frontmatter wins and the map is corrected to match it.
 
-9. Internal links and reachability. This repo has no `CLAUDE.md`, and its front door is the README, so reachability is measured from the E3 entry tier.
+9. Internal links and reachability. The repo's `CLAUDE.md` holds instructions for coding agents working on the repo and links to little, and the human front door is the README, so reachability is measured from the E3 entry tier, which takes in `CLAUDE.md`, `.claude/commands/` and the README together.
 
    ```bash
    python3 scripts/measure-link-reachability.py --links > "$WR/links.txt"
@@ -157,11 +157,12 @@ WR=$(mktemp -d)
 
     The template's `**Gap:** ... **Needs**:` convention is how a document says what it does not know, and this step exists so those declarations get read somewhere other than inside the document that makes them. A rising count is not a defect, because declaring a gap and leaving it open is an honest outcome and a target here would reward deleting declarations over closing them. Read the list, decide whether any gap became closable this week (a new release, a lab result landing, a published crosswalk), and carry those into next week's priorities.
 
-11. Root-doc currency markers, compared against git.
+11. Root-file currency, compared against git and against the release record.
 
     ```bash
     stale_markers=0
-    for f in DECISIONS.md AUDIT-CONTEXT.md SOURCES.md CONTRIBUTING.md README.md RELEASES.md; do
+    for f in $(git ls-files --full-name -- ':(top,glob)*' | grep -v '/'); do
+      [ "$f" = "ABSORPTION-MAP.md" ] && continue
       [ -f "$f" ] || continue
       oldest=$(grep -oiE '^[*_ ]*\*{0,2}last (updated|curated)[^0-9]{0,6}(([0-9]{4}-[0-9]{2}-[0-9]{2})|([A-Z][a-z]+ [0-9]{1,2}, [0-9]{4}))' "$f" \
                | grep -oE '([0-9]{4}-[0-9]{2}-[0-9]{2})|([A-Z][a-z]+ [0-9]{1,2}, [0-9]{4})' \
@@ -173,9 +174,16 @@ WR=$(mktemp -d)
         stale_markers=$((stale_markers + 1))
       fi
     done
+    # CITATION.cff carries a release rather than a currency date, so it is compared with the newest RELEASES.md row
+    read rel_tag rel_date rel_sha <<<"$(grep -m1 -E '^\| v[0-9]{4}\.[0-9]{2}' RELEASES.md | awk -F'|' '{gsub(/[ `]/,"",$2); gsub(/[ `]/,"",$3); gsub(/[ `]/,"",$4); print $2, $3, $4}')"
+    cff="$(grep -E '^(version|commit|date-released):' CITATION.cff | tr -d '"' | awk '{print $2}' | paste -sd' ')"
+    if [ "$cff" != "$rel_tag $rel_sha $rel_date" ]; then
+      echo "STALE MARKER  CITATION.cff  says '$cff', newest release is '$rel_tag $rel_sha $rel_date'"
+      stale_markers=$((stale_markers + 1))
+    fi
     ```
 
-    `stale_markers` must be 0, because a currency marker that a content edit did not update certifies a freshness the file no longer has. The loop takes the oldest marker in each file rather than the newest, so a fresh header beside a stale footer is still caught, and it anchors the match to the start of a line, so prose that quotes a marker is not read as one. A file with no marker is fine. `ABSORPTION-MAP.md` is left out on purpose, since its date records a sweep rather than an edit and step 8 checks it against the right threshold. The AUDIT-CONTEXT release header is stamped by the release script and is not a currency marker.
+    `stale_markers` must be 0, because a currency marker that a content edit did not update certifies a freshness the file no longer has. The loop reads every tracked file at the repo root, so a root file added later is covered without editing this step, takes the oldest marker in each file rather than the newest, so a fresh header beside a stale footer is still caught, and anchors the match to the start of a line, so prose that quotes a marker is not read as one. A file with no marker is fine, and today only `SOURCES.md` carries one. `ABSORPTION-MAP.md` is left out on purpose, since its date records a sweep rather than an edit and step 8 checks it against the right threshold. The AUDIT-CONTEXT release header is stamped by the release script and is not a currency marker. `CITATION.cff` is checked against the release record instead of git, because its `version`, `commit` and `date-released` must name the newest release in `RELEASES.md`, and a citation that names an older one sends a reader to the wrong commit.
 
 12. Repository settings, stale branches and the quarterly sweep.
 
@@ -214,24 +222,32 @@ WR=$(mktemp -d)
 
     `scan_days` over 92 forces `DRIFT`. When no scan file exists yet, `scan_days` prints `none`, and that forces `DRIFT` only once `repo_days` passes 92, so a new repository is not flagged for a sweep it could not yet have run.
 
-13. Identify blockers and set next week's priorities. List anything steps 2 to 12 flagged that this pass did not fix, any document waiting on a source or a lab result, and any declared gap from step 10 that became closable. This repo keeps no plan file, so the priorities go into the session's hand-off summary, and every `DRIFT` item must appear there.
+13. Identify blockers and set next week's priorities. List anything steps 2 to 12 flagged that this pass did not fix, any document waiting on a source or a lab result, and any declared gap from step 10 that became closable. This repo keeps no plan file, so the priorities go into the session's hand-off summary and, for every `DRIFT` item, into the log entry step 14 writes.
 
-14. Print the self-test line. The run ends by printing exactly one line in this shape, with every value derived during this run.
+14. Print the self-test line and append it to the log. The run prints exactly one line in this shape, with every value derived during this run, and appends it, dated, to `scans/weekly-review-log.md`, followed by one indented line per `DRIFT` item from step 13.
 
     ```bash
-    echo "WEEKLY-REVIEW SELF-TEST: routable=$routable always-fetch=$always stubs=$stubs signals=$signals readme-match=<yes|no> routing=$routing fixtures=$fixtures exclusions=$exclusions prompt-blocks=$blocks reducers=$reducers expired-claims=$expired unreadable-claims=$unreadable pins-doc=$pins_doc pins-behind=$pins_behind sources-curated=$curated convergence-fields=$conv_present/$((routable + stubs)) absorption-rows=$map_rows/$((routable + stubs)) follows=$follows_docs lane-conflicts=$lane_conflicts map-verified=$map_verified dangling-live=$dangling_live wrong-status=$wrong_status guidance=$guidance instrument=$instrument declared-gaps=$declared_gaps stale-markers=$stale_markers protected=$protected required=$required force-push=$force_push delete-on-merge=$del_on_merge squash-only=$squash/$merge_commit/$rebase stale-branches=$stale_branches days-since-quarterly-scan=$scan_days => <OK|DRIFT>"
+    line="WEEKLY-REVIEW SELF-TEST: routable=$routable always-fetch=$always stubs=$stubs signals=$signals readme-match=<yes|no> routing=$routing fixtures=$fixtures exclusions=$exclusions prompt-blocks=$blocks reducers=$reducers expired-claims=$expired unreadable-claims=$unreadable pins-doc=$pins_doc pins-behind=$pins_behind sources-curated=$curated convergence-fields=$conv_present/$((routable + stubs)) absorption-rows=$map_rows/$((routable + stubs)) follows=$follows_docs lane-conflicts=$lane_conflicts map-verified=$map_verified dangling-live=$dangling_live wrong-status=$wrong_status guidance=$guidance instrument=$instrument declared-gaps=$declared_gaps stale-markers=$stale_markers protected=$protected required=$required force-push=$force_push delete-on-merge=$del_on_merge squash-only=$squash/$merge_commit/$rebase stale-branches=$stale_branches days-since-quarterly-scan=$scan_days => <OK|DRIFT>"
+    echo "$line"
+    case "$line" in
+      *"<"*|*"=>  "*|*"= "*) echo "REFUSED: the line still carries a placeholder or an empty value; nothing appended" ;;
+      *) printf -- '- %s %s\n' "$(date +%F)" "$line" >> scans/weekly-review-log.md ;;
+    esac
+    # then, on DRIFT, one line per item: printf -- '  - %s\n' "<item>" >> scans/weekly-review-log.md
     ```
+
+    Replace `<yes|no>` and `<OK|DRIFT>` with this run's values first; the `case` refuses to append a line that still carries a `<` placeholder or a value left empty because its variable was never set. The log is append-only: never edit or delete an earlier entry, and a week with no entry is a week the review did not run, which next week's run says in its own entry.
 
     `OK` means every comparison above matched and nothing is overdue. Any of the following makes it `DRIFT`, and each drifted check must already be in step 13's priorities: a README mismatch; a failing routing, fixture, exclusion, prompt-block, reducer or pins-doc check; a non-zero expired or unreadable claim count; SOURCES curated more than 45 days ago; a missing convergence field; absorption rows short of `routable + stubs`, a non-zero `lane_conflicts`, or an overdue sweep date; a non-zero `dangling-live` or `wrong-status`, a `guidance` figure that is not `n/n`, or `instrument=BROKEN`; a non-zero `stale-markers`; any repository setting off its expected value; a non-zero `stale-branches`; or the quarterly scan overdue as step 12 defines it. `pins-behind` and `declared-gaps` are reported and never gated, for the reasons in steps 5 and 10. If the line cannot be printed with real values, the review did not run its checks, and saying it did is the failure this line exists to prevent.
 
-15. Commit, if the review changed anything. Only the files this review edits, by explicit path: `README.md` (the count line), `ABSORPTION-MAP.md` (a correction to match frontmatter), `analysis/revalidation-and-pins.md` (the KEV pin) and any document whose convergence value was set back. Use one branch for the review and merge it through a pull request, since `main` is protected.
+15. Commit, every run, since step 14 always changes the log. Only the files this review edits, by explicit path: `scans/weekly-review-log.md` (always), `README.md` (the count line), `ABSORPTION-MAP.md` (a correction to match frontmatter), `analysis/revalidation-and-pins.md` (the KEV pin) and any document whose convergence value was set back. Use one branch for the review and merge it through a pull request, since `main` is protected.
 
     ```bash
     git switch -c "weekly-review-$(date +%F)"
-    git add README.md ABSORPTION-MAP.md analysis/revalidation-and-pins.md   # only those that changed
+    git add scans/weekly-review-log.md README.md ABSORPTION-MAP.md analysis/revalidation-and-pins.md   # the log always, the rest only if changed
     git commit -m "Weekly review $(date +%F)"
     ```
 
 ## Expected outcome
 
-The README count line matches what is on disk; the deterministic checks the required CI job runs pass on the default branch; no measurement claim has expired or gone unread; the pins document is current and the KEV pin carries this week's snapshot; SOURCES curation is inside 45 days; every live document carries a convergence value that its own text justifies; the absorption map is row-consistent with per-document frontmatter; no live document has a dangling internal link and every guidance file is reachable from the README; the declared gaps have been read; no root document claims a currency date its own later edits have passed; branch protection and the merge settings match CONTRIBUTING.md's branch section, with no stale branch carrying unmerged work; the days since the last quarterly scan are known; and the run printed its one-line self-test.
+The README count line matches what is on disk; the deterministic checks the required CI job runs pass on the default branch; no measurement claim has expired or gone unread; the pins document is current and the KEV pin carries this week's snapshot; SOURCES curation is inside 45 days; every live document carries a convergence value that its own text justifies; the absorption map is row-consistent with per-document frontmatter; no live document has a dangling internal link and every guidance file is reachable from the README; the declared gaps have been read; no root document claims a currency date its own later edits have passed; branch protection and the merge settings match CONTRIBUTING.md's branch section, with no stale branch carrying unmerged work; the days since the last quarterly scan are known; and the run printed its one-line self-test and committed it to `scans/weekly-review-log.md`.

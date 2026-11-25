@@ -7,7 +7,8 @@ pins:
   - "CoSAI AI Incident Response Framework V1.0 (document version 24fecc8c, dated 27 October 2025)"
   - "NIST SP 800-61 Rev. 3 (April 2025)"
   - "OASIS CACAO Security Playbooks Version 2.0"
-  - "CISA Known Exploited Vulnerabilities catalog, catalogVersion 2026.11.09"
+  - "CISA KEV catalogVersion 2026.11.09"
+  - "EU AI Act consolidated CELEX-02024R1689-20260727"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
 revalidate-by: 2027-04-24
@@ -20,12 +21,13 @@ Evidence tier: Mixed. The lifecycle comes from NIST SP 800-61 Rev. 3 (Tier A), t
 
 ## Summary for the review
 
-This repo has no researched document on AI incident response, so the advice is to extend the incident-response standard the organization already runs, which for most will be NIST SP 800-61 Rev. 3 or a SANS-style lifecycle, using the CoSAI AI Incident Response Framework V1.0 as the AI-specific supplement, and to treat the three routed signals as the first things to prove rather than to document. The actions, in the order I would take them:
+This document is a stub: its actions rest on NIST SP 800-61 Rev. 3 and the CoSAI framework for what they prescribe, on three practitioner talks for the pre-authorization rule, and on nothing this repo has measured. There is no researched document on AI incident response here, so the advice is to extend the incident-response standard the organization already runs, which for most will be NIST SP 800-61 Rev. 3 or a SANS-style lifecycle, using the CoSAI AI Incident Response Framework V1.0 as the AI-specific supplement, and to treat the three routed signals as the first things to prove rather than to document. The actions, in the order I would take them:
 
 - Add AI incident types to the existing plan and its severity criteria instead of writing a separate AI plan (S, Tier A).
 - For every agent and every model route, write down the three containment levers (revoke the agent's credential, disable the route at the gateway or provider console, roll back the model, prompt or configuration version), who holds each one, and who has authority to pull it (M, Tier A).
 - Pre-authorize only containment that is scoped, reversible and already tested, and keep a human gate on everything else (M, Tier B).
-- Run a technical drill that actually pulls each lever once in a non-production copy and records how long it took to take effect and what kept running (M, Tier A for the practice; nothing measured here).
+- Run a technical drill that actually pulls each lever once in a non-production copy and records how long it took to take effect and what kept running (M, Tier A for the practice; nothing measured here). The A covers only that CoSAI §3.4.2 prescribes drills that "Test containment procedures"; it says nothing about how fast any lever works, which is the declared gap.
+- Put the notification clocks that already bind the organization into the AI incident types, since containment work runs against them: a personal-data breach goes to the supervisory authority "without undue delay and, where feasible, not later than 72 hours" after awareness under GDPR Article 33(1), and a provider of a high-risk AI system reports a serious incident within 15 days at most, two days for a widespread infringement or a serious incident under Article 3(49)(b), and ten days in the event of a death, under AI Act Article 73(2) to (4), once the high-risk obligations apply to that system (the dates are in [../decision-sequence.md](../decision-sequence.md)) (S, Tier A; other sector and national clocks are for counsel, and this is not legal advice).
 - Preserve agent memory, vector store state and the tool-call record before containment wipes them (S, Tier A).
 - For rented surfaces, find out which levers the vendor holds and ask how fast they act on a customer's request (S, Tier D for the reading).
 
@@ -70,13 +72,15 @@ The containment levers are named generically on purpose, because the mechanism d
 
 Tier A
 
+- Regulation (EU) 2016/679 (GDPR), Article 33(1), read 2026-11-24 at https://publications.europa.eu/resource/celex/32016R0679.
+- Regulation (EU) 2024/1689 (AI Act), Article 73(2) to (4), consolidated text CELEX 02024R1689-20260727, read 2026-11-24 at https://publications.europa.eu/resource/celex/02024R1689-20260727.
 - NIST SP 800-61 Rev. 3, "Incident Response Recommendations and Considerations for Cybersecurity Risk Management: A CSF 2.0 Community Profile", April 2025: https://csrc.nist.gov/pubs/sp/800/61/r3/final
 - CoSAI, "AI Incident Response Framework, V1.0", Workstream 2, document version 24fecc8c dated 27 October 2025, PDF read 2026-11-10: https://www.coalitionforsecureai.org/wp-content/uploads/2026/03/AI-Incident-Response-1.pdf (project: https://github.com/cosai-oasis/ws2-defenders)
 - OASIS, CACAO Security Playbooks Version 2.0: https://docs.oasis-open.org/cacao/security-playbooks/v2.0/security-playbooks-v2.0.html
 - CISA Known Exploited Vulnerabilities catalog, catalogVersion 2026.11.09 (1,773 entries), read 2026-11-09; the count of 2026 AI orchestration and serving entries is my derivation from it: https://www.cisa.gov/known-exploited-vulnerabilities-catalog
 
 Tier B
-- [un]prompted practitioner conference, October 2026, talks by Woodruff, Nagarajan and Jaksic; auto-transcripts read by line, paraphrased here.
+- [un]prompted practitioner conference, October 2026; auto-transcripts read by line and paraphrased here, with no recording link checked for this stub: Josh Woodruff, "What 40 Enterprises Who Asked for Agent Governance Had, and the Control Plane That Came Out of It"; Hari Nagarajan, "Not a Boogeyman: The Autonomous Attacker Is Already Here"; Chenxi Wang and Jasmine Jaksic, "Agentic AI in the Wild: What Real Deployments Teach Us About Governance and Scale" (the Jaksic point is from her half of the talk). Titles as given in the conference transcript file names.
 
 Tier C
 

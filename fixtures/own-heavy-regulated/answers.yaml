@@ -7,9 +7,10 @@
 # What this fixture exercises: the full branch for a large regulated
 # organization; profile-own-heavy derived from the surfaces with no profile
 # answer given; an interview observation that fires an escalation
-# (inference-runtime-default-bind to High); the believed cap on a High row
-# (containment-pre-authorized-broad); and questionnaire-only, since nothing
-# was read from a system.
+# (inference-runtime-default-bind to High); a believed High row
+# (containment-pre-authorized-broad) keeping its band with a confirm deadline;
+# the DPIA rows absent because no content is captured; and questionnaire-only,
+# since nothing was read from a system.
 answers-block: 1
 interview-branch: full
 overrides: []

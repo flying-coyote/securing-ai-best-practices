@@ -86,9 +86,9 @@ def sanitize_text(text, context: str = "") -> str:
     """
     cleaned, removed = scrub(text)
     if removed:
-        where = f" in {context}" if context else ""
-        print(f"   [sanitize] stripped {removed} invisible/control char(s){where}",
-              file=sys.stderr)
+        # The context is a caller's label, never printed: a file name can itself
+        # identify a tenant or a person, and stderr is outside the output guard.
+        print(f"   [sanitize] stripped {removed} invisible/control char(s)", file=sys.stderr)
     return cleaned
 
 
