@@ -24,8 +24,8 @@ measurement-claims:
     source: "sdw-lab-benchmarks@91e44df agent-toolcall-schemas/RESULTS.md:87-91"
     date: 2026-11-09
     revalidate: 2027-03-10
-  - claim: "At 1M synthetic calls in DuckDB 1.5.3, the AOS unmapped-JSON layout ran four pre-registered hunts 4.7x to 22.5x slower than typed OCSF columns and a single OpenTelemetry attributes map ran 10.6x to 32.4x slower, with identical answers; host under contention, within-pass ratios only, Q3 and Q4 ranged roughly 5x to 16x between the formal run and a lower-load rerun"
-    source: "sdw-lab-benchmarks@91e44df agent-toolcall-schemas/RESULTS.md:116-130, :156-171"
+  - claim: "At 1M synthetic calls in DuckDB 1.5.3, the AOS unmapped-JSON layout ran five pre-registered hunts (four test hunts and an argument hunt designed as the null control) 4.7x to 22.5x slower than typed OCSF columns and a single OpenTelemetry attributes map ran 7.4x to 32.4x slower, with identical answers; in absolute terms the typed layout answered each hunt in 7 to 36 ms, the unmapped layout in 61 to 191 ms and the map in 225 to 270 ms (pooled medians); host under contention, within-pass ratios only, Q3 and Q4 ranged roughly 5x to 16x between the formal run and a lower-load rerun"
+    source: "sdw-lab-benchmarks@91e44df agent-toolcall-schemas/RESULTS.md:116-125, :156-171"
     date: 2026-11-09
     revalidate: 2027-03-10
   - claim: "At 1M calls the typed layout was 27.4 MB and the unmapped-JSON layout 30.9 MB (1.13x), so the cost of the unmapped shape fell on query time rather than storage"
@@ -52,15 +52,15 @@ Evidence tier: Mixed, with the OCSF schema and the MCP specification at A, three
 
 ## Summary for the review
 
-OCSF already has most of the AI vocabulary a security team needs to record an agent's tool call (the `ai_operation` profile and the `ai_agent`, `ai_model`, `delegation` and `message_context` objects in 1.9.0, with the `ai_capability` and `ai_status` objects on main), but it has no AI event class yet, so the record rides on an existing class, and where its hunt keys land decides whether anyone can query it. In one lab run the shape that passed the 1.9.0 validator with zero errors was the one that put 22 of 33 facts in `unmapped` and ran hunts roughly 5x to 22x slower.
+OCSF already has most of the AI vocabulary a security team needs to record an agent's tool call (the `ai_operation` profile and the `ai_agent`, `ai_model`, `delegation` and `message_context` objects in 1.9.0, with the `ai_capability` and `ai_status` objects on main), but it has no AI event class yet, so the record rides on an existing class, and where its hunt keys land decides whether anyone can query it. In one lab run the shape that passed the 1.9.0 validator with zero errors was the one that put 22 of 33 facts in `unmapped` and ran hunts roughly 5x to 22x slower, though at the million-call size tested every shape still answered in under 0.3 seconds. That run scored OCSF main, the #1754 draft, OpenTelemetry and AOS, and did not score the released 1.9.0 mapping that most pipelines must write today, so the 1.9.0 paths below are my judgement (Tier D).
 
 - Land agent tool calls and model calls on API Activity (6003) with the `ai_operation` profile, and stop waiting for an AI class. Effort M. Tier A for the schema, B for the lab.
-- Promote the hunt keys (tool name, agent, principal, server, decision) to typed columns at ingest and keep the raw message beside them. Effort M. Tier B.
-- If the record is the vendor's own JSON, map it with a mapper that can only emit paths that exist in the pinned OCSF version, and review the wrong-but-valid mappings a validator cannot see. Effort M. Tier B.
+- Promote the hunt keys (tool name, agent, principal, server, decision) to typed columns at ingest and keep the raw message beside them where the capture-tier decision in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md) allows its text, since arguments and results are content, or a keyed hash of it where it does not. Effort M. Tier B; the gate is Tier D and not legal advice.
+- If the record is the vendor's own JSON, constrain the mapper so it can only emit paths that exist in the pinned OCSF version, and check correctness against a reviewed gold key, because in the lab run a constrained alias mapper invented no paths but got only 0.16 of them right, while blind frontier models got 58 to 69 percent right and invented paths for 17 to 27 percent of fields; a model behind the constraint, which would combine the two, is unmeasured. Effort M. Tier B for what each mapper did, D for the combined design.
 - If the record is OpenTelemetry, land attributes as columns rather than one map, and expect the attribute names to move, since every GenAI and MCP attribute used was at Development stability. Effort M. Tier B for stability, D for the column landing.
 - If nothing is emitted yet, start with the MCP request headers at a gateway (Streamable HTTP on revision 2026-07-28) and the client's own telemetry, which give the tool name without parsing a body. Effort M. Tier A for the headers, B for the lab.
 - Record the negotiated MCP revision and SDK version per client and server, and ship server stderr or spans, because the failure cause moved there. Effort S. Tier B.
-- Stamp `metadata.version` on every record and decide once whether to write main-branch `ai_capability` now or hold it in `unmapped`, so a later re-map is a query rather than a re-parse of the raw store. Effort S. Tier D.
+- Stamp `metadata.version` on every record, so a later re-map is a query rather than a re-parse of the raw store, and note that `api.operation` carries the tool name on the 1.9.0 paths below and the MCP method on main, so a hunt keyed on it breaks at the migration unless it is rewritten. On main-branch `ai_capability`, my default is to write it now and accept that those records fail the 1.9.0 validator until 1.10.0 ships; a pipeline that rejects records failing validation should hold the same facts in `unmapped` instead. Effort S. Tier D.
 
 ## Why this matters
 
@@ -90,8 +90,8 @@ Two occurrences need recording, the tool call and the hook or gateway decision b
 
 | Fact | OCSF 1.9.0 path | OCSF main path | Source of the choice |
 |---|---|---|---|
-| Tool name | `api.operation` | `ai_capability.name` | R2 mapping; 1.9.0 choice is my judgement (D) |
-| MCP method (`tools/call`) | `unmapped` or `api.operation` if the tool name goes elsewhere | `api.operation` | R2 |
+| Tool name | `api.operation` | `ai_capability.name` | R2 mapping for main; 1.9.0 choice is my judgement (D), unscored |
+| MCP method (`tools/call`) | `unmapped` or `api.operation` if the tool name goes elsewhere | `api.operation` | R2 for main; 1.9.0 my judgement (D) |
 | MCP protocol revision | `api.version` | `api.version` | R2 judgement call (D) |
 | MCP server name and version | `api.service.name`, `api.service.version` | `ai_capability.service` | R2 |
 | Request id | `api.request.uid` | `ai_capability.transaction_uid` | R2 for main; 1.9.0 is my judgement (D) |
@@ -134,17 +134,17 @@ The lab run behind most of this document is small on purpose (Tier B, sdw-lab-be
 
 OCSF main types the most because `ai_capability` has slots for the server identity, transport, primitive kind, request id and the four tool annotations, while OTel had no attribute for the server's name on a tool span, the annotations, the schemas or an agent instance id. AOS puts the agent in `actor.user` and nearly everything agent-specific under `unmapped.aos`, its two published examples disagree about where the tool name goes, and its SIEM query examples filter on `unmapped.asop.*`, spelled differently (R2, lines 81-85). The validator result is the one I keep coming back to: all ten AOS records passed the public OCSF 1.9.0 validator with zero errors and all ten OCSF-main records failed on `ai_capability` and the `1.10.0-dev` version string, which will clear when 1.10.0 ships but means the record with two-thirds of its facts in `unmapped` is the one a validator likes best today.
 
-The second half priced the shapes, writing one million synthetic calls three ways in DuckDB 1.5.3 with zstd, as typed OCSF columns (L1), as OTel attributes in one `MAP(VARCHAR, VARCHAR)` column, the ClickHouse-exporter pattern (L2), and as the AOS shape with an `unmapped` JSON document (L3), then running five pre-registered hunts 21 times per cell, with identical answers in every layout.
+The second half priced the shapes, writing one million synthetic calls three ways in DuckDB 1.5.3 with zstd, as typed OCSF columns (L1), as OTel attributes in one `MAP(VARCHAR, VARCHAR)` column, the ClickHouse-exporter pattern (L2), and as the AOS shape with an `unmapped` JSON document (L3), then running five pre-registered hunts 21 times per cell, with identical answers in every layout. Four were the test hunts for the pre-registered hypothesis and the argument hunt was designed as a null control; the ratios and the absolute pooled medians were these (agent-toolcall-schemas/RESULTS.md:116-125):
 
-| Hunt | L3 unmapped / L1 typed | L2 OTel map / L1 typed |
-|---|---|---|
-| Tool use by agent | 8.4x | 32.3x |
-| Argument hunt (designed as the null control) | 5.3x | 7.4x |
-| Tool breadth on errors | 5.4x | 10.6x |
-| Failure bursts | 4.7x | 10.7x |
-| Off-allowlist anti-join | 22.5x | 32.4x |
+| Hunt | L1 typed (ms) | L3 unmapped (ms) | L2 OTel map (ms) | L3 / L1 | L2 / L1 |
+|---|---|---|---|---|---|
+| Tool use by agent | 7.3 | 61.3 | 235.5 | 8.4x | 32.3x |
+| Argument hunt (designed as the null control) | 36.1 | 190.9 | 265.3 | 5.3x | 7.4x |
+| Tool breadth on errors | 24.5 | 131.4 | 260.2 | 5.4x | 10.6x |
+| Failure bursts | 21.0 | 98.8 | 225.2 | 4.7x | 10.7x |
+| Off-allowlist anti-join | 8.3 | 187.1 | 270.0 | 22.5x | 32.4x |
 
-Other lab agents shared the host during the formal run, so I claim only the within-pass ratios. A rerun under lower load kept the direction on every hunt and barely moved the tool-use and anti-join ratios (8.5x and 21.6x), while the error and burst hunts swung to 14.7x and 16.1x because the typed layout finishes them in single-digit milliseconds, so for those two R2 itself says to quote "roughly 5x to 16x" rather than a point estimate. The argument hunt was meant to come out even, since arguments are JSON everywhere, and did not, because the typed layout filters on the tool name before parsing anything while the unmapped layout parses the whole document on every row just to learn which tool was called. Storage barely cared, 27.4 MB against 30.9 MB, because zstd absorbs the repeated keys, so `unmapped` is paid for at query time on every hunt. The OTel map was slowest on every query, which the pre-registration did not predict, and I would expect a column-per-attribute OTel landing to behave much more like the typed layout, though that was not measured (R2 limits, lines 209-218).
+Other lab agents shared the host during the formal run, so I claim only the within-pass ratios. A rerun under lower load kept the direction on every hunt and barely moved the tool-use and anti-join ratios (8.5x and 21.6x), while the error and burst hunts swung to 14.7x and 16.1x because the typed layout finishes them in single-digit milliseconds, so for those two R2 itself says to quote "roughly 5x to 16x" rather than a point estimate. The argument hunt was meant to come out even, since arguments are JSON everywhere, and did not, because the typed layout filters on the tool name before parsing anything while the unmapped layout parses the whole document on every row just to learn which tool was called. Storage barely cared, 27.4 MB against 30.9 MB, because zstd absorbs the repeated keys, so `unmapped` is paid for at query time on every hunt. At a million calls that price is a fraction of a second per hunt in every layout, so the ratio does not matter at this size. The run measured only 100,000 and 1,000,000 calls, where the direction held, and if hunt time grows roughly in proportion to rows, which is my assumption and not something the run tested beyond those two sizes, the unmapped layout reaches about a minute per hunt somewhere in the hundreds of millions of calls and the map sooner, while the typed layout stays in seconds (Tier D extrapolation). My judgement is that a SOC retaining a year of agent tool calls from a large fleet could reach that range, and a hunt run interactively many times a day is where the ratio starts to cost analyst time (Tier D). The OTel map was slowest on every query, which the pre-registration did not predict, and I would expect a column-per-attribute OTel landing to behave much more like the typed layout, though that was not measured (R2 limits, lines 209-218).
 
 ## What the MCP revision moved, and why `mcp-spec-pre-2026-07` is asked
 
@@ -177,6 +177,8 @@ It does not mean OCSF is the only defensible storage shape, since a SOC already 
 - **Gap: native producers**. No survey says which products emit OCSF records carrying the `ai_operation` profile today. **Needs**: a dated producer inventory from vendor documentation, Tier B per row.
 - **Gap: AI event class**. The landing on API Activity is an interim choice until #1754 or a successor merges. **Needs**: a re-map of the path table against the first OCSF release that carries an AI event class.
 - **Gap: agent memory telemetry**. OCSF has no object for agent memory, so memory poisoning has nowhere to land. **Needs**: an OCSF release that carries one, or an interim `unmapped` convention with a producer behind it.
+- **Gap: the released 1.9.0 mapping is unscored**. R2 scored OCSF main, the #1754 draft, OpenTelemetry and AOS, not the 1.9.0 paths most pipelines write today, which are my judgement. **Needs**: a 1.9.0 column scored with the same 33-fact rubric and the 1.9.0 validator, with the `api.operation` meaning change between 1.9.0 and main recorded against each hunt that keys on it.
+- **Gap: query time at fleet scale**. Absolute hunt times were measured at 100,000 and 1,000,000 calls only. **Needs**: the R2 hunts at 100 million calls or more on an isolated host, to replace the proportional extrapolation.
 - **Gap: frontier mapper behind the constraint**. Whether a frontier model behind a schema constraint keeps its accuracy with zero invented paths is unmeasured. **Needs**: the constrained-mapper harness run with a pinned frontier model.
 
 ## Notes
@@ -184,7 +186,8 @@ It does not mean OCSF is the only defensible storage shape, since a SOC already 
 - 2026-11-10: lab citations point at sdw-lab-benchmarks commit 91e44df on master, which holds the R2, R8 and T8a folders and the earlier mapping runs.
 - 2026-11-10: the 1.9.0 names in the path table were re-read from schema.ocsf.io (API Activity, three profiles and eleven objects), the main names from `d1cbd61`, and PR numbers and merge dates from the OCSF changelog and the pull requests.
 - 2026-11-10: the 1.9.0 homes for the tool name, request id, trace context and policy tier are my judgement (Tier D).
-- 2026-11-10: the recommendation to write main-branch `ai_capability` now, rather than hold it in `unmapped` until 1.10.0, is a judgement call (Tier D) that trades a re-map risk for typed columns today.
+- 2026-11-10, revised 2026-11-24: the recommendation to write main-branch `ai_capability` now, rather than hold it in `unmapped` until 1.10.0, is a judgement call (Tier D) that trades a re-map risk and validator failures for typed columns today, and the Summary now says the same, with the hold-in-`unmapped` path for pipelines that reject records failing validation.
+- 2026-11-24: absolute hunt times were added from agent-toolcall-schemas/RESULTS.md:116-125 at 91e44df, the hunt count corrected to five with the null control named, and the OTel ratio range widened to include the argument hunt's 7.4x.
 - 2026-11-10: the June mapping runs (OCSF 1.8.0) are cited for the shape of the result, not a current accuracy figure.
 - 2026-11-10: the cross-provider verification leg found the summary listing `ai_operation` among the 1.9.0 objects; at tag v1.9.0 it is a profile (`profiles/ai_operation.json`, no `objects/ai_operation.json`), as the path table already said, so the summary sentence now names it as the profile (analysis/VERIFICATION-LOG.md).
 

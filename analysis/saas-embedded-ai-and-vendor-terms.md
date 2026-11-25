@@ -3,7 +3,9 @@ evidence-tier: Mixed
 convergence: single-source
 applies-to-signals: [saas-ai-toggles-unreviewed, vendor-training-optout-unknown, ai-subprocessor-review-absent, vendor-terms-unknown]
 surfaces: [S1, S2, S6]
-pins: []
+pins:
+  - "NIST AI RMF 1.0"
+  - "ISO/IEC 42001 2023"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
 revalidate-by: 2027-03-12
@@ -20,7 +22,7 @@ AI inside SaaS you already pay for arrives through the vendor's release train ra
 
 - Run a toggle review of the SaaS products with the most users, starting with the office suite, the CRM, the ITSM platform, the chat tool and the data platform, and record each AI feature's state, owner and the date you checked it. Effort M the first time, S each quarter after. Tier B for what each setting does, D for the cadence.
 - For each product with AI features, find the training-on-your-data statement, decide whether it is a setting, a contractual promise or an opt-out you have to request, and set or request it. Effort S per product. Tier B.
-- Subscribe to each vendor's sub-processor list and treat a new model provider on it as a change you review, the way GDPR Article 28(2) already expects a processor to give notice of. Effort S. Tier A for the obligation, B for the lists.
+- Subscribe to each vendor's sub-processor list and treat a new model provider on it as a change you review, the way GDPR Article 28(2) already expects a processor to give notice of. Effort S. Tier A for the obligation; this document cites no vendor's list, so where each list lives is for the review to find.
 - Check residency and capacity routing separately from the training answer, because at least two vendors in the table, Microsoft and ServiceNow, route inference to other regions or to a partner cloud under load through a setting or statement separate from their training answer, which for Microsoft is a no-training statement and for ServiceNow is a data-sharing setting that is on by default. Effort S. Tier B.
 - Turn on the AI audit record where the product has one, since in several products it is off until someone enables it. Effort S to M. Tier B.
 - Leave any record of prompt and response text off until the capture-tier decision in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md) is made. Effort S. Tier D for the gate; not legal advice.
@@ -34,9 +36,9 @@ The usual intake path for a new AI tool assumes someone asks for it. Embedded AI
 
 The three questions a team needs answered per product are what turned on, what the vendor does with the data that flows through it, and what the customer can switch off, restrict or negotiate. The first is an admin-console question, the second is a terms and sub-processor question, and the third depends on which of the two the vendor chose to make it. That last distinction carries most of the work, because a training promise that lives in a contract cannot be checked in a console, and a setting that defaults to on is a finding only if somebody looks.
 
-There is also an obligation behind the sub-processor part that predates AI. Under GDPR Article 28(2) a processor may not engage another processor without the controller's prior specific or general written authorisation, and under a general authorisation it must tell the controller about intended additions or replacements so the controller can object (Tier A, Regulation (EU) 2016/679, Article 28(2)). When a SaaS vendor adds a model provider to serve an AI feature, that is often exactly such a change. NIST's AI RMF puts the same concern in governance terms under GOVERN 6, which asks for policies and procedures covering AI risks from third-party software, data and supply chains (Tier A, NIST AI 100-1, January 2023), and ISO/IEC 42001:2023 carries third-party and customer relationships as its own Annex A control family (Tier A).
+There is also an obligation behind the sub-processor part that predates AI. Under GDPR Article 28(2) a processor may not engage another processor without the controller's prior specific or general written authorisation, and under a general authorisation it must tell the controller about intended additions or replacements so the controller can object (Tier A, Regulation (EU) 2016/679, Article 28(2)). When a SaaS vendor adds a model provider to serve an AI feature, that is often exactly such a change. NIST's AI RMF puts the same concern in governance terms under GOVERN 6, which asks for policies and procedures covering AI risks from third-party software, data and supply chains (Tier A, NIST AI 100-1, January 2023), and ISO/IEC 42001:2023 is reported to carry third-party and customer relationships as its own Annex A control family, though the standard is paywalled and I have not read its text, so treat that clause as unverified (the standard is a Tier A source; this reading of it is not).
 
-As far as I could find, none of the SaaS products in the table has a government or consensus-body baseline written for its AI features (the CIS benchmark list I read, which was truncated at the end, has no benchmark for Salesforce, ServiceNow, Slack or Atlassian), so the vendor's admin documentation is the best guidance available, which is a weaker thing. The exception I know of is CISA's SCuBA work for Google Workspace, which ships a dedicated `gemini.md` baseline (Tier A, CISA ScubaGoggles, read 2026-11-09; not yet drawn on here, see Gaps).
+I did not find a government or consensus-body baseline written for the AI features of the SaaS products in the table, though my search was not complete, since the CIS benchmark list I read was truncated at the end and showed no benchmark for Salesforce, ServiceNow, Slack or Atlassian in the part I saw (Tier D as an absence claim, because the full list was not read). On that reading the vendor's admin documentation is the best guidance available, which is a weaker thing. The exception I know of is CISA's SCuBA work for Google Workspace, which ships a dedicated `gemini.md` baseline (Tier A, CISA ScubaGoggles, read 2026-11-09; not yet drawn on here, see Gaps).
 
 ## What turned on, and what you can switch off
 
@@ -52,7 +54,7 @@ The practical consequence is that a toggle review alone covers the first two sha
 
 ### Default-state table
 
-Every row is the vendor's published default as read on the `last-checked` date and says nothing about any particular organisation's tenant. Rows checked on 2026-11-09 were read from the vendor pages listed in Sources while the forthcoming ai-config-pointers pages were drafted; rows checked on 2026-11-10 were re-fetched for this document.
+Every row is the vendor's published default as read on the `last-checked` date and says nothing about any particular organisation's tenant. Rows checked on 2026-11-09 were read from the vendor pages listed in Sources while the forthcoming ai-config-pointers pages were drafted; rows checked on 2026-11-10 were re-fetched for this document, and the Gemini Enterprise row, checked 2026-11-24, points to its home in `telemetry-by-surface.md`.
 
 | Platform family | Setting | Default | Where the record lands | last-checked |
 |---|---|---|---|---|
@@ -77,7 +79,7 @@ Every row is the vendor's published default as read on the `last-checked` date a
 | Workato | Copilot | Disabled by default in Automation HQ workspaces, not stated for standalone workspaces; Copilot data goes to OpenAI servers in the US; needs the AI feature addendum | Activity audit log | 2026-11-09 |
 | MuleSoft Anypoint | Generative AI in Anypoint | Disabled until a root Organization Administrator accepts it after enablement in the connected Salesforce org | Anypoint audit log | 2026-11-09 |
 | Claude Enterprise | Chat retention | Indefinite by default, custom minimum 30 days; some cloud features that run Claude Code are excluded from custom retention | Vendor cloud, reached by the Compliance API | 2026-11-09 |
-| Gemini Enterprise | Logging of prompt inputs and response outputs | Text is elided unless the toggle is on; the toggle's default is not stated | Cloud Logging `_Default` bucket | 2026-11-09 |
+| Gemini Enterprise | Logging of prompt inputs and response outputs | Text is elided unless the setting is on; the default is not stated in words, and the dated reading lives in the Gemini Enterprise row of [telemetry-by-surface.md](telemetry-by-surface.md) | Cloud Logging `_Default` bucket | 2026-11-24 |
 
 Three rows deserve a comment. ServiceNow's overflow processing and Microsoft's capacity routing show that where inference happens is a separate question from whether the vendor trains on it, so a review that asks only the training question will miss a residency change. Snowflake's default changed on a date, so two accounts can carry different values depending on when the organisation was created, and the parameter is worth reading from each account. And Databricks' setting is being removed, so a control document citing it will soon describe nothing, which is the general hazard with default-state rows and the reason each carries a date.
 
@@ -129,15 +131,16 @@ A toggle review is also not discovery. It covers the SaaS products you already k
 - Claim-level choice: Slack's privacy page describes how to opt out of global models and does not state the default in words, and ServiceNow's opt-out page implies participation without stating it for standard instances, though its Zurich AI Control Tower page, read 2026-11-10, does state that data sharing is active by default, so the ServiceNow row now quotes that page and the Slack row keeps "included unless" to show the default is inferred. ServiceNow's two pages disagree on how they describe the overflow default (Yokohama configuration page "opted in", Zurich AI Control Tower page "inactive"), and the row carries both rather than choosing one.
 - Microsoft's Copilot privacy page now resolves to a `copilot/plan/` path (updated 2026-11-04); the older `copilot/microsoft-365/` path redirects there.
 - No lab bench backs this document and it carries no `measurement-claims`; vendor defaults are dated rows with `last-checked`, not re-runnable measurements, as the template directs.
+- 2026-11-24: an outside review noted that "B for the lists" had no list in Sources and that `pins` was empty while NIST AI 100-1 and ISO/IEC 42001 were cited; the sub-processor action now claims Tier A for the obligation only, and both frameworks are pinned under the names `revalidation-and-pins.md` uses. The CIS absence is graded D because the list was read truncated, and the Gemini Enterprise default now has one home, in `telemetry-by-surface.md`.
 - The three-shape grouping, the review cadence and the questionnaire are dated judgements as of 2026-11-10 (Tier D).
 
 ## Sources
 
 Tier A
 
-- Regulation (EU) 2016/679 (GDPR), Article 28, https://eur-lex.europa.eu/eli/reg/2016/679/oj, consolidated text.
+- Regulation (EU) 2016/679 (GDPR), Article 28, https://eur-lex.europa.eu/eli/reg/2016/679/oj; Article 28(2) read 2026-11-24 at the Publications Office, https://publications.europa.eu/resource/celex/32016R0679.
 - NIST AI 100-1, Artificial Intelligence Risk Management Framework 1.0, January 2023, GOVERN 6, https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf.
-- ISO/IEC 42001:2023, Information technology, Artificial intelligence, Management system, Annex A (third-party and customer relationships), https://www.iso.org/standard/81230.html.
+- ISO/IEC 42001:2023, Information technology, Artificial intelligence, Management system, Annex A (third-party and customer relationships), https://www.iso.org/standard/81230.html (paywalled; the clause text was not read, see `SOURCES.md`).
 - CISA, ScubaGoggles baselines for Google Workspace including `gemini.md`, https://github.com/cisagov/ScubaGoggles/blob/main/baselines/README.md, read 2026-11-09.
 
 Tier B (vendor documentation for what a feature does; research preprints)
@@ -167,7 +170,7 @@ Tier B (vendor documentation for what a feature does; research preprints)
 - MuleSoft, "Enabling generative AI", https://docs.mulesoft.com/access-management/enabling-generative-ai, read 2026-11-09.
 - Anthropic, "Configure custom data retention controls for Enterprise plans", https://support.claude.com/en/articles/10440198-configure-custom-data-retention-controls-for-enterprise-plans, read 2026-11-09.
 - Anthropic, Compliance API, https://platform.claude.com/docs/en/manage-claude/compliance-api, read 2026-11-09.
-- Google Cloud, "Access Gemini Enterprise usage audit logs with Cloud Logging", https://docs.cloud.google.com/gemini/enterprise/docs/set-up-usage-audit-logs, read 2026-11-09.
+- Google Cloud, "Access Gemini Enterprise usage audit logs with Cloud Logging", https://docs.cloud.google.com/gemini/enterprise/docs/set-up-usage-audit-logs, read 2026-11-09 and re-read 2026-11-24 with "Manage observability settings" (neither states the default in words).
 - OpenAI, "Compliance API for Enterprise customers", https://help.openai.com/en/articles/9261474-compliance-api-for-enterprise-customers (HTTP 403 to the fetcher; read via search excerpt only, so treat as unconfirmed).
 - CrowdStrike, "New CrowdStrike innovations secure AI agents and govern shadow AI", 2026-03-23, https://www.crowdstrike.com/en-us/blog/new-crowdstrike-innovations-secure-ai-agents-govern-shadow-ai/, read 2026-11-09 (what the feature does).
 - Obsidian Security, Microsoft Copilot agent page, https://www.obsidiansecurity.com/ai-agent/microsoft-copilot, read 2026-11-09 (what the feature does).

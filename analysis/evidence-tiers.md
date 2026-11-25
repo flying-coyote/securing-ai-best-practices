@@ -24,6 +24,7 @@ A source's tier depends on what it is cited for, so the same vendor page can be 
 - Carry compound labels as written ("A schema; D grades") rather than collapsing them to the higher or the average tier. Effort S; Tier D.
 - Cite a lab result by repository, commit or branch and run folder, with its qualifiers (single host, synthetic data, the verification verdict) in the same sentence, and grade it Tier B. Effort S; Tier D.
 - Before acting on a Tier C or Tier D item, check it in your own tenant or environment, since that check is what would move the claim up. Effort S to M depending on the surface; Tier D.
+- Read an "I found no X" claim as Tier D unless the document says it searched a complete, versioned catalogue whole, and print it that way. Effort S; Tier D.
 
 ## Why this matters
 
@@ -40,7 +41,25 @@ The second reason is that this repo grades many vendors at once. A repo about on
 | C | Vendor claims about how well a product works, how fast it is or how it compares, and marketing, with the bias flagged every time | a vendor's detection-rate figure, a vendor-run benchmark, a survey published by a company that sells the remedy |
 | D | One author's judgement, or a model with stated assumptions, labelled as a hypothesis | the ordering perspectives in `decision-sequence.md`, a prevalence model with stated inputs, this ladder |
 
-This is the same ladder as the table in `CONTRIBUTING.md`, which stays the contributor's copy and names Tier A more briefly; this document carries the reasoning and the hard cases behind it.
+This is the same ladder as the table in `CONTRIBUTING.md`, which stays the contributor's copy and names Tier A more briefly; this document carries the reasoning and the hard cases behind it. Open framework projects (ATLAS, OWASP, CoSAI, OCSF, the MCP specification, Sigma) are Tier A for what they prescribe or catalogue, on the same footing as a standards body, and a figure or opinion that rides inside one of their documents is graded by where it came from.
+
+Regulator text splits by what it is. A binding instrument (a statute, a regulation, a court judgment, a supervisory decision, a directive the addressee must follow) is Tier A for what it requires, and guidance a regulator or agency publishes about how it reads the law or what it recommends (an EDPB guideline, a national authority's FAQ, a joint advisory, implementation guidance) is Tier B, because it binds nobody and can be revised without a legislative process.
+
+### Absence claims
+
+A sentence of the form "I found no X" is Tier D unless the search covered a complete, versioned catalogue read whole, such as every entry of a pinned KEV catalogVersion or every technique in a pinned ATLAS release, in which case the absence takes the catalogue's tier for that version and says nothing about the world outside it. A search across vendor pages, papers or documentation portals is never complete in that sense, however many pages it covered, so its absences stay at D and the document says what was searched.
+
+### Hard cases
+
+| Case | Tier | Why |
+|---|---|---|
+| A design, method or pre-registration that has not been run, or that an agent froze and the maintainer has not reviewed | D for any outcome it predicts; the run, once it happens, is B | nothing has been measured yet |
+| A standard or paper read only through an abstract | the source's tier, for what the abstract itself states | the claim and the read text are the same words |
+| A standard or paper read only through someone else's summary, a search snippet or a second model's account | B at most for the summary's content, D where only a second model vouches for it, and listed under Unverified in `SOURCES.md` either way | the primary's words were not read |
+| A practitioner talk | B for what the speaker reports doing; D for a rule generalised beyond it | one practitioner's experience, as `SOURCES.md` grades the conference talks |
+| Vendor advice on what to configure (a hardening guide, a best-practice page) | B for what the setting does; D for the advice that it should be set unless an independent source backs it; C if it claims an effect | the vendor is a fair witness to its product, not to the threat model |
+| A party's statement about itself (a Form 8-K, a breach notice, an incident post) | A that it was filed or published and says what it says; B for the account of events | the account is the party's own |
+| An essay or trade-press paper by a practitioner (Conway 1968, Reed 1999) | B | practitioner argument, not a vendor claim |
 
 ### Grade by claim type, not by source
 
@@ -52,9 +71,11 @@ A framework gets the same treatment in reverse. A standard is Tier A for what it
 
 Lab results from sdw-lab-benchmarks are Tier B, which is a choice and deserves to be stated as one. They are first-party measurements on a published method, so they are stronger than a vendor's self-measurement, but they are usually single-host runs on synthetic data and nobody independent has replicated them yet, which keeps them below peer review. The qualifiers travel with the claim in the same sentence rather than in a footnote, so a reader sees "measured on one host, synthetic data, verified by a second model" beside the number, and the result is cited by commit, or by branch and run folder until it merges, never by a local path (DECISIONS.md Decision 10).
 
-### Where this departs from the ladder it was adapted from
+Because a sentence is not something a check can count, a `measurement-claims` row should also carry a `replication` field with one of four values: `none` (the run or read as reported), `partial` (some of the cells behind the claim re-run on the original host, not all), `same-host` (every cell behind it re-run on the original host or rig, by the author or a verifier) or `independent` (re-run by someone else on other hardware). The field was introduced on 2026-11-24 and not every document carries it yet; where it is present, the weekly review can list the unreplicated claims a document rests on, which is the population the lab-placement gap below is about.
 
-The ladder is adapted, under the MIT licence, from `analysis/evidence-tiers.md` and Decision 15 in claude-code-project-best-practices. That repo grades by claim type too, but it keeps first-party vendor documentation of what a feature does at Tier A, because its subject is one vendor's product and the vendor is the primary source for it. This repo moves vendor feature documentation down to Tier B, one rung below, and puts peer-reviewed research at Tier A for every claim it supports, where the source repo lists it at B and lifts it to A only for performance and comparison claims. It also keeps first-party lab measurement at B even when the method and data are published, which the source repo would grade A for a re-runnable measurement, because a re-runnable run that nobody has re-run is still the maintainer's own number. And it leaves out the High, Medium and Low percentage bands that the source repo maps onto tiers, partly because that repo itself says the bands are cognitive anchors rather than empirically derived and partly because this repo's confidence is the pair of tier and convergence (Decision 3), and a third scale would invite readers to compare numbers nobody has measured.
+### Where it came from
+
+The ladder is adapted, under the MIT licence, from `analysis/evidence-tiers.md` and Decision 15 in claude-code-project-best-practices, and the four places it departs from that ladder are recorded with their reasons under Decision 4 in `DECISIONS.md`, which the review does not fetch.
 
 ## Four axes the review keeps separate
 

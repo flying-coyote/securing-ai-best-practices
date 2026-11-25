@@ -37,15 +37,15 @@ Evidence tier: Mixed. A for the incident filing, the peer-reviewed measurement p
 
 ## Summary for the review
 
-Finding AI use nobody approved is a join across several inventories an organization already half-holds (the network catalogue, the identity platform's consent grants, endpoint queries, cloud audit logs, card spend and SaaS admin settings), and a programme that rests on the network catalogue alone sees the remote destinations well and the local and embedded surfaces hardly at all. In a single-host lab run each network method found 2 of 10 planted cells while an endpoint agent found 6, four of them only because its queries already named where to look (Tier B, first-party lab).
+Finding AI use nobody approved is a join across several inventories an organization already half-holds (the network catalogue, the identity platform's consent grants, endpoint queries, cloud audit logs, card spend and SaaS admin settings), and a programme that rests on the network catalogue alone sees the remote destinations well and the local and embedded surfaces hardly at all. In a single-host lab run each network method (Zeek on a tap, a DNS log and an egress allowlist; no SSE or CASB was in the run) found 2 of 10 planted cells while an endpoint agent found 6, four of them only because its queries already named where to look (Tier B, first-party lab).
 
 Actions, in the order I would take them from an SSE and an EDR:
 
-1. Turn on the SSE or CASB generative-AI category, and where TLS inspection already runs, add the vendors' tenant-restriction headers and log the blocked requests as personal-account attempts. Effort S. Tier B.
+1. Turn on the SSE or CASB generative-AI category, and where TLS inspection already runs, add the vendors' tenant-restriction headers and log the blocked requests as personal-account attempts; before switching it on, check the employee-monitoring position in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md), since logging attempts by user is monitoring of named people. Effort S. Tier B.
 2. Schedule a query over OAuth consent grants in the identity platform, joined against an AI app list, and treat any AI grant with mail or file scope as the first review item. Effort S to M. Tier B, with Tier A for why it matters.
-3. Push four endpoint queries to managed devices: IDE extensions across editor forks, browser extensions, AI runtime processes and loopback listeners, and a path hunt for MCP configs and model files that names the hidden directories explicitly. Effort M. Tier B.
+3. Push four endpoint queries to managed devices: IDE extensions across editor forks, browser extensions, AI runtime processes and loopback listeners, and a path hunt for MCP configs and model files that names the hidden directories explicitly, checking the monitoring position in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md) first where endpoint queries reach personal devices or works-council jurisdictions. Effort M. Tier B.
 4. Turn on the non-default cloud audit paths for inference wherever AI services are permitted, and fix detections that filter on the older event source. Effort M. Tier B.
-5. Add an AI-provider filter to the secrets-scanning report and a monthly expense keyword sweep. Effort S. Tier B.
+5. Add an AI-provider filter to the secrets-scanning report and a monthly expense keyword sweep, with the expense sweep cleared against the monitoring position in [prompt-capture-and-the-law.md](prompt-capture-and-the-law.md), since it reads named employees' claims. Effort S. Tier B.
 6. Review AI feature toggles in the top SaaS vendors by user count each quarter. Effort L, recurring. Tier B.
 
 The ordering is my judgement (Tier D). No published measurement says what share of AI use a network-only programme misses, so no figure for it appears here as a finding.
@@ -62,7 +62,7 @@ The surfaces that grow fastest leave their evidence away from the network. AI th
 
 | Method | Finds | Structurally misses | Evidence |
 |---|---|---|---|
-| SSE or CASB AI category, DNS, egress logs | Remote AI destinations from managed, on-network devices; machine traffic to model APIs | Server-side SaaS AI, loopback runtimes, files on disk, personal devices, cloud egress that bypasses the SSE | B; T1 (2 of 10 cells each) |
+| SSE or CASB AI category, DNS, egress logs | Remote AI destinations from managed, on-network devices; machine traffic to model APIs | Server-side SaaS AI, loopback runtimes, files on disk, personal devices, cloud egress that bypasses the SSE | B for the SSE and CASB features; T1 ran Zeek, a DNS log and an egress allowlist (2 of 10 cells each) and no SSE or CASB, so the SSE and CASB misses are my judgement by analogy (D) |
 | Tenant-restriction headers | Personal-account or foreign-tenant attempts against a sanctioned service, by user | Anything the proxy does not decrypt | B |
 | OAuth consent grants | AI apps holding delegated access to mail, files or calendars | Copy-paste and uploads, local agents on the user's own session, API keys | B |
 | Endpoint queries (osquery or EDR) | Runtimes, IDE and browser extensions, MCP configs, packages, model files | Whatever the query does not name | B; T1 (6 of 10, path-dependent) |
@@ -102,6 +102,7 @@ It does not mean blocking fails. Monitoring before blocking matches the practice
 
 ## Notes
 
+- 2026-11-24: the legal pointers on the monitoring actions and the note that T1 ran no SSE or CASB are additions; the SSE and CASB misses in the method table are my judgement by analogy (Tier D).
 - The prevalence model (dated 2026-11-09). I built an illustrative weighting in which roughly 40 to 60 percent of AI use in a hybrid organization never crosses a network control point in a form identifiable as AI, with embedded SaaS AI as the dominant term. It is a Tier D model with stated assumptions, it carries no measurement, and under `CONTRIBUTING.md` it never appears as a headline; the first gap above names the study that would replace it.
 - Claim-level choice (Decision 16). The T1 osquery count is stated as 6 of 10 with the frozen-text 4 beside it, because the verification kept both readings and either alone would mislead.
 - The method-by-surface table above is my judgement on Tier B facts (Tier D as a grid).

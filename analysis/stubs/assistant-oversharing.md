@@ -17,7 +17,7 @@ Evidence tier: Mixed. What each vendor control does and what its default is come
 
 ## Summary for the review
 
-An enterprise assistant grounded on company content answers from whatever the asking user can already reach, so a permissions mistake that sat unnoticed in a file share becomes something a single prompt can find, and the controls that matter are the ones the assistant vendor documents for the content side rather than anything on the model side. Until this repo has measured how those controls behave, read the vendor's own governance guidance and the CoSAI data controls named below.
+This document is a stub: its three actions rest on the assistant vendors' own admin and governance pages read on 2026-11-10 (Tier B) and on the CoSAI data controls (Tier A), with no lab result behind them. An enterprise assistant grounded on company content answers from whatever the asking user can already reach, so a permissions mistake that sat unnoticed in a file share becomes something a single prompt can find, and the controls that matter are the ones the assistant vendor documents for the content side rather than anything on the model side. Until this repo has measured how those controls behave, read the vendor's own governance guidance and the CoSAI data controls named below.
 
 - Review permissions on the content the assistant can ground on before or alongside rollout, starting with sites and drives shared with everyone in the organization, anyone with the link, or external users, and use the vendor's oversharing report where the tenant has one. Effort M to L. Tier B.
 - Publish a sensitivity label taxonomy and the assistant-side rule that reads it, so labelled items can be kept out of grounded answers. Effort M. Tier B.

@@ -16,18 +16,22 @@ measurement-claims:
     source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:13, :19-23"
     date: 2026-11-10
     revalidate: 2027-02-10
+    replication: partial
   - claim: "disableAllHooks: true in .claude/settings.local.json switched off a PreToolUse hook committed in .claude/settings.json and the forbidden command ran, including when the project file pinned disableAllHooks: false (cells E1, E1b); a user-file true did the same when the project file was silent (E2) and lost only to an explicit project false (E2b)"
     source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:24-27, :84-87"
     date: 2026-11-10
     revalidate: 2027-02-10
+    replication: partial
   - claim: "Permission deny rules had no equivalent switch in the four precedence pairs measured (E3, E4, E6, E7); the managed tier and other pairs were not measured"
     source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:27-31, :88-92"
     date: 2026-11-10
     revalidate: 2027-02-10
+    replication: partial
   - claim: "With hooks disabled by a local file, the OTLP log-event stream carried no record that a hook had been configured and switched off; the only difference from a hooked session was the absent hook_registered startup event (cell E1c)"
     source: "sdw-lab-benchmarks@91e44df t9-pretooluse-hook-enforcement/RESULTS.md:100, :222-225"
     date: 2026-11-10
     revalidate: 2027-02-10
+    replication: same-host
 ---
 
 # Coding-agent hooks and policy: three enforcement shapes and which fail open
@@ -39,6 +43,7 @@ Evidence tier: Mixed, with vendor documentation of what each feature does at B, 
 Most of the coding agents I read have a point where the model has chosen a tool call and the harness has not yet run it, and each vendor puts a programmable control there, but whether that control holds depends on which tier delivers it and on what happens when it fails. Hook scripts and declarative rules both run on the developer's machine, and a gateway policy is the only one of the three shapes that the laptop cannot switch off. In each of the four hook-bearing products whose failure behaviour I read, at least one failure path allows the call by default. In a lab run on Claude Code, deny rules held in every layer tested, while a hook committed to the repository was switched off by a developer's own local settings file.
 
 - Put the agent's policy in the admin-owned managed tier and turn on the locks that make it the only source of rules and hooks. Effort M. Tier B (vendor docs).
+- Treat hooks, settings, MCP server entries and instruction files that arrive with a cloned repository as code and text from that repository's author, and run agents in sessions that hold no long-lived cloud, registry or package-publish credentials. Effort S to M. Tier B that project-tier hooks run with the developer's permissions (docs, and T9); Tier D for the threat reading and the credential advice.
 - Express hard denies as permission rules wherever the product has rules, and keep hooks for argument-level checks that rules cannot express. Effort S. Tier B (docs and the lab run), D for the ordering.
 - Set the fail-closed flag on every enforcement hook and keep a separate fail-open hook for telemetry. Effort S. Tier B.
 - Alert on sessions that lack the hook-registration event, since a disabled hook leaves almost no other trace. Effort M. Tier B (one lab run).
@@ -95,12 +100,16 @@ In the 24 cells where a deny control was in force, none created the marker or le
 
 Two record-keeping results follow from the same run. With hooks disabled, the OTLP log stream carried no record that a hook had been configured and switched off, and the only difference from a hooked session was the missing `hook_registered` startup event, so a collector has to alert on an absence. And when a subagent's call was denied, the parent's stream-json carried the denial in the first of two `result` events and not in the final one, so a consumer that reads only the last line misses it.
 
+## What arrives with a repository
+
+The project tier is a file in the repository, so whoever can commit to a repository can ship hooks, permission rules, MCP server entries and instruction files to every developer who opens it with an agent. In T9 a hook committed to `.claude/settings.json` ran as configured in each cell where nothing switched it off, and the hooks reference says command hooks run with the user's full permissions, so a hook in a repository someone cloned from outside is that outsider's shell command on the developer's laptop (Tier B for both; Tier D for reading it as an execution vector). Instruction files such as `CLAUDE.md` or a rules directory are not executed, but they are read into the model's context and are an injection channel of the same kind `telemetry-is-an-injection-surface.md` describes for telemetry, and an MCP server entry in a project file names a command for the client to start as a local stdio server (Tier B, the configuration shape the `mcp_config` reducer reads; Tier D for the risk reading). The managed-only locks in step 1 below stop repository hooks and rules from taking effect where the product has such a lock, which is the main reason I put the lock first. Whether each product asks the developer before trusting a new repository's settings, and what that prompt covers, is a per-product default I have not tabulated (see Gaps). What the lock does not cover is what the agent can reach once a repository's text has steered it, which is why the second half of the action above is about the credentials in the session: an agent that holds no long-lived cloud keys, registry tokens or publish rights has less to lose to a repository it should not have trusted (Tier D).
+
 ## A policy order, product-neutral
 
 This is my ordering (Tier D for the order), and it assumes nothing about which products an organization runs. The order follows a simple dependency: the first step is what makes the rest enforceable, and the telemetry steps are what make verification possible.
 
-1. Lock the tier before writing rules. In Claude Code that means managed `allowManagedPermissionRulesOnly`, `allowManagedHooksOnly` and `permissions.disableBypassPermissionsMode: "disable"`, delivered by MDM profile, HKLM or server-managed settings; the equivalents are Codex `requirements.toml`, Copilot CLI `policy.d`, Gemini CLI's admin directory and Cursor's system `hooks.json` (Tier B). The managed-settings page notes that a local administrator can edit the managed source, which is why MDM redeploys on a schedule.
-2. Deny destructive and credential-bearing calls as rules, starting with reads of `.env*`, `~/.ssh` and cloud credential files and of the agent's own settings and hooks paths, writes to `.git/hooks` and shell startup files, force pushes, package publishes and egress outside an allowlist. Deterministic rules have design support (Tier A, CaMeL) with a utility cost, CaMeL refusing 41.5% of entitled calls in one external run (Tier B preprint, Ajar, Table 8).
+1. Lock the tier before writing rules. In Claude Code that means managed `allowManagedPermissionRulesOnly`, `allowManagedHooksOnly` and `permissions.disableBypassPermissionsMode: "disable"`, delivered by MDM profile, HKLM or server-managed settings; the equivalents are Codex `requirements.toml`, Copilot CLI `policy.d`, Gemini CLI's admin directory and Cursor's system `hooks.json` (Tier B). The managed-settings page notes that a local administrator can edit the managed source, which is why MDM redeploys on a schedule. The lock is also what keeps hooks and rules that arrive with a cloned repository from taking effect (see the section above).
+2. Deny destructive and credential-bearing calls as rules, starting with reads of `.env*`, `~/.ssh` and cloud credential files and of the agent's own settings and hooks paths, writes to `.git/hooks` and shell startup files, force pushes, package publishes and egress outside an allowlist, and keep long-lived cloud, registry and publish credentials out of the agent's environment where short-lived, per-task ones will do, so a denied read has less behind it. Deterministic rules have design support (Tier A, CaMeL) with a utility cost, CaMeL refusing 41.5% of entitled calls in one external run (Tier B preprint, Ajar, Table 8).
 3. Allowlist MCP servers by URL or command rather than by name alone, and lock the allowlist (Tier B for the keys each vendor documents). Vetting the servers themselves is outside this document.
 4. Turn the sandbox on and make it admin-required, recording that hooks and local MCP servers run outside it (Tier B). Budget for it, since strict hardening cost coding agents up to 18.3 points of task success and inflated cost by up to 167.3% on Terminal-Bench 2.1 (Tier B preprint, arXiv 2608.02670).
 5. Add one fail-closed enforcement hook where rules cannot express the check, kept local and dependency-free, with tests that replay recorded `tool_input` payloads.
@@ -117,6 +126,7 @@ The lab run is one version of one product. Cursor, Copilot CLI, Gemini CLI and C
 
 ## Gaps
 
+- **Gap: repository trust prompts**. Whether each coding agent asks before honouring a newly cloned repository's hooks, settings and MCP entries, and what the prompt covers, is not tabulated. **Needs**: a default-state row per product, read from its documentation and checked against one clone in a test account.
 - **Gap: G17, independent verification of T9**. Closed on one host: a second agent re-ran 22 of the 37 cells on a fresh rig directory with the same version and method and every one matched, which settles reproducibility on that machine and not across hosts, versions or interactive mode. **Needs**: the T9 cells re-run on a second host against a later Claude Code release, including interactive mode and the `PermissionRequest` hook.
 - **Gap: managed tier unmeasured**. No lab run has put `allowManagedHooksOnly` or `allowManagedPermissionRulesOnly` in force and tried the lower-tier overrides against it. **Needs**: a T9 extension in a disposable VM where the managed path can be written, scoring the same marker and token cells.
 - **Gap: fail-open under latency**. No paper or bench measures whether an enforcement hook that times out allows the call in practice, per product, with and without the fail-closed flag. **Needs**: a bench that delays a deny hook past its timeout in Claude Code, Cursor, Copilot CLI and Gemini CLI and records whether the call ran.
@@ -127,6 +137,7 @@ The lab run is one version of one product. Cursor, Copilot CLI, Gemini CLI and C
 ## Notes
 
 - 2026-11-10: the T9 citations point at lab master `91e44df`, the commit that applies the seven verifier fixes to `t9-pretooluse-hook-enforcement/RESULTS.md`; they replace the `T9-FIX-COMMIT-PENDING` placeholder the document was first written with, and the line ranges were re-derived from that commit (the headline moved to lines 19-23).
+- 2026-11-24: the repository-supplied hooks section, its Summary action and the credential clause in step 2 were added; no lab number or default-state row changed. A verifier re-ran 22 of the 37 T9 cells on a fresh rig on the same host (`VERIFICATION.md`), not including E1b or E4 and only some of the deny cells, so the three claims that rest partly on unre-run cells carry `replication: partial` and the E1c claim carries `same-host`.
 - 2026-11-17: the sentence on deny rules matching the command as written was added from the Claude Code security page, read at the publisher that day; it changes no row, grade or lab number.
 - 2026-11-10: the policy order and the three-shape grouping are my judgement (Tier D) and are expected to move as the gaps above close.
 - 2026-11-10: the GitLab Duo row describes what the MCP clients page says about approvals; the page "doesn't describe allowlisting specific servers", so I have recorded the absence rather than inferred a feature.

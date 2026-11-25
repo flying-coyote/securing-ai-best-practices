@@ -31,14 +31,17 @@ measurement-claims:
     source: "atlas-d3fend-crosswalk@66b7726 VERSION-DIFF-2026-11.md §1 (re-derivable with scripts/01_diff_atlas_releases.py over the stix-atlas.json release assets)"
     date: 2026-11-02
     revalidate: never
+    replication: none
   - claim: "Moving the MCP Python SDK from 1.30.0 to 2.3.0 on the same protocol revision added OTel spans (0 to 11 client and 12 server), moved a raising tool's failure cause from the client's text to server stderr and dropped the per-request stderr line (10 to 0), while moving from revision 2025-11-25 to 2026-07-28 on the same SDK removed the initialize handshake and the Mcp-Session-Id header and added the Mcp-Method header (11 of 11 POSTs) and per-request _meta; one fixture server, single host under contention, pre-registration frozen by agent and not reviewed by the maintainer, VERIFIED-WITH-FIXES"
     source: "sdw-lab-benchmarks@91e44df t8a-mcp-before-after/RESULTS.md:44-46, :51-62"
     date: 2026-11-10
     revalidate: 2027-04-10
+    replication: same-host
   - claim: "CISA KEV catalogVersion 2026.11.09 (1,773 entries) lists, among entries added during 2026, three BerriAI LiteLLM entries (2026-05-08, 2026-06-08, 2026-09-02), one MLflow entry (2026-08-19), one Ray entry (2026-08-17), five Langflow entries (a sixth dates from 2025-05-05) and one n8n entry, and no entry for vLLM or Ollama"
     source: "CISA KEV kev.json catalogVersion 2026.11.09, released 2026-11-09T19:54Z"
     date: 2026-11-09
     revalidate: 2027-01-10
+    replication: none
 ---
 
 # Revalidation and pins: what reopens a decision
@@ -47,7 +50,7 @@ Evidence tier: Mixed. The release records, STIX diffs, statute dates and catalog
 
 ## Summary for the review
 
-A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12.1; pins last verified 2026-11-10. If the review date is past 2027-02-10, print that these pins are unverified since then.
+A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12.1; pins last verified 2026-11-10. If the review date is past 2027-01-19, print that these pins are unverified since then.
 
 - Print the release tag from `RELEASES.md`, the pins list and the last-verified date in the "Staleness and open revalidation triggers" section of every output. Effort S. Tier D.
 - Record the framework version on every mapping row, rule tag and coverage record that cites an ATLAS, ATT&CK, OWASP or CoSAI ID, because ATLAS removed eight technique IDs in four releases without tombstones. Effort S. Tier A for the removal, B for the practice.
@@ -151,7 +154,8 @@ Pinning is also not a substitute for reading. The pins say which version the rep
 
 - 2026-11-24: an outside review counted 24 of the 31 documents' `revalidate-by` dates inside the five weeks from 2027-02-10 to 2027-03-17, which is the clustering Decision 11 names as the thing that would prove the stagger wrong, so the dates were spread again across January to June 2027 with five in each month and six in May. The nine documents that pin ATLAS sit at three months or sooner (five between 2027-01-12 and 2027-01-29, four between 2027-02-03 and 2027-02-10), and the January dates are under the three-month floor in Decision 11 on purpose, since nine documents cannot share one week and earlier is the safer direction for a framework that ships monthly. The other twenty-two run from late February to late June, vendor-default documents first and the ones resting on standards and literature last. Per-claim `revalidate` dates in `measurement-claims` were not moved.
 - The ATLAS release diff takes `revalidate: never` because it compares two frozen, tagged releases; re-running it on the same assets gives the same counts, and the next release gets its own row rather than an update to this one.
-- KEV sits in the pin list so `RELEASES.md` can record which snapshot a release read. Because the catalogue changes several times a week, the newest-known versions file passed to `check-pins.py --current` should not list KEV, or this document would fail between weekly reviews; the weekly review bumps the KEV pin by hand.
+- KEV sits in the pin list so `RELEASES.md` can record which snapshot a release read. Because the catalogue changes several times a week, the newest-known versions file passed to `check-pins.py --current` should not list KEV, or this document would fail between weekly reviews; the weekly review bumps the KEV pin by hand, in every document that pins it and in the same commit, after re-checking the entries those documents cite against the new catalogue version. `last-verified` follows the same logic: it moves when a document's sources are re-read, and an edit that changes a claim without re-reading the rest leaves it where it is and says in the document's Notes what changed and on what date, so the field never claims a verification that did not happen.
+- The `replication` values on the measurement claims: the lab row is `same-host` because the run's verifier re-ran all of its cells on the original host (`t8a-mcp-before-after/VERIFICATION.md`); the ATLAS diff and the KEV row are `none` because they are reads of published data, which anyone can repeat but nobody else has.
 - ATT&CK's site dates v19.x from 28 April 2026, while the v19.2 STIX tag was cut 2026-08-05; both are right for what they describe, and the pin uses the STIX collection's own version (Tier A).
 - The ISO/IEC 42001 row rests on a national standards body's catalogue page because iso.org returned 403; treat the "text unchanged" statement as Tier C until read at the primary.
 - The vendor retention windows referenced in the dated table live as default-state rows with their own `last-checked` dates in `telemetry-by-surface.md`, not here, so this document carries no vendor default.
