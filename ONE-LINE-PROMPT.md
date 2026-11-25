@@ -45,12 +45,12 @@ Run the review in your organization's sanctioned business or enterprise assistan
 
 ## What a run costs
 
-These figures will be measured on the three synthetic fixtures before each release and have not been measured yet, so the table says so rather than guessing.
+The question and document counts below are what `scripts/route.py` gives for the four synthetic fixtures in `fixtures/` (its `questions-asked` figure, and the doc list including the four documents read on every review), measured on 2026-11-24. Nobody has timed a run with a person answering or measured the context an agent uses, so those columns say so rather than guessing.
 
-| Interview branch | Questions | Practitioner minutes | Docs fetched | Context used |
+| Interview branch | Questions | Practitioner minutes | Docs routed | Context used |
 |---|---|---|---|---|
-| Small-org (about 1,000 people or fewer, no self-hosted models, fine-tunes or RAG stores) | about 12 by design | not yet measured | not yet measured | not yet measured |
-| Full (any other profile) | about 5 per surface family present, by design | not yet measured | not yet measured | not yet measured |
+| Small-org (under about 1,000 people with no sector regulator, and no self-hosted models, fine-tunes or RAG stores) | 22 and 21 on the two small-org fixtures | not measured | 12 and 18 | not measured |
+| Full (any other profile) | 75 and 64 on the two full-branch fixtures; it grows with the surfaces present | not measured | 24 and 18 | not measured |
 
 ## Structured Output Format
 
@@ -84,13 +84,13 @@ This is the half-page, and the review opens with it: nothing comes between the t
 
 ## Prioritized actions
 
-PROBLEM rows first, in the order the Priority rubric gives, then REVIEW rows in the same order, so a High REVIEW row leads them, each with its matched answer quoted. For each action: title; priority band (written "High, by escalation" where an escalation raised it) and its four rubric factors; confidence (doc evidence-tier, convergence, and the claim's own tier where the doc is Mixed); effort (S, M or L, as the backing doc gives it; no file in this repo converts these to hours, so give none) and "also needs" (IT admin, networking, legal, finance, the vendor); signal key; doc path; the action stated as what to do; the cost side, including any new log volume; how to check it here. On every L action add the cost of the people a custom build needs, the configure-first alternative where one exists, and the convergence clause in both forms:
+PROBLEM rows first, in the order the Priority rubric gives, then REVIEW rows in the same order, so a High REVIEW row leads them, each with its matched answer quoted. For each action: title; priority band (written "High, by escalation" where an escalation raised it) and its four rubric factors; confidence (doc evidence-tier, convergence, and the claim's own tier where the doc is Mixed); effort (S, M or L, as the backing doc gives it; no file in this repo converts these to hours, so give none) and "also needs" (IT admin, networking, legal, finance, the vendor); signal key; doc path; the action stated as what to do; the cost side, including any new log volume; how to check it here; "confirm within N days" where the answer was only believed; "declared gap" where every backing doc is a stub. Print once, above the actions, that the priority scores are the author's judgement (Tier D), and print every reducer count as "at least N". On every L action add the cost of the people a custom build needs, the configure-first alternative where one exists, and the convergence clause in both forms:
 - formal: "This practice is single-source in this repo; adopting it is your risk acceptance, and here is what it costs if it never converges."
 - plain: "No standard requires this yet; doing it is a judgement call, and here is what it costs."
 
 ## Question Packets
 
-Grouped by owning role: one category-level question for every not-checked or believed-only signal.
+Grouped by owning role: one category-level question for every not-checked or believed-only signal. On the small-org branch, add one "anything else?" question covering the rows listed as not asked.
 
 ## Areas this repo does not yet cover
 
@@ -138,7 +138,7 @@ This transcript is a map of your organization's gaps. Store and share it as you 
 
 ## Worked examples
 
-Three synthetic organizations, each an Answers Block with the output the reference mapper gives for it, sit in [`fixtures/`](fixtures/README.md), whose README lists their doc counts and top actions and is left out of the offline bundle so the fixtures stay a fair test of any agent's routing.
+Four synthetic organizations, each an Answers Block with the output the reference mapper gives for it, sit in [`fixtures/`](fixtures/README.md), whose README lists their doc counts and top actions and is left out of the offline bundle so the fixtures stay a fair test of any agent's routing.
 
 ## Evidence tiers, quick reference
 

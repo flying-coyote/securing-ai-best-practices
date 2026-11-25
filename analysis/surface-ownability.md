@@ -61,7 +61,7 @@ I use the CoSAI IDs throughout, because they are the only version under version 
 | External Tools | Tool invocation path (Tools, ToolServer, AuthorizationPolicyEnforcementPoint, tool input and output handling) | 5 |
 | External Tools | Tool network controls | 1 |
 
-The same commit carries 36 risks, of which 19 have a `mappings.mitre-atlas` list resolving to 24 distinct ATLAS technique IDs, and ten personas, two of them deprecated (Model Creator, Model Consumer) (Tier A). Google's single "Tools" sub-part became CoSAI's whole External Tools category plus the ToolRegistry, and the identity, enforcement and audit components that most of this document leans on (IdentityProvider, the policy decision and enforcement points, FederationProxy, the three network enforcement points, AuditRecordRepository) do not appear on either Google page at all.
+The same commit carries 36 risks, of which 19 have a `mappings.mitre-atlas` list resolving to 24 distinct ATLAS technique IDs, and ten personas, two of them deprecated (Model Creator, Model Consumer) (Tier A). Google's single "Tools" sub-part became CoSAI's whole External Tools category plus the ToolRegistry, and the identity, enforcement and audit components that most of this document leans on (IdentityProvider, the policy decision and enforcement points, FederationProxy, the three network enforcement points, AuditRecordRepository) do not appear on either Google page at all (an absence on two pages, Tier D, and checked on 2026-11-10 only by a second model rather than re-read at the primary).
 
 ## The grid
 

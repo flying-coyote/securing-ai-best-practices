@@ -19,7 +19,7 @@ not-run:
 - S8
 - S12
 surfaces-not-checked: []
-questions-asked: 61
+questions-asked: 64
 derived:
 - profile-own-heavy
 top-actions:
@@ -224,6 +224,10 @@ question-packets:
   - key: pre-release-eval-absent
     why: not checked
   - key: abuse-monitoring-absent
+    why: not checked
+  - key: shipped-feature-tool-scope-unreviewed
+    why: not checked
+  - key: shipped-feature-tenant-isolation-unknown
     why: not checked
   security lead:
   - key: how-do-you-know

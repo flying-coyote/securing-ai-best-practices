@@ -2,13 +2,13 @@
 
 This is for the security lead at a small or mid-sized organization, often one of one or two people on security, who needs to know what to do first about the AI their organization rents or runs. It gives you a short review that opens with what to do in the next 30 days, ordered by what could hurt you, with the repo's confidence printed beside every item and a link to the document that researched it.
 
-To get it, you paste one block into an assistant you are already allowed to use. The agent interviews you about how your organization uses AI, matches your answers to a routing table, reads the four to eight researched documents that apply, and writes the review. You can also skip the agent and read the documents directly. Where the public record had a gap, the documents cite lab measurements published in [sdw-lab-benchmarks](https://github.com/flying-coyote/sdw-lab-benchmarks), pinned by commit.
+To get it, you paste one block into an assistant you are already allowed to use. The agent interviews you about how your organization uses AI, matches your answers to a routing table, reads the documents the table selects, and writes the review. On the repo's four synthetic test organizations the routing selects 12 to 18 documents for the two small ones and 18 to 24 for the two larger ones, counting the four read on every review, and the small-organization interview comes to 21 or 22 questions; how long a run takes has not been measured. You can also skip the agent and read the documents directly. Where the public record had a gap, the documents cite lab measurements published in [sdw-lab-benchmarks](https://github.com/flying-coyote/sdw-lab-benchmarks), pinned by commit.
 
 <!-- pre-release:start (the release script's stamp step rewrites the text between these markers) -->
 > Status: release v2026.12.1, stamped 2026-11-11. On the tagged commit the blocks below carry the `<release-sha>` and `<vYYYY.MM>` placeholders, because a commit cannot contain its own SHA, and on the default branch they carry the tagged commit. Either way, the release's full commit SHA, its tag and the SHA-256 of the offline bundle are in `RELEASES.md`.
 <!-- pre-release:end -->
 
-26 routable docs, 108 signals, 5 stubs, last derived 2026-11-10.
+26 routable docs, 115 signals, 5 stubs, last derived 2026-11-24.
 
 ## What this is, and what it is not
 
@@ -30,7 +30,7 @@ The terms it uses in a specific sense, from "surface" to "Question Packet", are 
 
 An organization's "AI" turns out to be about thirteen deployment surfaces, most of them rented, from the assistant inside the office suite and the AI features vendors switched on inside products you already pay for, through coding agents and the MCP servers they call, to the rarer cases of self-hosted models, fine-tunes and RAG stores. On most of those surfaces the organization owns only its identity provider, its egress path and whatever audit record the vendor exports, so the questions a practitioner actually has are which surfaces they run, which parts of each are theirs to secure, what record exists and who holds it, what the tools they already own cover, and what to turn on, evaluate, buy or build, in what order.
 
-I built the review so that a security lead at a few-hundred-person company, with one or two people on security, can run it in about an hour on output from their own admin consoles, and the block asks for reducer output first so that no raw export has to leave the organization unless the lead chooses to paste one after the agent warns what that sends. The first release is that small-organization slice on purpose, and larger or own-heavy organizations get a fuller interview branch with the families the slice does not yet research declared as gaps, each pointing at the standard to read meanwhile, because silence in a structured review reads as clean.
+I built the review so that a security lead at a few-hundred-person company, with one or two people on security, can run it on output from their own admin consoles, answering about twenty questions (how long that takes is unmeasured), and the block asks for reducer output first so that no raw export has to leave the organization unless the lead chooses to paste one after the agent warns what that sends. The first release is that small-organization slice on purpose, and larger or own-heavy organizations get a fuller interview branch with the families the slice does not yet research declared as gaps, each pointing at the standard to read meanwhile, because silence in a structured review reads as clean.
 
 Two choices separate this from a checklist. Priority and confidence are separate axes: priority comes from a published rubric over reach, stakes, reversibility and blast radius in `routing.yaml`, and confidence is the backing document's evidence tier and convergence, so an exposed inference endpoint is not ranked below a well-cited but minor practice just because the citation is stronger. And the data guard is code you run rather than a sentence the model is asked to honour, which is why the review asks for reducer output (signal keys and counts) instead of raw exports.
 
@@ -97,7 +97,7 @@ The repo concerns no employer, and no organization is named or assumed to run an
 - [GLOSSARY.md](GLOSSARY.md) defines the terms the repo uses in a specific sense, each with the document that owns the definition.
 - [SECURITY.md](SECURITY.md) says how to report a weakness in the prompt block, the reducers or the checks, and [CITATION.cff](CITATION.cff) says how to cite a release.
 - [analysis/CANONICAL-DOC-TEMPLATE.md](analysis/CANONICAL-DOC-TEMPLATE.md) is the shape every analysis document takes.
-- [fixtures/](fixtures/README.md) holds three synthetic Answers Blocks with the routing each produces, which CI checks and which double as worked examples.
+- [fixtures/](fixtures/README.md) holds four synthetic Answers Blocks with the routing each produces, which CI checks and which double as worked examples.
 - [scripts/README.md](scripts/README.md) lists the scripts and which of them CI runs. The local reducers that turn an admin export into counts are in `scripts/reducers/`.
 
 ## Related work

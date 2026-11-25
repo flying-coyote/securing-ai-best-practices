@@ -1,7 +1,7 @@
 ---
 evidence-tier: Mixed
 convergence: single-source
-applies-to-signals: [output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent]
+applies-to-signals: [output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
 surfaces: [S8]
 pins:
   - "OWASP Top 10 for LLM Applications 2026"
@@ -34,7 +34,7 @@ When a product team builds a customer-facing feature on a model API, the organiz
 
 The OWASP Top 10 for LLM Applications 2026 edition names LLM10:2026 Improper Output Handling and LLM06:2026 Unbounded Consumption as entries in their own right, the second covering cost abuse and model cloning through excessive inference as well as service disruption (Tier A for the categories, read 2026-11-10 from the published PDF), and the repo points at the list rather than explaining it, per `CONTRIBUTING.md`.
 
-NIST AI 600-1, the Generative AI Profile of the AI RMF (July 2024), carries suggested actions that map onto two of the three signals with little interpretation (Tier A, read 2026-11-10 from the published PDF):
+NIST AI 600-1, the Generative AI Profile of the AI RMF (July 2024), carries suggested actions that map onto two of the first three signals (output handling, pre-release evaluation and abuse monitoring; the tool-scope and tenant-isolation rows came later) with little interpretation (Tier A, read 2026-11-10 from the published PDF):
 
 - MS-2.7-007, AI red-teaming to assess resilience against abuse that facilitates attacks on other systems, GAI attacks such as prompt injection, and ML attacks such as model extraction and sponge examples.
 - MS-4.2-001, adversarial testing at a regular cadence to map misuse scenarios and unintended outputs.
@@ -55,7 +55,7 @@ It does not mean the repo considers shipped AI features low-risk because it rout
 ## Gaps
 
 - **Gap: provider-side S8 evidence**. The repo has no measured or researched evidence on securing AI features an organization ships to its customers: no output-handling test, no pre-release evaluation study and no abuse-monitoring signal study, and its S8 reading is the consumer one. **Needs**: a desk study mapping the three signals to the OWASP 2026 entries, the NIST AI 600-1 action IDs above and AI Act Articles 9, 15(5), 50, 72 and 73, plus a lab bench that runs a fixed corpus of injection payloads through a sample customer-facing feature into three sinks (an HTML renderer, a SQL query, a downstream tool call) and counts how many reach each sink with and without output validation, re-run on each model-version change so it doubles as the pre-release evaluation the second signal asks about.
-- **Gap: no signal for tool scope or tenant isolation**. A shipped feature that calls tools on a customer's behalf, or serves several customers from one model context or index, can leak across customers or act beyond what a customer asked, and none of the three routed signals asks about either. **Needs**: two proposed signal rows, one for the tool scope of a shipped feature and one for per-customer isolation of its context, memory and retrieval, each with a question and a doc, added through the routing change process.
+- **Gap: tool scope and tenant isolation are asked but not researched**. A shipped feature that calls tools on a customer's behalf, or serves several customers from one model context or index, can leak across customers or act beyond what a customer asked. Two REVIEW rows now ask about it (`shipped-feature-tool-scope-unreviewed` and `shipped-feature-tenant-isolation-unknown`, added 2026-11-24 with factor scores that are my judgement, Tier D), and both route to this stub, so the review prints them as declared gaps. **Needs**: a researched source on per-customer isolation of context, memory and retrieval and on scoping the tools a shipped feature can call, which would turn this stub into a routable document.
 
 ## Notes
 

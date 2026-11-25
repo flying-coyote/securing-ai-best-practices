@@ -7,7 +7,7 @@ pins:
   - "CoSAI AI Incident Response Framework V1.0 (document version 24fecc8c, dated 27 October 2025)"
   - "NIST SP 800-61 Rev. 3 (April 2025)"
   - "OASIS CACAO Security Playbooks Version 2.0"
-  - "CISA Known Exploited Vulnerabilities catalog, catalogVersion 2026.11.09"
+  - "CISA KEV catalogVersion 2026.11.09"
   - "EU AI Act consolidated CELEX-02024R1689-20260727"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10

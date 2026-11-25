@@ -8,6 +8,7 @@ pins:
   - "Sigma specification 2.0.0"
   - "OCSF 1.9.0"
   - "OMB M-25-21 2025-04-03"
+  - "CISA KEV catalog 2026.11.09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
 revalidate-by: 2027-06-28
@@ -93,7 +94,7 @@ Each item names the CoSAI control it serves where one exists (secure-ai-tooling 
 | 2 | Documented interfaces | Inputs (source, version pinned), outputs (schema, version) and known consumers listed, with a test that fails when a pinned upstream changes | `controlComponentIdentityProvenance` | Undeclared consumers and data dependencies (Tier A, Sculley et al.) |
 | 3 | Re-decision date | At most twelve months out, brought forward by a framework release, a platform logging change or an acquisition | none | A stronger competitor is a named failure reason (Tier A), and here the competitor is often a vendor toggle; twelve months is my default (Tier D) |
 | 4 | Inventory row | Owner, second, interfaces, date, surfaces and components, in the same register as purchased tools | `controlAgentInventoryManagement`, `controlModelAndDataInventoryManagement` | NIST SP 800-53 CM-8 (Tier A); M-25-21's annual inventory (Tier B); EU AI Act Article 49 registration for Annex III high-risk systems (Tier A) |
-| 5 | Telemetry contract | Typed identity, model and tool-name fields at ingest, export schema by version (OCSF 1.9.0, or OpenTelemetry `gen_ai` with its Development status noted), retention the organization controls | `controlAgentObservability` | A tool that logs outside the shared shape becomes a blind cell in the coverage view it was built to improve |
+| 5 | Telemetry contract | Typed identity, model and tool-name fields at ingest, export schema by version (OCSF 1.10.0 or 1.9.0, or OpenTelemetry `gen_ai` with its Development status noted), retention the organization controls | `controlAgentObservability` | A tool that logs outside the shared shape becomes a blind cell in the coverage view it was built to improve |
 
 Items 1 and 4 are what let a rationalization pass work at all, since a review can only retire what it can see and only reassign what has an owner.
 

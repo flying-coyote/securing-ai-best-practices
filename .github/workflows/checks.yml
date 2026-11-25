@@ -148,7 +148,7 @@ jobs:
       - name: Routing coverage
         run: python scripts/check-routing-coverage.py
 
-      # The reference mapper against the three golden fixtures.
+      # The reference mapper against the golden fixtures in fixtures/.
       - name: Route the fixtures
         run: python scripts/route.py --check-fixtures
 

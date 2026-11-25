@@ -82,8 +82,9 @@ Question Packets for this family go to: security lead.
 | 2 | `org-size-large-regulated` | I | INVENTORY |  | `analysis/rent-or-own-sized-to-the-org.md`, `analysis/build-buy-and-the-high-priest.md` |
 | 3 | `profile-rent-heavy` | I/D | INVENTORY | derived: not (surface-S9 or surface-S11 or surface-S12); a yes answers `surface-S9`, `surface-S11`, `surface-S12` as no | `analysis/rent-or-own-sized-to-the-org.md` |
 | 4 | `profile-own-heavy` | I/D | REVIEW, Low (0+0+1+1=2) | derived: surface-S9 or surface-S11 or surface-S12 | `analysis/rent-or-own-sized-to-the-org.md`, `analysis/models-you-hold.md` |
-| 18 | `own-heavy-small-org` | D | REVIEW, Medium (0+1+1+1=3) | derived: profile-own-heavy and org-size-small-mid | `analysis/rent-or-own-sized-to-the-org.md` |
-| 19 | `surface-unknown` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/inventory-and-shadow-ai.md` |
+| 5 | `residency-requirement` | I | INVENTORY |  | `analysis/rent-or-own-sized-to-the-org.md`, `analysis/saas-embedded-ai-and-vendor-terms.md` |
+| 19 | `own-heavy-small-org` | D | REVIEW, Medium (0+1+1+1=3) | derived: profile-own-heavy and org-size-small-mid | `analysis/rent-or-own-sized-to-the-org.md` |
+| 20 | `surface-unknown` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/inventory-and-shadow-ai.md` |
 
 ### surface
 
@@ -91,19 +92,19 @@ Question Packets for this family go to: IT administrator.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 5 | `surface-S1` | I | INVENTORY | enables `saas-ai-toggles-unreviewed`, `vendor-training-optout-unknown`, `ai-subprocessor-review-absent`, `oauth-grants-unreviewed`, `grounding-permissions-unreviewed`, `plan-tier-below-audit` | `analysis/surface-ownability.md` |
-| 6 | `surface-S2` | I | INVENTORY | enables `audit-log-off-<platform>`, `content-channel-off`, `content-channel-on`, `plan-tier-below-audit`, `vendor-training-optout-unknown`, `grounding-permissions-unreviewed`, `sensitivity-labels-absent`, `restricted-search-unset` | `analysis/surface-ownability.md` |
-| 7 | `surface-S3` | I | INVENTORY | enables `shadow-ai-method-none`, `shadow-ai-method-network-only`, `tenant-restriction-absent`, `audit-log-off-<platform>` | `analysis/surface-ownability.md` |
-| 8 | `surface-S4` | I | INVENTORY | enables `coding-agent-managed-tier-absent`, `hook-fail-open`, `hooks-user-disableable`, `mcp-allowlist-absent`, `mcp-unpinned`, `mcp-remote`, `agent-static-secrets`, `plan-tier-below-audit`, `audit-log-off-<platform>` | `analysis/surface-ownability.md` |
-| 9 | `surface-S5` | I | INVENTORY | enables `mcp-allowlist-absent`, `mcp-unpinned`, `mcp-remote`, `mcp-manifest-snapshot-absent`, `agent-static-secrets`, `nhi-inventory-absent`, `audit-log-off-<platform>` | `analysis/surface-ownability.md` |
-| 10 | `surface-S6` | I | INVENTORY | enables `agent-publish-approval-absent`, `maker-credential-agents`, `agent-external-sharing-unreviewed`, `connector-sprawl-unreviewed`, `agent-builder-self-hosted-exposed`, `nhi-inventory-absent` | `analysis/surface-ownability.md` |
-| 11 | `surface-S7` | I | INVENTORY | enables `agent-publish-approval-absent`, `connector-sprawl-unreviewed`, `audit-log-off-<platform>`, `cloud-trail-default-only`, `ai-gateway-absent`, `gateway-token-store-unreviewed`, `output-handling-unreviewed`, `pre-release-eval-absent`, `abuse-monitoring-absent` | `analysis/surface-ownability.md` |
-| 12 | `surface-S8` | I | INVENTORY | enables `ai-gateway-absent`, `gateway-token-store-unreviewed`, `cloud-trail-default-only`, `agent-static-secrets`, `output-handling-unreviewed`, `pre-release-eval-absent`, `abuse-monitoring-absent` | `analysis/surface-ownability.md` |
-| 13 | `surface-S9` | I | INVENTORY | enables `inference-runtime-default-bind`, `model-store-unscanned`, `pickle-formats-present`, `ai-gateway-absent`, `gateway-token-store-unreviewed`, `output-handling-unreviewed`, `pre-release-eval-absent`, `abuse-monitoring-absent` | `analysis/surface-ownability.md` |
-| 14 | `surface-S10` | I | INVENTORY | enables `inference-runtime-default-bind`, `model-store-unscanned`, `pickle-formats-present` | `analysis/surface-ownability.md` |
-| 15 | `surface-S11` | I | INVENTORY | enables `fine-tuned-models`, `training-record-absent`, `model-store-unscanned` | `analysis/surface-ownability.md` |
-| 16 | `surface-S12` | I | INVENTORY | enables `rag-acl-propagation-unknown`, `ingestion-integrity-unreviewed`, `embeddings-outside-governance` | `analysis/surface-ownability.md` |
-| 17 | `surface-S13` | I | INVENTORY | enables `ai-analyst-ungraded`, `containment-pre-authorized-broad`, `telemetry-into-llm` | `analysis/surface-ownability.md` |
+| 6 | `surface-S1` | I | INVENTORY | enables `saas-ai-toggles-unreviewed`, `vendor-training-optout-unknown`, `ai-subprocessor-review-absent`, `oauth-grants-unreviewed`, `grounding-permissions-unreviewed`, `plan-tier-below-audit` | `analysis/surface-ownability.md` |
+| 7 | `surface-S2` | I | INVENTORY | enables `audit-log-off-<platform>`, `content-channel-off`, `content-channel-on`, `plan-tier-below-audit`, `vendor-training-optout-unknown`, `grounding-permissions-unreviewed`, `sensitivity-labels-absent`, `restricted-search-unset` | `analysis/surface-ownability.md` |
+| 8 | `surface-S3` | I | INVENTORY | enables `shadow-ai-method-none`, `shadow-ai-method-network-only`, `tenant-restriction-absent`, `audit-log-off-<platform>` | `analysis/surface-ownability.md` |
+| 9 | `surface-S4` | I | INVENTORY | enables `coding-agent-managed-tier-absent`, `hook-fail-open`, `hooks-user-disableable`, `mcp-allowlist-absent`, `mcp-unpinned`, `mcp-remote`, `agent-static-secrets`, `plan-tier-below-audit`, `audit-log-off-<platform>` | `analysis/surface-ownability.md` |
+| 10 | `surface-S5` | I | INVENTORY | enables `mcp-allowlist-absent`, `mcp-unpinned`, `mcp-remote`, `mcp-manifest-snapshot-absent`, `agent-static-secrets`, `nhi-inventory-absent`, `audit-log-off-<platform>`, `agent-identity-owner-absent` | `analysis/surface-ownability.md` |
+| 11 | `surface-S6` | I | INVENTORY | enables `agent-publish-approval-absent`, `maker-credential-agents`, `agent-external-sharing-unreviewed`, `connector-sprawl-unreviewed`, `agent-builder-self-hosted-exposed`, `nhi-inventory-absent`, `agent-identity-owner-absent` | `analysis/surface-ownability.md` |
+| 12 | `surface-S7` | I | INVENTORY | enables `agent-publish-approval-absent`, `connector-sprawl-unreviewed`, `audit-log-off-<platform>`, `cloud-trail-default-only`, `ai-gateway-absent`, `gateway-token-store-unreviewed`, `output-handling-unreviewed`, `pre-release-eval-absent`, `abuse-monitoring-absent`, `agent-identity-owner-absent`, `shipped-feature-tool-scope-unreviewed`, `shipped-feature-tenant-isolation-unknown` | `analysis/surface-ownability.md` |
+| 13 | `surface-S8` | I | INVENTORY | enables `ai-gateway-absent`, `gateway-token-store-unreviewed`, `cloud-trail-default-only`, `agent-static-secrets`, `output-handling-unreviewed`, `pre-release-eval-absent`, `abuse-monitoring-absent`, `shipped-feature-tool-scope-unreviewed`, `shipped-feature-tenant-isolation-unknown` | `analysis/surface-ownability.md` |
+| 14 | `surface-S9` | I | INVENTORY | enables `inference-runtime-default-bind`, `model-store-unscanned`, `pickle-formats-present`, `ai-gateway-absent`, `gateway-token-store-unreviewed`, `output-handling-unreviewed`, `pre-release-eval-absent`, `abuse-monitoring-absent`, `shipped-feature-tool-scope-unreviewed`, `shipped-feature-tenant-isolation-unknown` | `analysis/surface-ownability.md` |
+| 15 | `surface-S10` | I | INVENTORY | enables `inference-runtime-default-bind`, `model-store-unscanned`, `pickle-formats-present` | `analysis/surface-ownability.md` |
+| 16 | `surface-S11` | I | INVENTORY | enables `fine-tuned-models`, `training-record-absent`, `model-store-unscanned` | `analysis/surface-ownability.md` |
+| 17 | `surface-S12` | I | INVENTORY | enables `rag-acl-propagation-unknown`, `ingestion-integrity-unreviewed`, `embeddings-outside-governance` | `analysis/surface-ownability.md` |
+| 18 | `surface-S13` | I | INVENTORY | enables `ai-analyst-ungraded`, `containment-pre-authorized-broad`, `telemetry-into-llm` | `analysis/surface-ownability.md` |
 
 ### record
 
@@ -111,31 +112,32 @@ Question Packets for this family go to: logging or security operations owner.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 20 | `audit-log-off-<platform>` | I | PROBLEM, Medium (1+1+1+1=4); escalates: High when that platform's surface is internet-reachable and handles regulated data [when `internet-reachable-<platform>` and `regulated-data-<platform>`] | platform values: office-suite-assistant, managed-model-platform, coding-agent, mcp-host, browser, identity-platform, data-governance-platform; asked per platform each present surface implies: surface-S2 office-suite-assistant, surface-S3 browser, surface-S4 coding-agent, surface-S5 mcp-host, surface-S7 managed-model-platform | `analysis/telemetry-by-surface.md` |
-| 21 | `content-channel-off` | I | REVIEW, Low (0+1+0+1=2) |  | `analysis/telemetry-by-surface.md`, `analysis/what-to-log-and-what-it-costs.md` |
-| 22 | `content-channel-on` | I | REVIEW, Low (0+2+0+0=2) |  | `analysis/telemetry-by-surface.md`, `analysis/what-to-log-and-what-it-costs.md` |
-| 23 | `content-lands-vendor` | I | REVIEW, Low (1+1+0+0=2) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
-| 24 | `content-lands-own-cloud` | I | REVIEW, Low (0+1+0+0=1) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
-| 25 | `content-lands-laptop` | I | REVIEW, Low (0+1+1+0=2) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
-| 26 | `schema-none` | I | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
-| 27 | `schema-vendor-json` | I | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
-| 28 | `schema-otel` | I | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
-| 29 | `schema-ocsf` | I | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
-| 30 | `prompt-capture-tier-none` | I | REVIEW, Low (0+0+0+1=1) |  | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
-| 31 | `prompt-capture-tier-metadata` | I | REVIEW, Low (0+1+0+0=1) | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
-| 32 | `prompt-capture-tier-hash` | I | REVIEW, Low (0+1+0+0=1) | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
-| 33 | `prompt-capture-tier-delta` | I | REVIEW, Low (0+1+1+0=2) | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
-| 34 | `prompt-capture-tier-full` | I | REVIEW, Low (0+2+0+0=2); escalates: PROBLEM, High when jurisdiction-eu and dpia-absent also hold [when `jurisdiction-eu` and `dpia-absent`] [weight becomes PROBLEM] | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
-| 35 | `jurisdiction-eu` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
-| 36 | `jurisdiction-us` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
-| 37 | `jurisdiction-uk` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
-| 38 | `jurisdiction-other` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
-| 39 | `content-captured-gdpr` | D | INVENTORY | derived: (content-channel-on or prompt-capture-tier-delta or prompt-capture-tier-full) and (jurisdiction-eu or jurisdiction-uk) |  |
-| 40 | `content-captured-eu` | D | INVENTORY | derived: (content-channel-on or prompt-capture-tier-delta or prompt-capture-tier-full) and jurisdiction-eu |  |
-| 41 | `dpia-absent` | I | PROBLEM, High (0+2+2+2=6) | requires `content-captured-gdpr`; packets to privacy or legal counsel | `analysis/prompt-capture-and-the-law.md` |
-| 42 | `works-council-unconsulted` | I | PROBLEM, High (0+2+2+2=6) | requires `content-captured-eu`; packets to privacy or legal counsel | `analysis/prompt-capture-and-the-law.md` |
-| 43 | `record-in-agent-reach` | I | REVIEW, Medium (0+1+2+1=4) |  | `analysis/tamper-evident-record.md` |
-| 44 | `telemetry-into-llm` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/telemetry-is-an-injection-surface.md` |
+| 21 | `audit-log-off-<platform>` | I | PROBLEM, Medium (1+1+1+1=4); escalates: High when that platform's surface is internet-reachable and handles regulated data [when `internet-reachable-<platform>` and `regulated-data-<platform>`] | platform values: office-suite-assistant, managed-model-platform, coding-agent, mcp-host, browser, identity-platform, data-governance-platform; asked per platform each present surface implies: surface-S2 office-suite-assistant, surface-S3 browser, surface-S4 coding-agent, surface-S5 mcp-host, surface-S7 managed-model-platform | `analysis/telemetry-by-surface.md` |
+| 22 | `content-channel-off` | I | REVIEW, Low (0+1+0+1=2) |  | `analysis/telemetry-by-surface.md`, `analysis/what-to-log-and-what-it-costs.md` |
+| 23 | `content-channel-on` | I | REVIEW, Low (0+2+0+0=2) |  | `analysis/telemetry-by-surface.md`, `analysis/what-to-log-and-what-it-costs.md` |
+| 24 | `content-lands-vendor` | I | REVIEW, Low (1+1+0+0=2) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
+| 25 | `content-lands-own-cloud` | I | REVIEW, Low (0+1+0+0=1) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
+| 26 | `content-lands-laptop` | I | REVIEW, Low (0+1+1+0=2) | requires `content-channel-on` | `analysis/telemetry-by-surface.md` |
+| 27 | `schema-none` | I | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md` |
+| 28 | `schema-vendor-json` | I | INVENTORY | enables `hunt-keys-untyped` | `analysis/landing-ai-events-in-ocsf.md` |
+| 29 | `schema-otel` | I | INVENTORY | enables `hunt-keys-untyped` | `analysis/landing-ai-events-in-ocsf.md` |
+| 30 | `schema-ocsf` | I | INVENTORY | enables `hunt-keys-untyped` | `analysis/landing-ai-events-in-ocsf.md` |
+| 31 | `hunt-keys-untyped` | I | PROBLEM, Low (1+0+0+1=2) |  | `analysis/landing-ai-events-in-ocsf.md` |
+| 32 | `prompt-capture-tier-none` | I | REVIEW, Low (0+0+0+1=1) |  | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
+| 33 | `prompt-capture-tier-metadata` | I | REVIEW, Low (0+1+0+0=1) | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
+| 34 | `prompt-capture-tier-hash` | I | REVIEW, Low (0+1+0+0=1) | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
+| 35 | `prompt-capture-tier-delta` | I | REVIEW, Low (0+1+1+0=2) | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
+| 36 | `prompt-capture-tier-full` | I | REVIEW, Low (0+2+0+0=2); escalates: PROBLEM, High when jurisdiction-eu and dpia-absent also hold [when `jurisdiction-eu` and `dpia-absent`] [weight becomes PROBLEM] | also accepts on-trigger | `analysis/what-to-log-and-what-it-costs.md`, `analysis/prompt-capture-and-the-law.md` |
+| 37 | `jurisdiction-eu` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
+| 38 | `jurisdiction-us` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
+| 39 | `jurisdiction-uk` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
+| 40 | `jurisdiction-other` | I | INVENTORY |  | `analysis/prompt-capture-and-the-law.md` |
+| 41 | `content-captured-gdpr` | D | INVENTORY | derived: (content-channel-on or prompt-capture-tier-delta or prompt-capture-tier-full) and (jurisdiction-eu or jurisdiction-uk) |  |
+| 42 | `content-captured-eu` | D | INVENTORY | derived: (content-channel-on or prompt-capture-tier-delta or prompt-capture-tier-full) and jurisdiction-eu |  |
+| 43 | `dpia-absent` | I | PROBLEM, High (0+2+2+2=6) | requires `content-captured-gdpr`; packets to privacy or legal counsel | `analysis/prompt-capture-and-the-law.md` |
+| 44 | `works-council-unconsulted` | I | PROBLEM, High (0+2+2+2=6) | requires `content-captured-eu`; packets to privacy or legal counsel | `analysis/prompt-capture-and-the-law.md` |
+| 45 | `record-in-agent-reach` | I | REVIEW, Medium (0+1+2+1=4) |  | `analysis/tamper-evident-record.md` |
+| 46 | `telemetry-into-llm` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/telemetry-is-an-injection-surface.md` |
 
 ### identity
 
@@ -143,13 +145,14 @@ Question Packets for this family go to: identity team.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 45 | `nhi-inventory-absent` | I | PROBLEM, Medium (1+2+0+1=4) |  | `analysis/agent-identity-and-delegation.md` |
-| 46 | `agent-static-secrets` | I/E | PROBLEM, High (2+2+1+1=6) |  | `analysis/agent-identity-and-delegation.md` |
-| 47 | `delegation-record-absent` | I | REVIEW, Low (0+1+0+1=2) |  | `analysis/agent-identity-and-delegation.md` |
-| 48 | `ai-gateway-absent` | I | REVIEW, Medium (1+1+0+2=4) |  | `analysis/ai-apis-and-the-gateway.md` |
-| 49 | `ai-gateway-present` | I | INVENTORY |  | `analysis/ai-apis-and-the-gateway.md` |
-| 50 | `gateway-token-store-unreviewed` | I | REVIEW, High (1+2+1+2=6) | requires `ai-gateway-present` | `analysis/ai-apis-and-the-gateway.md` |
-| 51 | `cloud-trail-default-only` | I | REVIEW, Medium (1+1+0+1=3) |  | `analysis/ai-apis-and-the-gateway.md` |
+| 47 | `nhi-inventory-absent` | I | PROBLEM, Medium (1+2+0+1=4) |  | `analysis/agent-identity-and-delegation.md` |
+| 48 | `agent-static-secrets` | I/E | PROBLEM, High (2+2+1+1=6) |  | `analysis/agent-identity-and-delegation.md`, `analysis/mcp-servers-and-manifest-drift.md` |
+| 49 | `delegation-record-absent` | I | REVIEW, Low (0+1+0+1=2) |  | `analysis/agent-identity-and-delegation.md` |
+| 50 | `agent-identity-owner-absent` | I | PROBLEM, Medium (0+2+1+1=4) |  | `analysis/agent-identity-and-delegation.md` |
+| 51 | `ai-gateway-absent` | I | REVIEW, Medium (1+1+0+2=4) |  | `analysis/ai-apis-and-the-gateway.md` |
+| 52 | `ai-gateway-present` | I | INVENTORY |  | `analysis/ai-apis-and-the-gateway.md` |
+| 53 | `gateway-token-store-unreviewed` | I | REVIEW, High (1+2+1+2=6) | requires `ai-gateway-present` | `analysis/ai-apis-and-the-gateway.md` |
+| 54 | `cloud-trail-default-only` | I | REVIEW, Medium (1+1+0+1=3) |  | `analysis/ai-apis-and-the-gateway.md` |
 
 ### incident-response
 
@@ -157,9 +160,9 @@ Question Packets for this family go to: incident response lead.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 52 | `agent-kill-switch-absent` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/stubs/ai-incident-response.md` |
-| 109 | `ai-playbook-absent` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/stubs/ai-incident-response.md` |
-| 110 | `model-rollback-untested` | I | REVIEW, Medium (0+0+1+2=3) |  | `analysis/stubs/ai-incident-response.md` |
+| 55 | `agent-kill-switch-absent` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/stubs/ai-incident-response.md` |
+| 114 | `ai-playbook-absent` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/stubs/ai-incident-response.md` |
+| 115 | `model-rollback-untested` | I | REVIEW, Medium (0+0+1+2=3) |  | `analysis/stubs/ai-incident-response.md` |
 
 ### coding-agent
 
@@ -167,9 +170,9 @@ Question Packets for this family go to: engineering platform team.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 53 | `coding-agent-managed-tier-absent` | I/E | PROBLEM, Medium (1+2+0+1=4) |  | `analysis/coding-agent-hooks-and-policy.md` |
-| 54 | `hook-fail-open` | E/I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/coding-agent-hooks-and-policy.md` |
-| 55 | `hooks-user-disableable` | E/I | REVIEW, Medium (0+2+0+1=3) |  | `analysis/coding-agent-hooks-and-policy.md` |
+| 56 | `coding-agent-managed-tier-absent` | I/E | PROBLEM, Medium (1+2+0+1=4) |  | `analysis/coding-agent-hooks-and-policy.md` |
+| 57 | `hook-fail-open` | E/I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/coding-agent-hooks-and-policy.md` |
+| 58 | `hooks-user-disableable` | E/I | REVIEW, Medium (0+2+0+1=3) |  | `analysis/coding-agent-hooks-and-policy.md` |
 
 ### mcp
 
@@ -177,11 +180,11 @@ Question Packets for this family go to: engineering platform team.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 56 | `mcp-allowlist-absent` | I/E | PROBLEM, Medium (1+2+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
-| 57 | `mcp-unpinned` | E/I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
-| 58 | `mcp-remote` | E/I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
-| 59 | `mcp-manifest-snapshot-absent` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
-| 60 | `mcp-spec-pre-2026-07` | I | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md`, `analysis/mcp-servers-and-manifest-drift.md` |
+| 59 | `mcp-allowlist-absent` | I/E | PROBLEM, Medium (1+2+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
+| 60 | `mcp-unpinned` | E/I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
+| 61 | `mcp-remote` | E/I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
+| 62 | `mcp-manifest-snapshot-absent` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/mcp-servers-and-manifest-drift.md` |
+| 63 | `mcp-spec-pre-2026-07` | I | INVENTORY |  | `analysis/landing-ai-events-in-ocsf.md`, `analysis/mcp-servers-and-manifest-drift.md` |
 
 ### shadow-ai
 
@@ -189,10 +192,10 @@ Question Packets for this family go to: IT administrator.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 61 | `shadow-ai-method-none` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/inventory-and-shadow-ai.md` |
-| 62 | `shadow-ai-method-network-only` | I | REVIEW, Medium (1+1+0+1=3) |  | `analysis/inventory-and-shadow-ai.md` |
-| 63 | `oauth-grants-unreviewed` | I/E | PROBLEM, Medium (1+1+1+1=4); escalates: High when any AI-category grant carries mail or file scopes [when `ai-grants-mail-or-file-scope`] |  | `analysis/inventory-and-shadow-ai.md` |
-| 64 | `tenant-restriction-absent` | I | REVIEW, Low (1+1+0+0=2) |  | `analysis/inventory-and-shadow-ai.md` |
+| 64 | `shadow-ai-method-none` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/inventory-and-shadow-ai.md` |
+| 65 | `shadow-ai-method-network-only` | I | REVIEW, Medium (1+1+0+1=3) |  | `analysis/inventory-and-shadow-ai.md` |
+| 66 | `oauth-grants-unreviewed` | I/E | PROBLEM, Medium (1+1+1+1=4); escalates: High when any AI-category grant carries mail or file scopes [when `ai-grants-mail-or-file-scope`] |  | `analysis/inventory-and-shadow-ai.md` |
+| 67 | `tenant-restriction-absent` | I | REVIEW, Low (1+1+0+0=2) |  | `analysis/inventory-and-shadow-ai.md` |
 
 ### saas
 
@@ -200,10 +203,10 @@ Question Packets for this family go to: SaaS owners and procurement.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 65 | `saas-ai-toggles-unreviewed` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
-| 66 | `vendor-training-optout-unknown` | I | PROBLEM, Medium (1+1+2+1=5) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
-| 67 | `ai-subprocessor-review-absent` | I | REVIEW, Medium (1+1+1+0=3) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
-| 68 | `plan-tier-below-audit` | I | PROBLEM, Medium (1+1+2+1=5) |  | `analysis/rent-or-own-sized-to-the-org.md` |
+| 68 | `saas-ai-toggles-unreviewed` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
+| 69 | `vendor-training-optout-unknown` | I | PROBLEM, Medium (1+1+2+1=5) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
+| 70 | `ai-subprocessor-review-absent` | I | REVIEW, Medium (1+1+1+0=3) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
+| 71 | `plan-tier-below-audit` | I | PROBLEM, Medium (1+1+2+1=5) |  | `analysis/rent-or-own-sized-to-the-org.md` |
 
 ### artifacts
 
@@ -211,12 +214,12 @@ Question Packets for this family go to: ML platform team.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 69 | `model-artifacts-held` | I | INVENTORY |  | `analysis/models-you-hold.md` |
-| 70 | `model-store-unscanned` | I | PROBLEM, Medium (0+1+1+1=3) |  | `analysis/models-you-hold.md` |
-| 71 | `pickle-formats-present` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/models-you-hold.md` |
-| 72 | `inference-runtime-default-bind` | I | PROBLEM, Medium (1+2+0+1=4); escalates: High when the runtime is internet-reachable [when `runtime-internet-reachable`] |  | `analysis/models-you-hold.md` |
-| 73 | `fine-tuned-models` | I | REVIEW, Medium (0+2+2+0=4) |  | `analysis/fine-tuned-model-is-a-data-store.md` |
-| 74 | `training-record-absent` | I | REVIEW, Medium (0+1+2+0=3) |  | `analysis/fine-tuned-model-is-a-data-store.md` |
+| 72 | `model-artifacts-held` | I | INVENTORY |  | `analysis/models-you-hold.md` |
+| 73 | `model-store-unscanned` | I | PROBLEM, Medium (0+1+1+1=3) |  | `analysis/models-you-hold.md` |
+| 74 | `pickle-formats-present` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/models-you-hold.md` |
+| 75 | `inference-runtime-default-bind` | I | PROBLEM, Medium (1+2+0+1=4); escalates: High when the runtime is internet-reachable [when `runtime-internet-reachable`] |  | `analysis/models-you-hold.md` |
+| 76 | `fine-tuned-models` | I | REVIEW, Medium (0+2+2+0=4) |  | `analysis/fine-tuned-model-is-a-data-store.md` |
+| 77 | `training-record-absent` | I | REVIEW, Medium (0+1+2+0=3) |  | `analysis/fine-tuned-model-is-a-data-store.md` |
 
 ### governance
 
@@ -224,14 +227,14 @@ Question Packets for this family go to: risk or compliance owner.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 75 | `ai-aup-absent` | I | PROBLEM, Medium (0+1+1+2=4) |  | `analysis/ai-use-policy-and-intake.md` |
-| 76 | `ai-tool-intake-absent` | I | PROBLEM, Medium (0+1+1+2=4) |  | `analysis/ai-use-policy-and-intake.md`, `analysis/configure-before-you-buy.md` |
-| 77 | `ai-owner-unnamed` | I | REVIEW, Medium (0+0+1+2=3) |  | `analysis/ai-use-policy-and-intake.md` |
-| 78 | `incumbent-inventory-absent` | I | PROBLEM, Medium (0+1+0+2=3) |  | `analysis/configure-before-you-buy.md` |
-| 79 | `vendor-evaluation-in-progress` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/reading-vendor-claims.md`, `analysis/build-buy-and-the-high-priest.md` |
-| 80 | `custom-build-planned` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/build-buy-and-the-high-priest.md` |
-| 81 | `vendor-terms-unknown` | I | REVIEW, Medium (1+1+1+1=4) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
-| 82 | `coverage-view-absent` | I | REVIEW, Low (0+0+0+2=2) |  | `analysis/incumbent-tool-coverage.md` |
+| 78 | `ai-aup-absent` | I | PROBLEM, Medium (0+1+1+2=4) |  | `analysis/ai-use-policy-and-intake.md` |
+| 79 | `ai-tool-intake-absent` | I | PROBLEM, Medium (0+1+1+2=4) |  | `analysis/ai-use-policy-and-intake.md`, `analysis/configure-before-you-buy.md` |
+| 80 | `ai-owner-unnamed` | I | REVIEW, Medium (0+0+1+2=3) |  | `analysis/ai-use-policy-and-intake.md` |
+| 81 | `incumbent-inventory-absent` | I | PROBLEM, Medium (0+1+0+2=3) |  | `analysis/configure-before-you-buy.md` |
+| 82 | `vendor-evaluation-in-progress` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/reading-vendor-claims.md`, `analysis/build-buy-and-the-high-priest.md` |
+| 83 | `custom-build-planned` | I | REVIEW, Medium (0+1+1+1=3) |  | `analysis/build-buy-and-the-high-priest.md` |
+| 84 | `vendor-terms-unknown` | I | REVIEW, Medium (1+1+1+1=4) |  | `analysis/saas-embedded-ai-and-vendor-terms.md` |
+| 85 | `coverage-view-absent` | I | REVIEW, Low (0+0+0+2=2) |  | `analysis/incumbent-tool-coverage.md` |
 
 ### frameworks
 
@@ -239,15 +242,15 @@ Question Packets for this family go to: risk or compliance owner.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 83 | `framework-claimed-atlas` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
-| 84 | `framework-claimed-owasp` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
-| 85 | `framework-claimed-nist-ai-rmf` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
-| 86 | `framework-claimed-iso-42001` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
-| 87 | `framework-claimed-cosai` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
-| 88 | `framework-claimed-eu-ai-act` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
-| 89 | `framework-claimed-scf` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
-| 90 | `mapping-treated-as-coverage` | I | PROBLEM, Medium (0+1+0+2=3) |  | `analysis/frameworks-and-what-they-reach.md` |
-| 91 | `owasp-ids-2025` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md`, `analysis/revalidation-and-pins.md` |
+| 86 | `framework-claimed-atlas` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
+| 87 | `framework-claimed-owasp` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
+| 88 | `framework-claimed-nist-ai-rmf` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
+| 89 | `framework-claimed-iso-42001` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
+| 90 | `framework-claimed-cosai` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
+| 91 | `framework-claimed-eu-ai-act` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
+| 92 | `framework-claimed-scf` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md` |
+| 93 | `mapping-treated-as-coverage` | I | PROBLEM, Medium (0+1+0+2=3) |  | `analysis/frameworks-and-what-they-reach.md` |
+| 94 | `owasp-ids-2025` | I | INVENTORY |  | `analysis/frameworks-and-what-they-reach.md`, `analysis/revalidation-and-pins.md` |
 
 ### soc
 
@@ -255,9 +258,9 @@ Question Packets for this family go to: SOC manager.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 92 | `ai-in-soc-present` | I | INVENTORY |  | `analysis/evaluating-ai-in-the-soc.md` |
-| 93 | `ai-analyst-ungraded` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/evaluating-ai-in-the-soc.md` |
-| 94 | `containment-pre-authorized-broad` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/evaluating-ai-in-the-soc.md` |
+| 95 | `ai-in-soc-present` | I | INVENTORY |  | `analysis/evaluating-ai-in-the-soc.md` |
+| 96 | `ai-analyst-ungraded` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/evaluating-ai-in-the-soc.md` |
+| 97 | `containment-pre-authorized-broad` | I | PROBLEM, High (1+2+1+2=6) |  | `analysis/evaluating-ai-in-the-soc.md` |
 
 ### assistant-oversharing
 
@@ -265,9 +268,9 @@ Question Packets for this family go to: collaboration-suite administrator.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 95 | `grounding-permissions-unreviewed` | I | PROBLEM, Medium (0+2+1+2=5) |  | `analysis/stubs/assistant-oversharing.md` |
-| 96 | `sensitivity-labels-absent` | I | REVIEW, Medium (0+2+0+1=3) |  | `analysis/stubs/assistant-oversharing.md` |
-| 97 | `restricted-search-unset` | I | REVIEW, Medium (0+1+0+2=3) |  | `analysis/stubs/assistant-oversharing.md` |
+| 98 | `grounding-permissions-unreviewed` | I | PROBLEM, Medium (0+2+1+2=5) |  | `analysis/stubs/assistant-oversharing.md` |
+| 99 | `sensitivity-labels-absent` | I | REVIEW, Medium (0+2+0+1=3) |  | `analysis/stubs/assistant-oversharing.md` |
+| 100 | `restricted-search-unset` | I | REVIEW, Medium (0+1+0+2=3) |  | `analysis/stubs/assistant-oversharing.md` |
 
 ### rag
 
@@ -275,9 +278,9 @@ Question Packets for this family go to: team that runs the RAG store.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 98 | `rag-acl-propagation-unknown` | I | PROBLEM, Medium (0+2+1+1=4) |  | `analysis/stubs/rag-stores.md` |
-| 99 | `ingestion-integrity-unreviewed` | I | REVIEW, Medium (1+1+0+1=3) |  | `analysis/stubs/rag-stores.md` |
-| 100 | `embeddings-outside-governance` | I | REVIEW, Medium (0+2+1+0=3) |  | `analysis/stubs/rag-stores.md` |
+| 101 | `rag-acl-propagation-unknown` | I | PROBLEM, Medium (0+2+1+1=4) |  | `analysis/stubs/rag-stores.md` |
+| 102 | `ingestion-integrity-unreviewed` | I | REVIEW, Medium (1+1+0+1=3) |  | `analysis/stubs/rag-stores.md` |
+| 103 | `embeddings-outside-governance` | I | REVIEW, Medium (0+2+1+0=3) |  | `analysis/stubs/rag-stores.md` |
 
 ### agent-builders
 
@@ -285,11 +288,11 @@ Question Packets for this family go to: low-code platform administrator.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 101 | `agent-publish-approval-absent` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/stubs/agent-builders.md` |
-| 102 | `maker-credential-agents` | I | REVIEW, Medium (0+2+0+1=3) |  | `analysis/stubs/agent-builders.md` |
-| 103 | `agent-external-sharing-unreviewed` | I | REVIEW, Medium (2+1+0+0=3) |  | `analysis/stubs/agent-builders.md` |
-| 104 | `connector-sprawl-unreviewed` | I | REVIEW, Medium (0+1+0+2=3) |  | `analysis/stubs/agent-builders.md` |
-| 105 | `agent-builder-self-hosted-exposed` | I | PROBLEM, Medium (1+2+1+1=5); escalates: High when the builder is internet-reachable [when `builder-internet-reachable`] |  | `analysis/stubs/agent-builders.md` |
+| 104 | `agent-publish-approval-absent` | I | PROBLEM, Medium (1+1+1+1=4) |  | `analysis/stubs/agent-builders.md` |
+| 105 | `maker-credential-agents` | I | REVIEW, Medium (0+2+0+1=3) |  | `analysis/stubs/agent-builders.md` |
+| 106 | `agent-external-sharing-unreviewed` | I | REVIEW, Medium (2+1+0+0=3) |  | `analysis/stubs/agent-builders.md` |
+| 107 | `connector-sprawl-unreviewed` | I | REVIEW, Medium (0+1+0+2=3) |  | `analysis/stubs/agent-builders.md` |
+| 108 | `agent-builder-self-hosted-exposed` | I | PROBLEM, Medium (1+2+1+1=5); escalates: High when the builder is internet-reachable [when `builder-internet-reachable`] |  | `analysis/stubs/agent-builders.md` |
 
 ### ai-you-ship
 
@@ -297,9 +300,11 @@ Question Packets for this family go to: product engineering lead.
 
 | # | Key | Collected | Weight, priority | Conditions | Routes to |
 |---|---|---|---|---|---|
-| 106 | `output-handling-unreviewed` | I | PROBLEM, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
-| 107 | `pre-release-eval-absent` | I | REVIEW, Medium (2+0+0+1=3) |  | `analysis/stubs/ai-you-ship.md` |
-| 108 | `abuse-monitoring-absent` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
+| 109 | `output-handling-unreviewed` | I | PROBLEM, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
+| 110 | `pre-release-eval-absent` | I | REVIEW, Medium (2+0+0+1=3) |  | `analysis/stubs/ai-you-ship.md` |
+| 111 | `abuse-monitoring-absent` | I | REVIEW, Medium (2+1+0+1=4) |  | `analysis/stubs/ai-you-ship.md` |
+| 112 | `shipped-feature-tool-scope-unreviewed` | I | REVIEW, Medium (2+1+1+1=5) |  | `analysis/stubs/ai-you-ship.md` |
+| 113 | `shipped-feature-tenant-isolation-unknown` | I | REVIEW, High (1+2+2+1=6) |  | `analysis/stubs/ai-you-ship.md` |
 
 ### Special keys (fetch nothing)
 

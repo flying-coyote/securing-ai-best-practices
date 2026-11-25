@@ -7,7 +7,7 @@ pins:
   - "MITRE ATLAS v2026.10"
   - "CoSAI secure-ai-tooling 622605a1"
   - "CISA KEV catalog 2026.11.09"
-  - "OCSF 1.9.0"
+  - "OCSF 1.10.0"
   - "Syft 1.55.0, Grype 0.121.0, Trivy 0.76.0, ai-bom 3.6.0, cyclonedx-bom 8.0.1 and Ollama 0.20.6 (lab run R4)"
   - "modelscan 0.8.8, picklescan 1.0.5 and fickling 0.1.12 (lab run T5)"
   - "Ollama, llama.cpp server (master), vLLM (latest) and LM Studio documentation as read 2026-11-10"
@@ -73,7 +73,7 @@ The identifiers are the larger problem. No model component got a CPE, Syft's mod
 
 What Syft did well is the shape I would build on. It recorded a file sha256 for the named GGUF, kept a renamed `.gguf` tied to the original through the name in the GGUF header and the hash, and surfaced a one-byte flip in the tensor data only through that hash; rename the same file `weights.bin` and Syft lost it, because its cataloger reads only `*.gguf` (RESULTS.md:109-123). No default scan surfaced a same-name, same-version swap of the MCP servers' code or the extension's publisher, which only a non-default whole-file hash diff against a known-good baseline showed (RESULTS.md:120-123, :134-144). So the first half of the answer to `model-store-unscanned` is a file-hash inventory of the places models live, with the model-file scanner below as the second half run against it, which for the local runtimes means `~/.ollama/models` on macOS, `/usr/share/ollama/.ollama/models` on Linux and `C:\Users\%username%\.ollama\models` on Windows (Tier B, Ollama FAQ, Windows path read 2026-11-24), the Hugging Face cache at `~/.cache/huggingface/hub` (Tier B, huggingface_hub cache guide, re-read 2026-11-24), with no separate Windows path stated on the page read, and where symlinks are unavailable the guide says files sit directly in `snapshots/` rather than `blobs/`, and whatever models directory LM Studio is set to, plus any file of a few hundred megabytes or more with a model extension. Ollama's manifests name each blob by digest, and a re-tag of the same weights showed up only there (RESULTS.md:142-144), so the manifests are worth collecting beside the blobs.
 
-The event schema has the same gap one layer down. OCSF 1.9.0's `ai_model` object carries four attributes, `ai_provider`, `name`, `version` and `uid` (Tier A, OCSF schema `objects/ai_model.json` at tag v1.9.0), with no digest of the weights and no base-model link, so a swapped model that reuses a name looks identical in an event exactly as it does in an SBOM (Tier B, sdw-lab-benchmarks@91e44df d3fend-ocsf-ai-alignment/RESULTS.md:22-26, verdict VERIFIED-WITH-FIXES). Until a field exists, I would carry the sha256 in `unmapped`, rather than overloading `uid`, which identifies the model to its provider, and say so in the collection plan, since inventory and telemetry join only on a shared key; [fine-tuned-model-is-a-data-store.md](fine-tuned-model-is-a-data-store.md) uses the same home.
+The event schema has the same gap one layer down. OCSF 1.9.0's `ai_model` object carries four attributes, `ai_provider`, `name`, `version` and `uid` (Tier A, OCSF schema `objects/ai_model.json` at tag v1.9.0, and unchanged in 1.10.0 at the 1.10.0 release commit `2d20903`, read 2026-11-24), with no digest of the weights and no base-model link, so a swapped model that reuses a name looks identical in an event exactly as it does in an SBOM (Tier B, sdw-lab-benchmarks@91e44df d3fend-ocsf-ai-alignment/RESULTS.md:22-26, verdict VERIFIED-WITH-FIXES). Until a field exists, I would carry the sha256 in `unmapped`, rather than overloading `uid`, which identifies the model to its provider, and say so in the collection plan, since inventory and telemetry join only on a shared key; [fine-tuned-model-is-a-data-store.md](fine-tuned-model-is-a-data-store.md) uses the same home.
 
 ## Formats that execute on load
 
@@ -149,7 +149,7 @@ It does not mean SBOM tooling is useless for AI, since in R4 it handled MCP serv
 - **Gap: internet-scale exposure count**. The SentinelLABS and Censys longitudinal Ollama figures returned HTTP 429 at the primary on 2026-11-09 and 2026-11-10 and reached me only through secondary summaries. **Needs**: the primary read in full, with its method and window.
 - **Gap: signing and attestation in practice**. No run here verified a signed model or a training-provenance attestation, and no attestation format was read. **Needs**: a lab run that signs and verifies a model with model-transparency against the R4 fixtures, and a read of any attestation format a major hub publishes.
 - **Gap: Ray and MLflow defaults**. The bind and authentication defaults of the Ray dashboard and job API and the MLflow tracking server were not read. **Needs**: a dated read of each project's security documentation.
-- **Gap: weights digest in the event schema**. OCSF 1.9.0 `ai_model` has no digest or base-model attribute. **Needs**: a field proposed or adopted upstream, or a documented `unmapped` convention measured for query cost.
+- **Gap: weights digest in the event schema**. OCSF `ai_model` in 1.9.0 and 1.10.0 has no digest or base-model attribute. **Needs**: a field proposed or adopted upstream, or a documented `unmapped` convention measured for query cost.
 
 ## Notes
 
@@ -166,7 +166,7 @@ Tier A
 - CISA, Known Exploited Vulnerabilities catalog, JSON feed, catalogVersion 2026.11.09, https://www.cisa.gov/known-exploited-vulnerabilities-catalog, re-pulled 2026-11-10.
 - NVD records for CVE-2025-32434, CVE-2025-1716, CVE-2025-10155, CVE-2024-3660, CVE-2024-34359, CVE-2026-7482 and CVE-2026-22778, https://nvd.nist.gov/vuln/detail/<CVE-ID>, read 2026-11-10.
 - MITRE ATLAS v2026.10, https://github.com/mitre-atlas/atlas-data `dist/v6/ATLAS-2026.10.yaml`, read 2026-11-10.
-- OCSF schema 1.9.0, `objects/ai_model.json`, https://github.com/ocsf/ocsf-schema/tree/v1.9.0.
+- OCSF schema 1.9.0, `objects/ai_model.json`, https://github.com/ocsf/ocsf-schema/tree/v1.9.0; re-read in 1.10.0 at https://github.com/ocsf/ocsf-schema/tree/1.10 (commit `2d20903`) on 2026-11-24, same four attributes.
 - CoSAI secure-ai-tooling at commit 622605a1, `risk-map/yaml/{components,risks,controls}.yaml`, https://github.com/cosai-oasis/secure-ai-tooling, read 2026-11-10.
 - Gu, Liu, Dolan-Gavitt and Garg, "BadNets", IEEE Access 2019, doi:10.1109/access.2019.2909068.
 - Kurita, Michel and Neubig, "Weight Poisoning Attacks on Pretrained Models", ACL 2020, doi:10.18653/v1/2020.acl-main.249.

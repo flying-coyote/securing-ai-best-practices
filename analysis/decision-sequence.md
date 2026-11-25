@@ -6,7 +6,7 @@ surfaces: [S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13]
 pins:
   - "CoSAI secure-ai-tooling risk-map @ 622605a1"
   - "MITRE ATLAS v2026.10"
-  - "OCSF 1.9.0"
+  - "OCSF 1.10.0"
   - "MCP specification 2026-07-28"
   - "CISA KEV catalogVersion 2026.11.09"
 summary-section: "Summary for the review"
@@ -118,7 +118,7 @@ This is a full quarter for a team of two. If something has to slip, I'd let step
 
 ### Later: re-decide on triggers, and only then own more
 
-The later horizon is mostly re-decision: content capture stays exception-only, agent records move off the interim OCSF 1.9.0 landing only when a release carries an agent class, a cross-vendor control-state product is a second-year question at the earliest, context management is monitored wherever agents run long sessions, and owning a surface comes back only on a named need, with the model evaluation harness as a prerequisite (rows 1, 14, 15).
+The later horizon is mostly re-decision: content capture stays exception-only, agent records move off the interim landing on an existing OCSF class only when a release carries an agent class (1.10.0, released 2026-11-20, does not; draft pull request #1754 was still open on 2026-11-24), a cross-vendor control-state product is a second-year question at the earliest, context management is monitored wherever agents run long sessions, and owning a surface comes back only on a named need, with the model evaluation harness as a prerequisite (rows 1, 14, 15).
 
 ## The four perspectives behind the order
 
@@ -154,7 +154,7 @@ Waiting is a decision too, and while the market and the law settle it is often t
 | Treating any "complete visibility" AI inventory as complete | At least one cloud AI posture product excludes self-hosted models and agents by its own documentation | A tool that reads local model stores, confirmed by a re-run |
 | Self-hosting or fine-tuning without a named need | Owned components bring patching, logging, identity and detection | A named need, plus an owner and a second |
 | A standards-mapping product, or a vendor chosen on "mapped to MITRE ATLAS" | A mapping is a cross-reference, not a detection result (`frameworks-and-what-they-reach.md`) | A planted-event result per mapped technique |
-| Re-platforming detections onto a proposed OCSF AI agent class | Not in a release (OCSF 1.9.0) | An OCSF release carrying it |
+| Re-platforming detections onto a proposed OCSF AI agent class | Not in a release (OCSF 1.10.0, 2026-11-20; #1754 open and draft on 2026-11-24) | An OCSF release carrying it |
 | SPIFFE-style agent identity on the promise, reasoning-trace monitoring in production, or a weight-level backdoor detector | One production report for the first; no peer-reviewed evaluation of a commercial detector | A second production report; a peer-reviewed evaluation |
 | Multi-year contracts in NHI and AI-security point categories | Five of the twelve NHI vendors the series tracked changed hands between June and September 2026 | The category settles |
 | Building a sensor of any kind | It duplicates what the market sells without cross-customer cost sharing | For the large reader, a gap no vendor sells into that passes the build gate |
@@ -184,7 +184,7 @@ The sequence is not a maturity score, and a regulated organization that owns a s
 
 ## Gaps
 
-- **Gap: the order itself**. No study shows that this order, or any order, produces better outcomes than another. **Needs**: dry runs of the review on the three fixtures with a second reader re-sorting the output, then reports from practitioners who ran the sequence for two quarters or more.
+- **Gap: the order itself**. No study shows that this order, or any order, produces better outcomes than another. **Needs**: dry runs of the review on the four fixtures with a second reader re-sorting the output, then reports from practitioners who ran the sequence for two quarters or more.
 - **Gap: how much of the held stack goes unused**. The 80 to 90 percent observation is one practitioner's view, and the series' count of governance features against CoSAI components measures something different, so the two are never quoted together. **Needs**: a measured study of entitled versus enabled AI-relevant features across several organizations' licence and settings exports.
 - **Gap: what network-only discovery misses**. The share has a planning model and no measurement, so it is never a headline. **Needs**: a lab bench on a mixed fleet measuring network-invisible AI use against an endpoint and IdP join.
 - **Gap: fail-closed hook cost**. The wait on a fleet-wide fail-closed hook rests on reasoning, not a measured false-deny rate. **Needs**: a replay corpus of real tool calls and a bench measuring the hook's false-deny rate on it.
@@ -195,6 +195,7 @@ The sequence is not a maturity score, and a regulated organization that owns a s
 - Measurement claims: none. The lab figures the decisions rest on live in the routed documents, pinned to lab master at `91e44df` (the research branch merged there on 2026-11-10).
 - The 80 to 90 percent observation (dated 2026-11-09) is a perspective, not a measurement; any anecdote behind it comes from operational work before August 2026 or is stated generally.
 - Revalidate-by is about two and a half months out, inside the three-month ceiling for ATLAS-dependent documents, because ATLAS releases and the 2026-12-02 trigger fall inside the window and this is one of the four documents every review reads. The three AI Act dates in the trigger table were read at the Official Journal text on 2026-11-24; the same amendment puts a second event on 2026-12-02 that the table does not carry, the start of application of the new Article 5(1) points (ba) and (bb) with Article 5(1a) and (1b) (Art. 113, third paragraph, point (a)), which I have not analysed. Products in the trigger table are examples of a trigger kind; nothing here says any named organization runs any product.
+- 2026-11-24: CJEU C-65/23 is cited for a Tier D reading, and the judgment itself has not been read at the primary; the 2026-11-10 check of it was by a second model only (`VERIFICATION-LOG.md`).
 
 ## Sources
 
@@ -205,7 +206,7 @@ Tier A
 - Nasr, Carlini et al., "The Attacker Moves Second," arXiv 2510.09023, accepted at USENIX Security 2026 (figures from arXiv v1; authors affiliated with model vendors, flagged): https://arxiv.org/abs/2510.09023
 - CoSAI secure-ai-tooling risk map at commit 622605a1: https://github.com/cosai-oasis/secure-ai-tooling/tree/622605a1
 - CISA Known Exploited Vulnerabilities catalog, catalogVersion 2026.11.09: https://www.cisa.gov/known-exploited-vulnerabilities-catalog
-- OCSF schema 1.9.0: https://schema.ocsf.io/
+- OCSF schema 1.9.0: https://schema.ocsf.io/; 1.10.0 release notes and `categories.json` at the release commit `2d20903` (no AI category or agent class), https://github.com/ocsf/ocsf-schema/releases/tag/1.10, read 2026-11-24
 - MCP specification 2026-07-28: https://modelcontextprotocol.io/specification
 - MITRE ATLAS v2026.10: https://atlas.mitre.org/
 

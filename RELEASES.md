@@ -21,6 +21,7 @@ The first release, v2026.11, is the small-organization slice (v0.1 in the build 
 - Bundle SHA-256 is the checksum of the offline bundle built from that commit.
 - Pins are the framework, schema and catalogue versions the release was checked against, copied from `analysis/revalidation-and-pins.md` at freeze (MITRE ATLAS and ATT&CK releases, the CoSAI registry commit, the OCSF and MCP specification versions, the OWASP list edition, and the CISA KEV catalogue version, among others).
 - Agents tested names each agent and version the block was run against on the fixtures, in fetch mode and offline mode.
+- Notes carries the bundle's file count and, from releases built after 2026-11-24, the reducer archive's name and SHA-256, written by the release script.
 
 ## Checking a block and a bundle
 
@@ -31,3 +32,5 @@ Check the offline bundle's SHA-256 against its row before you attach it. These c
 - Linux: `sha256sum <file>`
 - macOS: `shasum -a 256 <file>`
 - PowerShell: `Get-FileHash <file>` (SHA-256 is its default)
+
+Run the reducers from a checkout of the release tag; the reducer archive (`dist/securing-ai-best-practices-<tag>-reducers.tar`) and its SHA-256 are in the row's Notes column, beside the bundle hash.

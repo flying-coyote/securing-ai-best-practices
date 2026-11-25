@@ -36,6 +36,8 @@ Priority comes from a published rubric over reach, stakes, reversibility and bla
 
 What would prove it wrong: reviewers consistently re-sorting the output by tier, which would show they trust confidence more than the risk ranking.
 
+Proposed amendment, 2026-11-24, pending the maintainer and not adopted: replace "and a `believed` observation caps priority at Medium." with "and a `believed` observation never lowers a band: the row keeps it and carries a confirm-within deadline (routing.yaml `priority-rubric.confirm-believed-within-days`, Tier D), as does a row whose escalation rests on a believed observation. Within a band the rubric's factor sum sorts first and the sequence only breaks ties, and the output records that the scores are the author's judgement." `routing.yaml`, `scripts/route.py` and the goldens already behave this way (323fa1a and 0ac410d), so the routing is ahead of this entry until the maintainer rules.
+
 How the evidence would arrive: only through an issue, or a review someone chooses to share, since the repo receives no reviews. Until one arrives this condition has not been tested, and saying it held would be claiming evidence that does not exist.
 
 ## Decision 4: The tier ladder
@@ -46,7 +48,13 @@ How the evidence would arrive: only through an issue, or a review someone choose
 
 Standards, statute and peer-reviewed research are Tier A. Vendor documentation of what a feature does is Tier B, alongside practitioner work and first-party lab measurement. Vendor claims about how well a feature works, how fast it is or how it compares are Tier C with the bias flagged. One author's judgement, or a model with stated assumptions, is Tier D and labelled. This is one rung below claude-code-project-best-practices (its Decision 15), which keeps first-party documentation at A because that repo is about one vendor's product; this repo grades many vendors and so cannot.
 
+Where this departs from the ladder it was adapted from (moved here on 2026-11-24 from `analysis/evidence-tiers.md`, which every review fetches and which now points here):
+
+The ladder is adapted, under the MIT licence, from `analysis/evidence-tiers.md` and Decision 15 in claude-code-project-best-practices. That repo grades by claim type too, but it keeps first-party vendor documentation of what a feature does at Tier A, because its subject is one vendor's product and the vendor is the primary source for it. This repo moves vendor feature documentation down to Tier B, one rung below, and puts peer-reviewed research at Tier A for every claim it supports, where the source repo lists it at B and lifts it to A only for performance and comparison claims. It also keeps first-party lab measurement at B even when the method and data are published, which the source repo would grade A for a re-runnable measurement, because a re-runnable run that nobody has re-run is still the maintainer's own number. And it leaves out the High, Medium and Low percentage bands that the source repo maps onto tiers, partly because that repo itself says the bands are cognitive anchors rather than empirically derived and partly because this repo's confidence is the pair of tier and convergence (Decision 3), and a third scale would invite readers to compare numbers nobody has measured.
+
 What would prove it wrong: a change to the evidence rubric I use across my public research, which this repo follows rather than forks.
+
+Proposed amendment, 2026-11-24, pending the maintainer and not adopted: replace the first sentence with "Standards and frameworks from standards bodies and open framework projects, statute and other binding legal text, and peer-reviewed research are Tier A; regulator guidance is Tier B.", and change `CONTRIBUTING.md`'s Tier A row to "Standards and frameworks from standards bodies and open framework projects, statute, court judgments and other binding regulator text, peer-reviewed research" and its Tier B row to add ", regulator and agency guidance". The reason is that `analysis/evidence-tiers.md` already reads this way at HEAD (open framework projects at A for what they prescribe since before the 2026-11-24 review, and the binding-versus-guidance split for regulator text since 44b0aeb), so the fetched ladder runs ahead of this entry and of `CONTRIBUTING.md` until the maintainer rules. Two further rulings are open in `SOURCES.md` under "Tier disagreements" (board-approved papers still marked draft and preliminary public drafts, suggested B until final; and vendor prescriptive guidance, B or C), and either ruling would amend this entry too.
 
 ## Decision 5: The interview branches on size and profile first
 
@@ -55,6 +63,10 @@ What would prove it wrong: a change to the evidence rubric I use across my publi
 - executed: 44eb4b1
 
 The first two questions are size band and rent-or-own profile. A small organization that rents its AI gets a branch of about twelve questions; every other profile gets about five questions per surface family present.
+
+Measured on 2026-11-24, `scripts/route.py` counts 22 and 21 questions (`questions-asked`) on the two small-org fixtures and 75 and 64 on the two full-branch fixtures, and nobody has timed a run with a person answering.
+
+Proposed amendment, 2026-11-24, pending the maintainer and not adopted: replace the second sentence with "A small organization that rents its AI gets a branch defined as data in routing.yaml (`interview-branches.small-org`: eight surface questions, then only the `asks` rows those answers make eligible, then one 'anything else?'), measured at about twenty questions on the small-org fixtures; every other profile gets every eligible row. route.py prints the count as `questions-asked`, and CI holds the targets to it." `routing.yaml` already defines the branch this way (323fa1a).
 
 What would prove it wrong: small-organization practitioners reporting that the branch misses a surface they run, measured by what they say in answer to the "anything else?" question.
 

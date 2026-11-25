@@ -1,7 +1,7 @@
 ---
 evidence-tier: Mixed
 convergence: single-source
-applies-to-signals: [saas-ai-toggles-unreviewed, vendor-training-optout-unknown, ai-subprocessor-review-absent, vendor-terms-unknown]
+applies-to-signals: [saas-ai-toggles-unreviewed, vendor-training-optout-unknown, ai-subprocessor-review-absent, vendor-terms-unknown, residency-requirement]
 surfaces: [S1, S2, S6]
 pins:
   - "NIST AI RMF 1.0"

@@ -43,7 +43,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 COPY = ["README.md", "ONE-LINE-PROMPT.md", "AUDIT-CONTEXT.md", "routing.yaml", "RELEASES.md",
-        "CONTRIBUTING.md", "analysis", "fixtures"]
+        "CONTRIBUTING.md", "analysis", "fixtures", "scripts/reducers"]
 results: list[tuple[bool, str]] = []
 # results appended directly rather than through expect(), printed in the summary
 DIRECT = {"bundle: AUDIT-CONTEXT header stamped",
@@ -505,7 +505,7 @@ def main() -> int:
             "---\npins:\n  - \"MITRE ATLAS v2026.10\"\n  - \"OCSF 1.9.0\"\n---\n", encoding="utf-8")
         (r / "analysis" / "old.md").write_text("---\npins:\n  - \"MITRE ATLAS v2026.06\"\n---\n", encoding="utf-8")
         expect("pins: a doc behind the pins doc is counted and does not fail",
-               run(["check-pins.py", "--root", str(r)], r), True, "docs pins behind: 1")
+               run(["check-pins.py", "--root", str(r)], r), True, "behind analysis/old.md")
         cur = r / "current.yaml"
         cur.write_text("MITRE ATLAS: v2026.11\n", encoding="utf-8")
         expect("pins: the pins doc behind the newest known release fails",

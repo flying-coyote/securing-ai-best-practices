@@ -27,7 +27,7 @@ The sources several documents share get a full dossier. Sources a single documen
 ### CoSAI secure-ai-tooling (risk map)
 
 - Publisher: Coalition for Secure AI, an OASIS Open project
-- Tier: A (`decision-sequence.md` grades it B; see Tier disagreements)
+- Tier: A
 - Pinned: commit `622605a13fafaa2784acbdbe3f8d23ee22da4be7` (main, 2026-10-21); `risk-map/yaml/components.yaml`, `risks.yaml`, `controls.yaml`, `personas.yaml`
 - URL: https://github.com/cosai-oasis/secure-ai-tooling
 - Cited by: surface-ownability, decision-sequence, build-buy-and-the-high-priest, configure-before-you-buy, inventory-and-shadow-ai, reading-vendor-claims, rent-or-own-sized-to-the-org, revalidation-and-pins, stubs/agent-builders, stubs/assistant-oversharing, stubs/rag-stores, models-you-hold, incumbent-tool-coverage, fine-tuned-model-is-a-data-store, frameworks-and-what-they-reach, ai-apis-and-the-gateway
@@ -66,7 +66,7 @@ The sources several documents share get a full dossier. Sources a single documen
 ### MITRE ATLAS
 
 - Publisher: MITRE
-- Tier: A (`decision-sequence.md` grades it B; see Tier disagreements)
+- Tier: A
 - Pinned: v2026.10, released 2026-10-28; v2026.06 to v2026.10 data releases for the diff in revalidation-and-pins
 - URL: https://atlas.mitre.org/ and https://github.com/mitre-atlas/atlas-data/releases
 - Cited by: surface-ownability, decision-sequence, reading-vendor-claims, revalidation-and-pins, stubs/agent-builders, models-you-hold, telemetry-is-an-injection-surface, fine-tuned-model-is-a-data-store, frameworks-and-what-they-reach
@@ -149,17 +149,17 @@ The sources several documents share get a full dossier. Sources a single documen
 ### OCSF schema
 
 - Publisher: Open Cybersecurity Schema Framework project
-- Tier: A (`decision-sequence.md` grades it B; see Tier disagreements)
-- Pinned: 1.9.0 (2026-08-03); `message_context` object and `ai_operation` profile; main read at `d1cbd61` (1.10.0-dev) for landing-ai-events-in-ocsf and at `6461440` for mcp-servers-and-manifest-drift
+- Tier: A
+- Pinned: 1.10.0 (release `1.10`, published 2026-11-20, commit `2d20903`; the `v1.10.0` tag sits on the next commit, `9695d9b`, a post-release bump to 1.11.0-dev with no schema change), for `ai_capability`, `ai_status`, `delegation`, `ai_agent` and `ai_model` in landing-ai-events-in-ocsf, mcp-servers-and-manifest-drift, agent-identity-and-delegation, models-you-hold, fine-tuned-model-is-a-data-store and decision-sequence; 1.9.0 (2026-08-03) still pins the documents that read `message_context`, `ai_operation`, `record_integrity` and `metadata` against it; main was read at `d1cbd61` (1.10.0-dev) on 2026-11-10 and first at `6461440`, and the AI objects' attribute sets at `d1cbd61` match the release apart from the added `ai_agent.uuid`
 - URL: https://schema.ocsf.io/ and https://github.com/ocsf/ocsf-schema
-- Cited by: telemetry-by-surface, what-to-log-and-what-it-costs, decision-sequence, reading-vendor-claims, revalidation-and-pins, build-buy-and-the-high-priest (pin), models-you-hold (`ai_model`), landing-ai-events-in-ocsf, telemetry-is-an-injection-surface (`metadata`), tamper-evident-record (`record_integrity`), incumbent-tool-coverage, frameworks-and-what-they-reach, mcp-servers-and-manifest-drift (`ai_capability` on main), agent-identity-and-delegation (`delegation`), ai-apis-and-the-gateway
-- Last checked: 2026-11-09
-- Notes: issue #1754 read 2026-11-09 for revalidation-and-pins; pull request #1754, the draft AI Agent Activity event class, read at `08d6f53` on 2026-11-10 (open and draft, so Tier B in landing-ai-events-in-ocsf), and merge dates of pull requests #1488, #1641, #1665, #1674, #1704 and #1729 read the same day. The `record_integrity` profile and its objects came in with pull requests #1661 and #1662 (CHANGELOG at v1.9.0).
+- Cited by: telemetry-by-surface, what-to-log-and-what-it-costs, decision-sequence, reading-vendor-claims, revalidation-and-pins, build-buy-and-the-high-priest (pin), models-you-hold (`ai_model`), landing-ai-events-in-ocsf, telemetry-is-an-injection-surface (`metadata`), tamper-evident-record (`record_integrity`), incumbent-tool-coverage, frameworks-and-what-they-reach, mcp-servers-and-manifest-drift (`ai_capability`), fine-tuned-model-is-a-data-store (`ai_model`), agent-identity-and-delegation (`delegation`), ai-apis-and-the-gateway
+- Last checked: 2026-11-24
+- Notes: the 1.10.0 release notes and the AI objects at `2d20903` read 2026-11-24 with `gh`; #1754 still open and draft at `08d6f53` that day. Issue #1754 read 2026-11-09 for revalidation-and-pins; pull request #1754, the draft AI Agent Activity event class, read at `08d6f53` on 2026-11-10 (open and draft, so Tier B in landing-ai-events-in-ocsf), and merge dates of pull requests #1488, #1641, #1665, #1674, #1704 and #1729 read the same day. The `record_integrity` profile and its objects came in with pull requests #1661 and #1662 (CHANGELOG at v1.9.0).
 
 ### Model Context Protocol specification
 
 - Publisher: Model Context Protocol project
-- Tier: A (`decision-sequence.md` grades it B; see Tier disagreements)
+- Tier: A
 - Pinned: revision 2026-07-28
 - URL: https://modelcontextprotocol.io/specification/2026-07-28
 - Cited by: decision-sequence, revalidation-and-pins, mcp-servers-and-manifest-drift (changelog, Authorization, Deprecated features, Security Best Practices), landing-ai-events-in-ocsf (changelog), ai-apis-and-the-gateway (changelog, Authorization), agent-identity-and-delegation (Security Best Practices, Token Passthrough)
@@ -169,7 +169,7 @@ The sources several documents share get a full dossier. Sources a single documen
 ### CISA Known Exploited Vulnerabilities catalog
 
 - Publisher: CISA
-- Tier: A (`decision-sequence.md` and `build-buy-and-the-high-priest.md` grade it B; see Tier disagreements)
+- Tier: A
 - Pinned: `kev.json` catalogVersion 2026.11.09 (1,773 entries), released 2026-11-09T19:54Z
 - URL: https://www.cisa.gov/known-exploited-vulnerabilities-catalog
 - Cited by: revalidation-and-pins, decision-sequence, build-buy-and-the-high-priest, stubs/agent-builders, stubs/ai-incident-response, models-you-hold, ai-apis-and-the-gateway
@@ -199,6 +199,8 @@ The sources several documents share get a full dossier. Sources a single documen
 
 ### Specifications and overlays graded B as cited
 
+Each row here is graded B for how its citing documents use it, which for the AI Controls Matrix, AIUC-1 and the SCF terms is licence facts only and for the OpenTelemetry conventions is attribute stability. The exception is the Sigma specification, which `build-buy-and-the-high-priest.md` now grades A for the format it prescribes, matching the open-framework rule in `analysis/evidence-tiers.md`; whether OpenTelemetry and the AI Controls Matrix should also be A for what they prescribe waits on no citing document using them that way.
+
 | Source | Publisher | Pinned | URL | Cited by | Last checked | Notes |
 |---|---|---|---|---|---|---|
 | Sigma specification | SigmaHQ | 2.0.0 | https://github.com/SigmaHQ/sigma-specification | build-buy-and-the-high-priest | 2026-11-10 | |
@@ -215,8 +217,8 @@ This is not legal advice; these dossiers record what was read, not what it means
 
 | Source | Pinned | URL | Cited by | Last checked | Notes |
 |---|---|---|---|---|---|
-| GDPR, Regulation (EU) 2016/679 | consolidated text, CELEX 32016R0679 | https://eur-lex.europa.eu/eli/reg/2016/679/oj | prompt-capture-and-the-law, what-to-log-and-what-it-costs, saas-embedded-ai-and-vendor-terms, fine-tuned-model-is-a-data-store (Art. 17) | 2026-11-09 | Recital 49 and Arts. 5, 6, 9, 17, 28, 32, 35, 88 |
-| AI Act, Regulation (EU) 2024/1689 as amended by (EU) 2026/1744 | consolidated CELEX 02024R1689-20260727; the amending act is CELEX 32026R1744 (OJ L, 2026/1744, 24.7.2026) | https://eur-lex.europa.eu/eli/reg/2024/1689/oj; amending act and consolidated text read at https://publications.europa.eu/resource/celex/32026R1744 and https://publications.europa.eu/resource/celex/02024R1689-20260727 | prompt-capture-and-the-law, decision-sequence, revalidation-and-pins, build-buy-and-the-high-priest, stubs/ai-you-ship, frameworks-and-what-they-reach | 2026-11-24 | Art. 111(4): providers of generative systems on the market before 2 August 2026 comply with Art. 50(2) by 2 December 2026. Art. 113, third paragraph, point (c): Chapter III Sections 1 to 3 apply from 2 December 2027 for Annex III systems and 2 August 2028 for Annex I systems. Point (a): the new Art. 5(1) points (ba) and (bb) apply from 2 December 2026. EUR-Lex returns an empty page to the fetcher, so the read is through the Publications Office, which serves the same Official Journal text |
+| GDPR, Regulation (EU) 2016/679 | consolidated text, CELEX 32016R0679 | https://eur-lex.europa.eu/eli/reg/2016/679/oj | prompt-capture-and-the-law, what-to-log-and-what-it-costs, saas-embedded-ai-and-vendor-terms, fine-tuned-model-is-a-data-store (Art. 17), tamper-evident-record (Arts. 17 and 17(3), read 2026-11-24), stubs/ai-incident-response (Art. 33(1), read 2026-11-24) | 2026-11-24 | Recital 49 and Arts. 5, 6, 9, 17, 28, 32, 33, 35, 88 |
+| AI Act, Regulation (EU) 2024/1689 as amended by (EU) 2026/1744 | consolidated CELEX 02024R1689-20260727; the amending act is CELEX 32026R1744 (OJ L, 2026/1744, 24.7.2026) | https://eur-lex.europa.eu/eli/reg/2024/1689/oj; amending act and consolidated text read at https://publications.europa.eu/resource/celex/32026R1744 and https://publications.europa.eu/resource/celex/02024R1689-20260727 | prompt-capture-and-the-law, decision-sequence, revalidation-and-pins, build-buy-and-the-high-priest, stubs/ai-you-ship, frameworks-and-what-they-reach, stubs/ai-incident-response (Art. 73(2) to (4), read 2026-11-24) | 2026-11-24 | Art. 111(4): providers of generative systems on the market before 2 August 2026 comply with Art. 50(2) by 2 December 2026. Art. 113, third paragraph, point (c): Chapter III Sections 1 to 3 apply from 2 December 2027 for Annex III systems and 2 August 2028 for Annex I systems. Point (a): the new Art. 5(1) points (ba) and (bb) apply from 2 December 2026. EUR-Lex returns an empty page to the fetcher, so the read is through the Publications Office, which serves the same Official Journal text |
 | NIS2 Directive (EU) 2022/2555 | as in force | EUR-Lex | prompt-capture-and-the-law | 2026-11-09 | Arts. 21 and 23 |
 | DORA, Regulation (EU) 2022/2554, and RTS (EU) 2024/1774 | RTS CELEX 32024R1774 | EUR-Lex | prompt-capture-and-the-law | 2026-11-09 | RTS Arts. 12 and 22 at the primary; DORA Art. 17 through a non-EUR-Lex rendering |
 | ePrivacy Directive 2002/58/EC | consolidated CELEX 02002L0058-20091219 | EUR-Lex | prompt-capture-and-the-law | 2026-11-09 | Art. 5(3) |
@@ -227,7 +229,7 @@ This is not legal advice; these dossiers record what was read, not what it means
 | UK Data (Use and Access) Act 2025, s. 70 and Sch. 4 | as enacted | legislation.gov.uk | prompt-capture-and-the-law | 2026-11-09 | commencement not checked |
 | UK SI 2018/356, regs. 3 and 4 | as made | legislation.gov.uk | prompt-capture-and-the-law | 2026-11-09 | |
 | 18 U.S.C. §2511 | as read 2026-11-09 | https://www.law.cornell.edu/uscode/text/18/2511 | prompt-capture-and-the-law, ai-use-policy-and-intake | 2026-11-09 | |
-| CB Financial Services, Inc., Form 8-K, Item 1.05 | report dated 2026-05-07, signed 2026-05-11 | https://www.sec.gov/Archives/edgar/data/1605301/000160530126000021/cbfv-20260507.htm | ai-use-policy-and-intake, inventory-and-shadow-ai | 2026-11-10 | a public filing, cited for what the registrant itself disclosed |
+| CB Financial Services, Inc., Form 8-K, Item 1.05 | report dated 2026-05-07, signed 2026-05-11 | https://www.sec.gov/Archives/edgar/data/1605301/000160530126000021/cbfv-20260507.htm | ai-use-policy-and-intake, inventory-and-shadow-ai | 2026-11-10 | a public filing: Tier A that the registrant filed it and for what it states, B for its account of the incident, which is the registrant's own and unaudited |
 
 ## Regulator and agency guidance
 
@@ -278,7 +280,7 @@ This is not legal advice; these dossiers record what was read, not what it means
 | `agent-telemetry-retention` | storage footprint and cost per capture tier (R6) | what-to-log-and-what-it-costs, ai-apis-and-the-gateway | `91e44df` |
 | `t5-model-artifact-scanning` | modelscan 0.8.8, picklescan 1.0.5 and fickling 0.1.12 on picklescan's bypass set and 18 benign files, including renames (T5) | models-you-hold | `91e44df` |
 | `d3fend-ocsf-ai-alignment` | D3FEND AI artifact nouns against OCSF `ai_*` objects, a desk analysis of pinned definitions rather than a measurement (R8) | models-you-hold, landing-ai-events-in-ocsf, incumbent-tool-coverage, fine-tuned-model-is-a-data-store | `91e44df` |
-| `t8b-telemetry-injection` | a planted instruction in adversary-controlled fields of an OCSF-shaped DuckDB store, visible and as tag characters, read by two local models under several renderings (T8b) | telemetry-is-an-injection-surface | `91e44df` |
+| `t8b-telemetry-injection` | a planted instruction in adversary-controlled fields of an OCSF-shaped DuckDB store, visible and as tag characters, read by two local models under several renderings (T8b) | telemetry-is-an-injection-surface | `91e44df`; rerun with a dated correction at `08f1044` (`t8b-telemetry-injection/RESULTS-2026-11-15.md`) |
 | `t6-finetune-memorization` | planted-canary memorization in a LoRA fine-tune by insertion count and decoding setting (T6) | fine-tuned-model-is-a-data-store, rent-or-own-sized-to-the-org | `91e44df` |
 | `t3-guardrail-adaptive` | three open prompt-injection and jailbreak classifiers on public attack and benign sets under seven published input transforms, with Wilson and paired-bootstrap intervals (T3) | reading-vendor-claims | `91e44df` |
 | `m1-r1-blind-regrade` | a blind re-grade of R1's artifact-to-OCSF grades by one model, partial (M1) | frameworks-and-what-they-reach | `91e44df` |
@@ -455,7 +457,7 @@ Every row here is Tier B for what the product does, read on the date given, and 
 |---|---|---|---|
 | Anthropic | Claude Code hooks, permissions, settings, managed settings, settings reference, sandboxing, monitoring, headless and costs (code.claude.com/docs); Compliance API (platform.claude.com); custom data retention for Enterprise (support.claude.com article 10440198); tenant restrictions (support.claude.com article 13198485); pricing (claude.com/pricing); Claude Code managed MCP (managed-mcp), monitoring and settings-reference `cleanupPeriodDays`; Claude Code security page (code.claude.com/docs/en/security, read 2026-11-17); "Mitigate jailbreaks and prompt injections" (platform.claude.com, read 2026-11-17) | 2026-11-09, 2026-11-10 and 2026-11-17 | telemetry-is-an-injection-surface, coding-agent-hooks-and-policy, configure-before-you-buy, telemetry-by-surface, what-to-log-and-what-it-costs, saas-embedded-ai-and-vendor-terms, rent-or-own-sized-to-the-org, inventory-and-shadow-ai, tamper-evident-record, mcp-servers-and-manifest-drift, ai-apis-and-the-gateway |
 | Microsoft | Purview audit for Copilot and AI apps (ms.date 2026-08-26), auditing solutions overview, Purview for generative AI apps, DSPM for AI, DLP for Microsoft 365 Copilot, sensitivity labels; Microsoft 365 Copilot privacy (updated 2026-11-04), Copilot admin center settings, public web access; Restricted SharePoint Search and restricted content discovery; Copilot Studio data policies, security and governance, Managed Environments sharing limits; Entra agent identities, application permissions, diagnostic settings; Azure OpenAI monitoring and Foundry model monitoring; Secure Score; Security for AI app discovery, DSPM for AI (classic), Sysmon and `microsoft/SysmonCommon` `manifest.xml` (schema 4.90), Entra Agent ID overview and agent ID Governance, Defender for Cloud AI security posture and AI threat protection, Azure API Management AI gateway, Azure Activity Log schema, governing MCP tools through an AI gateway (updated 2026-08-27), Monitor Azure OpenAI (updated 2026-05-12) | 2026-11-09 and 2026-11-10 | telemetry-by-surface, configure-before-you-buy, saas-embedded-ai-and-vendor-terms, inventory-and-shadow-ai, ai-use-policy-and-intake, what-to-log-and-what-it-costs, stubs/assistant-oversharing, stubs/agent-builders, incumbent-tool-coverage, mcp-servers-and-manifest-drift, ai-apis-and-the-gateway, agent-identity-and-delegation |
-| Google | Workspace Gemini log events, BigQuery log export and retention, Gemini conversation history settings, OAuth log events, Privacy Hub, Gemini app access, DLP for Gemini; Gemini Enterprise usage audit logs; Cloud Logging quotas; Vertex AI audit logging and request-response logging (Pre-GA on the read date); Agent Identity overview; Security Command Center AI Protection; Chrome Enterprise reporting connectors; Chrome Enterprise Premium DLP integration; Vertex AI audit logging | 2026-11-09 and 2026-11-10 | telemetry-by-surface, configure-before-you-buy, saas-embedded-ai-and-vendor-terms, inventory-and-shadow-ai, decision-sequence, stubs/assistant-oversharing, stubs/agent-builders, incumbent-tool-coverage, ai-apis-and-the-gateway |
+| Google | Workspace Gemini log events, BigQuery log export and retention, Gemini conversation history settings, OAuth log events, Privacy Hub, Gemini app access, DLP for Gemini; Gemini Enterprise usage audit logs and "Manage observability settings" (both re-read 2026-11-24 for telemetry-by-surface and saas-embedded-ai-and-vendor-terms; neither states the prompt-and-response default in words); Cloud Logging quotas; Vertex AI audit logging and request-response logging (Pre-GA on the read date); Agent Identity overview; Security Command Center AI Protection; Chrome Enterprise reporting connectors; Chrome Enterprise Premium DLP integration; Vertex AI audit logging | 2026-11-09 and 2026-11-10 | telemetry-by-surface, configure-before-you-buy, saas-embedded-ai-and-vendor-terms, inventory-and-shadow-ai, decision-sequence, stubs/assistant-oversharing, stubs/agent-builders, incumbent-tool-coverage, ai-apis-and-the-gateway |
 | AWS | Bedrock model invocation logging; Bedrock and `bedrock-mantle` CloudTrail logging; CloudTrail event history and concepts; Bedrock AgentCore policy and enforcement modes; CloudTrail log file integrity validation (two pages) and S3 Object Lock; Bedrock CloudTrail monitoring, CloudTrail record contents and `userIdentity`; AgentCore policy, enforcement modes and observability; IAM Access Analyzer unused access and AgentCore CloudTrail data events | 2026-11-09 and 2026-11-10 | telemetry-by-surface, configure-before-you-buy, inventory-and-shadow-ai, coding-agent-hooks-and-policy, what-to-log-and-what-it-costs, stubs/agent-builders, tamper-evident-record, incumbent-tool-coverage, mcp-servers-and-manifest-drift, ai-apis-and-the-gateway, agent-identity-and-delegation |
 | OpenAI | Codex approvals and security, rules, governance and managed configuration (learn.chatgpt.com); ChatGPT pricing; Codex managed configuration; "Safety in building agents" (developers.openai.com, read 2026-11-17, carrying an Agent Builder deprecation notice with a shutdown date of 2026-11-30) | 2026-11-09, 2026-11-10 and 2026-11-17 | coding-agent-hooks-and-policy, telemetry-by-surface, rent-or-own-sized-to-the-org, mcp-servers-and-manifest-drift, telemetry-is-an-injection-surface |
 | GitHub | Copilot hooks reference, coding agent firewall, Copilot audit logs, enterprise audit log streaming, Copilot plans; MCP management, MCP allowlist enforcement, supported secret scanning patterns | 2026-11-09 and 2026-11-10 | coding-agent-hooks-and-policy, telemetry-by-surface, configure-before-you-buy, rent-or-own-sized-to-the-org, mcp-servers-and-manifest-drift, incumbent-tool-coverage |
@@ -530,8 +532,6 @@ Each of these is labelled where the document uses it, orders actions within a pr
 
 Where documents grade the same source differently, the dossier carries the tier CONTRIBUTING's table gives and each document keeps its own grade for its own claims until a revalidation pass reconciles them; no document's tier was changed for this file.
 
-- `decision-sequence.md` grades the CoSAI risk map, MITRE ATLAS, OCSF, the MCP specification and the CISA KEV catalogue as Tier B, where the other documents and the table grade them A.
-- `build-buy-and-the-high-priest.md` grades the CISA KEV catalogue B, and the Sigma specification B.
 - `revalidation-and-pins.md` grades the OWASP Top 10 for LLM Applications 2026 B, where `stubs/ai-you-ship.md` and `stubs/rag-stores.md` grade it A.
 - `saas-embedded-ai-and-vendor-terms.md` grades CISA's ScubaGoggles baselines A, while `configure-before-you-buy.md` grades the sibling ScubaGear B.
 - `prompt-capture-and-the-law.md` grades EDPB, WP29, CNIL and Garante guidance B, where CONTRIBUTING's table would allow A for regulator text; the stricter grade fits non-binding and consultation documents, and the dossier follows the document.

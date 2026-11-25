@@ -1,11 +1,11 @@
 ---
 evidence-tier: Mixed
 convergence: single-source
-applies-to-signals: [nhi-inventory-absent, agent-static-secrets, delegation-record-absent]
+applies-to-signals: [nhi-inventory-absent, agent-static-secrets, delegation-record-absent, agent-identity-owner-absent]
 surfaces: [S4, S5, S6, S8]
 pins:
   - "Keycloak 26.8.1 (lab run T7, start-dev, default and preview delegation feature sets)"
-  - "OCSF 1.9.0 (delegation object and ai_operation profile, validated by lab run T7 at schema.ocsf.io)"
+  - "OCSF 1.10.0 (delegation object with scopes, audience and expiration_time; lab run T7 validated against 1.9.0 at schema.ocsf.io)"
   - "IETF RFC 8693 and RFC 9700 as read 2026-11-09"
   - "DuckDB 1.5.3 and chDB 4.4.0 (lab run R7)"
   - "NHI and agent-identity vendor and incumbent documentation as read 2026-11-09"
@@ -36,7 +36,7 @@ measurement-claims:
     date: 2026-11-10
     revalidate: 2027-05-10
     replication: same-host
-  - claim: "Mapped to OCSF 1.9.0, an IdP-events-only producer filled delegation.uid, issuer_uid and created_time on every exchange hop and parent_uid on 0 of 81; scopes and audience exist on OCSF main only; a producer holding the subject token (the agent's own record) filled parent_uid on every hop"
+  - claim: "Mapped to OCSF 1.9.0, an IdP-events-only producer filled delegation.uid, issuer_uid and created_time on every exchange hop and parent_uid on 0 of 81; scopes and audience were on OCSF main only at the time of the run (they shipped in 1.10.0); a producer holding the subject token (the agent's own record) filled parent_uid on every hop"
     source: "sdw-lab-benchmarks@91e44df t7-idp-delegation-logging/RESULTS.md:64, :143-153"
     date: 2026-11-10
     revalidate: 2027-05-10
@@ -99,17 +99,17 @@ The cost side favours not walking. At 1e7 rows and depth 12 the walk took a medi
 
 ## What to log, field by field
 
-The record below is what I would ask each hop to produce, mapped to OCSF 1.9.0 where an attribute exists. T7 validated these attribute names against the 1.9.0 schema; in 1.9.0 the `delegation` object reaches the authentication class only through the `ai_operation` profile, and `scopes`, `audience` and `expiration_time` exist on OCSF main and not in the 1.9.0 release (Tier B, T7 RESULTS, OCSF mapping section).
+The record below is what I would ask each hop to produce, mapped to OCSF where an attribute exists. T7 validated these attribute names against the 1.9.0 schema; in 1.9.0 the `delegation` object reaches the authentication class only through the `ai_operation` profile, and `scopes`, `audience` and `expiration_time`, which T7 found only on OCSF main (Tier B, T7 RESULTS, OCSF mapping section), shipped in the 1.10.0 release of 2026-11-20 (Tier A, OCSF 1.10.0 release notes, #1705, and `objects/delegation.json` at the release commit `2d20903`, read 2026-11-24), so a pipeline on 1.10.0 can type them.
 
-| Field | OCSF 1.9.0 | Who can fill it today | Note |
+| Field | OCSF 1.9.0 (1.10.0 where it differs) | Who can fill it today | Note |
 |---|---|---|---|
 | Hop id (issued token id) | `delegation.uid` | The IdP, on every exchange in T7 | Keycloak `token_id` |
 | Parent hop id | `delegation.parent_uid` | The agent or gateway that presented the subject token; the IdP in 0 of 81 hops in T7 | The single most useful field to add |
 | Issuer | `delegation.issuer_uid` | The IdP | Realm or tenant issuer |
 | Time | `delegation.created_time` | The IdP | Clock-sync the agent and IdP |
-| Granted scopes | not in 1.9.0 (main only) | The IdP, effective scope per hop in T7 | Carry in `unmapped` until a release adds it |
+| Granted scopes | not in 1.9.0; `delegation.scopes` in 1.10.0 | The IdP, effective scope per hop in T7 | Map to `delegation.scopes` on 1.10.0; carry in `unmapped` only while the pipeline is still on 1.9.0 |
 | Requested scopes | none | Nobody in T7; the enforcer refusal string only | Needed to see attempts the IdP silently trimmed |
-| Audience | not in 1.9.0 (main only) | The IdP | Resource the hop is for |
+| Audience | not in 1.9.0; `delegation.audience` in 1.10.0 | The IdP | Resource the hop is for |
 | Acting agent | `actor.app_name` | The IdP (requesting client) | `act` claim in delegation mode |
 | Human subject | `user` | The IdP on success; absent on enforcer refusals in T7 | Refusals then fail the class's required `user` |
 | Session | `actor.session` (my mapping, not validated in T7) | The IdP in the default arm; dropped in Keycloak's delegation preview | Do not rely on it as the chain key |
@@ -124,7 +124,7 @@ Much of the inventory and posture half of the non-human identity category is ava
 |---|---|---|---|---|
 | AWS IAM Access Analyzer | Unused access analysis (roles, access keys, passwords, unused services and actions) | Runs once an unused-access analyzer is created; charged per IAM role and user analyzed per analyzer per month | Access Analyzer findings | 2026-11-09 |
 | AWS Bedrock AgentCore | CloudTrail data events for WorkloadIdentity, WorkloadIdentityDirectory and TokenVault | Off; billed when enabled | CloudTrail trail or lake the customer configures | 2026-11-09 |
-| Microsoft Entra Agent ID | Agent identities with sponsors; agent sign-in and audit logs | Platform available to Entra customers; security features for agents need Agent 365 or E7 | Entra sign-in and audit logs (authentication events, not downstream activity) | 2026-11-09 |
+| Microsoft Entra Agent ID | Agent identities with sponsors; agent sign-in and audit logs | Platform available to all Entra customers; Entra security features for agents need Microsoft Agent 365, which is included in Microsoft 365 E7 and sold as an add-on to E5, A5 and Business Premium (Microsoft Learn, "What is Microsoft Entra Agent ID?", ms.date 2026-04-14, read 2026-11-24) | Entra sign-in and audit logs (authentication events, not downstream activity) | 2026-11-09 |
 | Okta ISPM | Dormant-account detection across human and non-human identities | 90-day dormancy threshold as documented | Okta ISPM findings | 2026-11-09 |
 
 The rows say what the vendor documents and not how well it works; the Entra overview's line that "all agent authentication and activity is logged" is true at the identity plane for Entra-identified agents, and agents admitted through neither the Entra ID Auth SDK sidecar nor workload identity federation, such as a framework agent nobody federated, are outside it by Microsoft's own documentation (Tier B, vendor documentation read 2026-11-09).
@@ -163,6 +163,7 @@ T7 measured one IdP at one version in dev mode on one host, and another IdP's ex
 - 2026-11-17: the CoSAI Agentic IAM and MCP Security Best Practices citations were added from readings at each publisher; they change no lab number, grade or signal. The IAM paper is graded A on the same basis `SOURCES.md` grades CoSAI's AI Incident Response Framework V1.0, an approved version 1.0 from an OASIS Open project, and its forwarding rule is a SHOULD, not a MUST.
 - 2026-11-22: the CoSAI and MCP paragraph's lead was corrected, since §3.4's MUST NOT is measured against the delegating principal's effective permissions rather than the subject token and the MCP rule binds servers and restates RFC 9700 §2.3; §5.1's subject is MCP servers, API gateways and service meshes. No lab number, grade or signal changed.
 - 2026-11-24: the broker advice in the Summary was conditioned on the sizing section, and actions for privilege reduction and for owners, offboarding and revocation were added with two short sections, because the evidence in "Why this matters" is about over-privilege and `decision-sequence.md` assigns small organizations quarterly agent offboarding queries that route here. The two documents added on 2026-11-17 were pinned, and the delegation-record priority reason was restated against the four risk factors. The `replication` value on every measurement claim is `same-host`, because each run's verifier re-ran it on the original host.
+- 2026-11-24: OCSF 1.10.0 (release tag `1.10` at `2d20903`, published 2026-11-20) carries `delegation.scopes`, `audience` and `expiration_time`, so the field table maps scopes and audience to them and the carry-in-`unmapped` advice now applies only to pipelines still on 1.9.0; T7's validation stays a 1.9.0 result.
 - Both lab runs carry an independent verification with the verdict VERIFIED-WITH-FIXES; T7's verification included a cross-provider leg and R7's record names none. The pre-registrations were frozen by an agent before each run and were not owner-reviewed.
 
 ## Sources
@@ -174,6 +175,7 @@ Tier A
 - Coalition for Secure AI (an OASIS Open project), Workstream 4, "Agentic Identity and Access Management", Version 1.0, 20 March 2026, https://www.coalitionforsecureai.org/wp-content/uploads/2026/04/agentic-identity-and-access-control.pdf, §1.2 principle 8, §3.4 and §5.1, read 2026-11-17.
 - Model Context Protocol, Security Best Practices, version 2026-07-28, Token Passthrough, https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices, read 2026-11-17.
 - NIST SP 800-207, Zero Trust Architecture, 2020, https://doi.org/10.6028/NIST.SP.800-207, §2.1 (tenet 3, "Access should also be granted with the least privileges needed to complete the task", read in the PDF at nvlpubs.nist.gov on 2026-11-24).
+- OCSF schema 1.10.0, release "1.10" (https://github.com/ocsf/ocsf-schema/releases/tag/1.10, commit `2d20903`), release notes and `objects/delegation.json`, read 2026-11-24.
 - NIST SP 800-63-4, Digital Identity Guidelines, 2025, https://doi.org/10.6028/NIST.SP.800-63-4, §1.1.
 - Meli, McNiece, Reaves, "How Bad Can It Git? Characterizing Secret Leakage in Public GitHub Repositories", NDSS 2019, https://doi.org/10.14722/ndss.2019.23418.
 - Birgisson et al., "Macaroons: Cookies with Contextual Caveats for Decentralized Authorization in the Cloud", NDSS 2014, https://doi.org/10.14722/ndss.2014.23212 (largely Google-authored).

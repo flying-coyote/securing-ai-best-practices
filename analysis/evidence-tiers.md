@@ -84,7 +84,7 @@ The ladder is adapted, under the MIT licence, from `analysis/evidence-tiers.md` 
 | Priority | How bad is this if it is true? | the four-factor rubric in `routing.yaml`, folded into High, Medium or Low | be raised by a source's tier |
 | Evidence tier | How good is the source behind the practice? | the backing document's frontmatter, and the claim's inline tier where the document is Mixed | be read from prose or guessed |
 | Convergence | How broadly is the practice adopted? | frontmatter; born `single-source`, `converged` only by the standards route or the weekly review (Decision 7) | be inferred from a single citation |
-| Observation confidence | How sure is the practitioner that the condition holds here? | the interview or a reducer: read, owner-stated or believed | change a tier; a believed observation caps priority at Medium instead |
+| Observation confidence | How sure is the practitioner that the condition holds here? | the interview or a reducer: read, owner-stated or believed | change a tier; a believed observation keeps its band and adds a confirm-within deadline instead |
 
 The axes are easy to blur because they all sound like confidence, so the review prints them as separate fields, and a reader can see that a High action backed by a Tier D perspective rests on a real exposure and a weak argument for the fix, which is a different thing from a Low action backed by a Tier A standard.
 
@@ -101,7 +101,7 @@ A tier is not a vendor ranking, and a vendor whose documentation is cited at B h
 - **Gap: calibration**. Nothing yet shows that a claim's tier predicts whether it survives, so the ladder orders sources by how they were produced rather than by measured reliability. **Needs**: a tally, kept by the weekly review over at least two releases, of claims corrected or withdrawn per tier.
 - **Gap: lab placement is self-graded**. Placing first-party lab measurement at B is the maintainer grading his own work. **Needs**: an independent replication of at least one sdw-lab-benchmarks run cited here, which would either confirm B or argue for a lower rung for unreplicated runs.
 - **Gap: the claim-type split is applied by hand**. No check finds a vendor efficacy claim that has been tiered B or A. **Needs**: a pattern check over `analysis/` for efficacy wording ("blocks", "detects", "faster", percentages) on lines tiered A or B, run in the weekly review.
-- **Gap: tier and priority in readers' hands**. Decision 3 fails if reviewers re-sort the output by tier. **Needs**: dry runs on the three fixtures with practitioner readers, recording whether they act in priority order.
+- **Gap: tier and priority in readers' hands**. Decision 3 fails if reviewers re-sort the output by tier. **Needs**: dry runs on the four fixtures with practitioner readers, recording whether they act in priority order.
 
 ## Notes
 

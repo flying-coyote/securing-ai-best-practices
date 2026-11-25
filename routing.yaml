@@ -102,7 +102,7 @@ interview-branches:
     target: "about twenty questions: the two first questions, the eight surface questions and the asks those answers make eligible, then one 'anything else?' question for every other row and surface (listed under not-asked), with the negative guards batched into one line. Measured by route.py's questions-asked: 22 on fixtures/small-org-short, 21 on fixtures/small-org-renter. No time is claimed, because nothing measures it."
   full:
     selected-when: "any other combination"
-    target: "every eligible interview row, one surface family at a time, plus a follow-up for each escalation input of a selected row. Measured by route.py's questions-asked: 71 on fixtures/mid-size-mixed and 61 on fixtures/own-heavy-regulated, so the count grows with the surfaces present."
+    target: "every eligible interview row, one surface family at a time, plus a follow-up for each escalation input of a selected row. Measured by route.py's questions-asked: 75 on fixtures/mid-size-mixed and 64 on fixtures/own-heavy-regulated, so the count grows with the surfaces present."
   top-actions: {small-org: 5, full: 7}
 
 # The role a Question Packet is addressed to, per routing family. A row's
@@ -216,6 +216,13 @@ signals:
       factors: {reach: 0, stakes: 0, reversibility: 1, blast: 1}
     docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/models-you-hold.md]
     why: "At least one fully owned surface is present, which brings its patching, logging, identity and detection with it."
+  - key: residency-requirement
+    family: profile
+    question: "Does any law, contract or supervisor require AI content to be processed or stored in a specific region? (Yes selects this key.)"
+    method: [I]
+    weight: INVENTORY
+    docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/saas-embedded-ai-and-vendor-terms.md]
+    why: "Residency can rule out a rented product or justify owning one; processing location and capacity routing are checked per rented surface."
 
   # --- surface ---
   - key: surface-S1
@@ -255,7 +262,7 @@ signals:
     question: "Does the organization run or host MCP servers and agent tools for shared use? (yes, no, or not sure)"
     method: [I]
     weight: INVENTORY
-    enables: [mcp-allowlist-absent, mcp-unpinned, mcp-remote, mcp-manifest-snapshot-absent, agent-static-secrets, nhi-inventory-absent, audit-log-off-<platform>]
+    enables: [mcp-allowlist-absent, mcp-unpinned, mcp-remote, mcp-manifest-snapshot-absent, agent-static-secrets, nhi-inventory-absent, audit-log-off-<platform>, agent-identity-owner-absent]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S5 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S6
@@ -263,7 +270,7 @@ signals:
     question: "Does the organization run low-code agent and workflow builders? (yes, no, or not sure)"
     method: [I]
     weight: INVENTORY
-    enables: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed, agent-builder-self-hosted-exposed, nhi-inventory-absent]
+    enables: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed, agent-builder-self-hosted-exposed, nhi-inventory-absent, agent-identity-owner-absent]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S6 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S7
@@ -271,7 +278,7 @@ signals:
     question: "Does the organization run managed AI build platforms in a cloud account? (yes, no, or not sure)"
     method: [I]
     weight: INVENTORY
-    enables: [agent-publish-approval-absent, connector-sprawl-unreviewed, audit-log-off-<platform>, cloud-trail-default-only, ai-gateway-absent, gateway-token-store-unreviewed, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent]
+    enables: [agent-publish-approval-absent, connector-sprawl-unreviewed, audit-log-off-<platform>, cloud-trail-default-only, ai-gateway-absent, gateway-token-store-unreviewed, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, agent-identity-owner-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S7 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S8
@@ -279,7 +286,7 @@ signals:
     question: "Does the organization run direct model API use and AI gateways? (yes, no, or not sure)"
     method: [I]
     weight: INVENTORY
-    enables: [ai-gateway-absent, gateway-token-store-unreviewed, cloud-trail-default-only, agent-static-secrets, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent]
+    enables: [ai-gateway-absent, gateway-token-store-unreviewed, cloud-trail-default-only, agent-static-secrets, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S8 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S9
@@ -287,7 +294,7 @@ signals:
     question: "Does the organization run self-hosted model serving? (yes, no, or not sure)"
     method: [I]
     weight: INVENTORY
-    enables: [inference-runtime-default-bind, model-store-unscanned, pickle-formats-present, ai-gateway-absent, gateway-token-store-unreviewed, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent]
+    enables: [inference-runtime-default-bind, model-store-unscanned, pickle-formats-present, ai-gateway-absent, gateway-token-store-unreviewed, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
     docs: [analysis/surface-ownability.md]
     why: "Enables the S9 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S10
@@ -427,6 +434,7 @@ signals:
     question: "What format is the AI audit record emitted in: none, the vendor's own JSON, OpenTelemetry, or OCSF? (vendor-json selects this key.)"
     method: [I]
     weight: INVENTORY
+    enables: [hunt-keys-untyped]
     docs: [analysis/landing-ai-events-in-ocsf.md]
     why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
   - key: schema-otel
@@ -434,6 +442,7 @@ signals:
     question: "What format is the AI audit record emitted in: none, the vendor's own JSON, OpenTelemetry, or OCSF? (otel selects this key.)"
     method: [I]
     weight: INVENTORY
+    enables: [hunt-keys-untyped]
     docs: [analysis/landing-ai-events-in-ocsf.md]
     why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
   - key: schema-ocsf
@@ -441,8 +450,19 @@ signals:
     question: "What format is the AI audit record emitted in: none, the vendor's own JSON, OpenTelemetry, or OCSF? (ocsf selects this key.)"
     method: [I]
     weight: INVENTORY
+    enables: [hunt-keys-untyped]
     docs: [analysis/landing-ai-events-in-ocsf.md]
     why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
+  - key: hunt-keys-untyped
+    family: record
+    question: "Read three real AI audit records: do the tool name, the agent and the human principal each sit in a typed field rather than in unmapped, a JSON blob or an attributes map? (No selects this key; asked once the record's format is known to be vendor JSON, OpenTelemetry or OCSF.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Low
+      factors: {reach: 1, stakes: 0, reversibility: 0, blast: 1}
+    docs: [analysis/landing-ai-events-in-ocsf.md]
+    why: "A record that validates can still put its hunt keys where every query must parse them; in the lab run the doc cites, at 1M synthetic calls, that layout ran the pre-registered hunts 4.7x to 22.5x slower than typed columns."
   - key: prompt-capture-tier-none
     family: record
     question: "Which prompt-capture tier is in place: none, metadata only, hashes, deltas, or full text? (none selects this key.)"
@@ -608,7 +628,7 @@ signals:
     priority:
       band: High
       factors: {reach: 2, stakes: 2, reversibility: 1, blast: 1}
-    docs: [analysis/agent-identity-and-delegation.md]
+    docs: [analysis/agent-identity-and-delegation.md, analysis/mcp-servers-and-manifest-drift.md]
     why: "Long-lived secrets in agent configuration are the credential-theft path; short-lived, scoped credentials are the standard replacement."
   - key: delegation-record-absent
     family: identity
@@ -619,7 +639,17 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/agent-identity-and-delegation.md]
-    why: "Low priority because no production source carries the full join today; the doc says what can be assembled meanwhile."
+    why: "Low on the risk factors: internal-only, business data rather than credentials, reversible by changing what gets logged, and it slows one team's investigation; the doc says what can be assembled meanwhile."
+  - key: agent-identity-owner-absent
+    family: identity
+    question: "Does every agent identity have a named human owner, is there a periodic check for agents whose owner has left or that were deleted while their grants remain, and has revoking an agent's grant been tested once to confirm it stops the agent? (No to any part selects this key.)"
+    method: [I]
+    weight: PROBLEM
+    priority:
+      band: Medium
+      factors: {reach: 0, stakes: 2, reversibility: 1, blast: 1}
+    docs: [analysis/agent-identity-and-delegation.md]
+    why: "An agent identity outlives the project that made it, because nobody leaves the company when an agent stops being used, so without an owner and an offboarding check its grants stay live after anyone remembers them."
   - key: ai-gateway-absent
     family: identity
     question: "Does model and tool traffic pass through an enforcement point the organization owns (a gateway or proxy)? (No selects this key; asked when S7, S8 or S9 is present.)"
@@ -1227,6 +1257,26 @@ signals:
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/stubs/ai-you-ship.md]
     why: "A public AI feature is an internet-reachable surface with its own abuse patterns."
+  - key: shipped-feature-tool-scope-unreviewed
+    family: ai-you-ship
+    question: "For AI features the organization ships to its customers, are the tools the feature can call on a customer's behalf, and the permissions each call runs with, reviewed against what that customer may do? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: Medium
+      factors: {reach: 2, stakes: 1, reversibility: 1, blast: 1}
+    docs: [analysis/stubs/ai-you-ship.md]
+    why: "A shipped feature that calls tools can act beyond what the customer asked; the stub declares the gap and names the standard to read meanwhile."
+  - key: shipped-feature-tenant-isolation-unknown
+    family: ai-you-ship
+    question: "For AI features that serve several customers, is it established that one customer's prompts, retrieved content and outputs cannot reach another customer's session, index or model context? (No selects this key.)"
+    method: [I]
+    weight: REVIEW
+    priority:
+      band: High
+      factors: {reach: 1, stakes: 2, reversibility: 2, blast: 1}
+    docs: [analysis/stubs/ai-you-ship.md]
+    why: "Content disclosed to another customer cannot be recalled; the stub declares the gap and names the standard to read meanwhile."
 
   # --- incident-response ---
   - key: ai-playbook-absent
