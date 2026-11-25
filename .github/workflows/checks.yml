@@ -1,14 +1,22 @@
 name: checks
 
-# Five jobs. Two are deterministic and are the checks branch protection
+# Seven jobs. Two are deterministic and are the checks branch protection
 # requires on the default branch: `check-internal-links` and
 # `test-instruments`. Both are adapted from claude-code-project-best-practices
 # (MIT), whose workflow taught the lessons written into the comments below.
 #
-# The other three are never required and can never block a pull request:
-#   markdown-lint               runs on pull requests and comments the findings
-#                               on the PR, updating one comment in place; the
-#                               job itself always passes
+# The other five are never required and can never block a pull request:
+#   markdown-lint               runs the pinned linter on pull requests with a
+#                               read-only token and passes its findings on;
+#                               the job itself always passes
+#   markdown-lint-comment       the only job with pull-request write; it runs
+#                               no third-party package, only the comment script,
+#                               and updates one comment in place
+#   rebuild-release-bundle      on a pushed release tag, rebuilds the offline
+#                               bundle from the tag and prints its SHA-256 to
+#                               the job summary, for comparison by hand with
+#                               the RELEASES.md row (which is written after the
+#                               tag, so the job cannot compare it itself)
 #   check-links                 external links, on the weekly schedule and on
 #                               manual dispatch only, so a flaky upstream never
 #                               reports on a PR at all
@@ -17,9 +25,12 @@ name: checks
 #                               pages, reports which upstreams moved past their
 #                               pin, and is the one job that writes the standing
 #                               issue, carrying check-links' result with its own
-# No job files a new issue per run. The standing issue is found by its exact
-# title in any state, created only if it has never existed, reopened when
-# something needs a look and closed when everything is clean, which is the form
+# No job files a new issue per run. The standing issue is found by a hidden
+# marker in its body and the github-actions bot as its author, in any state
+# (an older issue without the marker is found once by exact title and bot
+# author, and gains the marker on that run), created only if it has never
+# existed, reopened when something needs a look and closed when everything is
+# clean, which is the form
 # that replaced the daily issue filing in claude-code-project-best-practices
 # (Decision 9). check-pins.py is
 # deliberately absent: it runs in the weekly review, where its count belongs,
@@ -34,6 +45,7 @@ on:
   pull_request:
   push:
     branches: [main]
+    tags: ['v*']
   # Weekly, Monday 06:00 UTC: the external link scan and the source probe. The
   # two required jobs run on this event as well, which costs under two minutes
   # and shows the default branch's state the morning of the weekly review.
@@ -46,11 +58,13 @@ permissions:
 
 jobs:
   check-internal-links:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       dangling_live: ${{ steps.internal.outputs.dangling_live }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       # Fails closed. A crash, a renamed script or an unparseable report is an
       # error, never a silent zero: a check that reports clean when its
@@ -86,19 +100,20 @@ jobs:
           exit 1
 
   test-instruments:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # Full history so the expiry check can diff the PR against its base.
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
-      - name: Install the one dependency
-        run: python -m pip install --quiet 'PyYAML==6.0.2'
+      - name: Install the one dependency, hash-checked
+        run: python -m pip install --quiet --require-hashes -r .github/requirements-ci.txt
 
       # Determinism across hash seeds, mode and entry-tier monotonicity, and the
       # gate's own awk parsed against a clean and a deliberately broken corpus.
@@ -137,8 +152,28 @@ jobs:
       - name: Route the fixtures
         run: python scripts/route.py --check-fixtures
 
+      # The greppable exclusions, hidden characters and secret-shaped strings,
+      # over the tree and then over the commit messages this change adds (the
+      # script never runs git, so the messages are written out here). A
+      # message already in the history before this change is not rescanned.
       - name: Greppable exclusions
         run: python scripts/check-exclusions.py
+
+      - name: Greppable exclusions in the new commit messages
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            git log --format='%an%n%ae%n%B' "origin/${BASE_REF}..HEAD" > "$RUNNER_TEMP/messages.txt"
+          elif [ "$EVENT" = "push" ] && [ -n "$BEFORE" ] && ! [[ "$BEFORE" =~ ^0+$ ]] && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            git log --format='%an%n%ae%n%B' "${BEFORE}..HEAD" > "$RUNNER_TEMP/messages.txt"
+          else
+            : > "$RUNNER_TEMP/messages.txt"
+          fi
+          python scripts/check-exclusions.py --messages "$RUNNER_TEMP/messages.txt"
 
       # Each check passes on the tree and fails on a planted defect, and the
       # release bundle builds deterministically, all on temporary copies.
@@ -150,6 +185,18 @@ jobs:
       # an injected instruction in plain and hidden text) in their output.
       - name: Test the reducers, including the injected-instruction and identifier-leak cases
         run: python scripts/test-reducers.py
+
+      # The denylist hook's exit codes 0, 1 and 2 against a made-up term in a
+      # temporary denylist and throwaway repositories; the real denylist is
+      # never present in CI and the test builds its environment from scratch.
+      - name: Test the denylist pre-push hook
+        run: python scripts/test-hooks.py
+
+      # check-pins name normalization, the expiry check's undated claims, the
+      # probe's tally, the link gate's reference links and anchors, the
+      # exclusion check's new rules and the bundle's reducer archive.
+      - name: Test the remaining scripts against planted cases
+        run: python scripts/test-scripts.py
 
       # Scoped expiry. On a pull request it fails only when an expired
       # measurement claim sits in a doc that PR touches, so the gate never
@@ -169,22 +216,28 @@ jobs:
             python scripts/check-measurement-expiry.py --changed-files
           fi
 
-  # Comment-only. The lint step may fail; the job does not, because
-  # continue-on-error is on the step, and the comment step is skipped on
-  # anything but a pull request. One comment per PR, found by a hidden marker
-  # and edited in place on each push, so a long-lived PR does not collect a
-  # comment per commit. On a PR from a fork the token cannot write comments,
-  # which is why that step is also continue-on-error: the findings stay in the
-  # job log either way. The linter version is pinned so the rule set cannot
-  # change under the repo between two runs.
+  # Comment-only, in two jobs so that the npm package and its unpinned
+  # transitive dependencies run with a read-only token and no persisted
+  # credentials, while the job that can write to the pull request runs only
+  # the pinned github-script action. The lint step may fail; the job does not,
+  # because continue-on-error is on the step. One comment per PR, found by a
+  # hidden marker and edited in place on each push, so a long-lived PR does
+  # not collect a comment per commit. On a PR from a fork the token cannot
+  # write comments, which is why the comment step is also continue-on-error:
+  # the findings stay in the lint job's log either way. The linter version is
+  # pinned so the rule set cannot change under the repo between two runs.
   markdown-lint:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
-      pull-requests: write
+    outputs:
+      outcome: ${{ steps.lint.outcome }}
+      report: ${{ steps.report.outputs.report }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -197,21 +250,36 @@ jobs:
           set -o pipefail
           npx --yes markdownlint-cli2@0.23.3 "**/*.md" "#node_modules" "#dist" 2>&1 | tee "$RUNNER_TEMP/lint.txt"
 
+      - name: Hand the findings to the comment job
+        id: report
+        run: |
+          DELIM="LINT_$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
+          {
+            echo "report<<${DELIM}"
+            head -c 60000 "$RUNNER_TEMP/lint.txt" 2>/dev/null || echo '(no lint output was captured)'
+            echo
+            echo "${DELIM}"
+          } >> "$GITHUB_OUTPUT"
+
+  markdown-lint-comment:
+    if: github.event_name == 'pull_request'
+    needs: [markdown-lint]
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+    steps:
       - name: Comment the findings on the pull request, in place
-        if: github.event_name == 'pull_request'
         continue-on-error: true
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
-          LINT_OUTCOME: ${{ steps.lint.outcome }}
-          LINT_FILE: ${{ runner.temp }}/lint.txt
+          LINT_OUTCOME: ${{ needs.markdown-lint.outputs.outcome }}
+          LINT_REPORT: ${{ needs.markdown-lint.outputs.report }}
         with:
           script: |
-            const fs = require('fs');
             const MARKER = '<!-- markdown-lint-report -->';
             const failed = process.env.LINT_OUTCOME === 'failure';
-            let out = '';
-            try { out = fs.readFileSync(process.env.LINT_FILE, 'utf8'); } catch (e) { out = '(no lint output was captured)'; }
-            if (out.length > 60000) out = out.slice(0, 60000) + '\n... (truncated; the full list is in the job log)';
+            let out = process.env.LINT_REPORT || '(no lint output was captured)';
+            if (out.length >= 60000) out = out.slice(0, 60000) + '\n... (truncated; the full list is in the markdown-lint job log)';
             const run = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner, repo: context.repo.repo,
@@ -240,16 +308,19 @@ jobs:
   # which writes the standing issue. The action is the maintained successor to
   # the one link-checker.yml in claude-code-project-best-practices used, reading
   # the same config format.
-  # The config ignores this repo's own github.com URLs while the repository is
-  # private, since an anonymous request gets a 404 for every one of them; that
-  # pattern comes out when the repository goes public.
+  # Only 2xx and 3xx answers count as alive. A 401, 403, 405 or 999 (the
+  # last is LinkedIn's bot answer) is a page the checker could not read, so it
+  # fails the scan and the standing issue lists it for a look by hand, rather
+  # than passing as if the page had been read.
   check-links:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       external: ${{ steps.summary.outputs.external }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Check external links
         id: scan
@@ -280,19 +351,21 @@ jobs:
   check-source-accessibility:
     if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     needs: [check-internal-links, check-links]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       issues: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
-      - name: Install the one dependency
-        run: python -m pip install --quiet 'PyYAML==6.0.2'
+      - name: Install the one dependency, hash-checked
+        run: python -m pip install --quiet --require-hashes -r .github/requirements-ci.txt
 
       # Never fails on what it finds; exits 2 only when it cannot read the pins
       # doc, which fails this job rather than writing a clean report from
@@ -314,6 +387,13 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # The full expired and unreadable measurement-claim counts, for the
+      # standing issue. Never fails here; a missing tally reads as not clean.
+      - name: Count expired measurement claims
+        run: |
+          python scripts/check-measurement-expiry.py --changed-files > "$RUNNER_TEMP/expiry.txt" 2>&1 || true
+          grep -E '^expired-claims ' "$RUNNER_TEMP/expiry.txt" || echo "expiry tally missing" >&2
+
       - name: Update the standing issue in place
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
@@ -321,11 +401,20 @@ jobs:
           LINKS_RESULT: ${{ needs.check-links.result }}
           DANGLING: ${{ needs.check-internal-links.outputs.dangling_live }}
           PROBE_FILE: ${{ runner.temp }}/probe.md
+          EXPIRY_FILE: ${{ runner.temp }}/expiry.txt
         with:
           script: |
             const fs = require('fs');
             const TITLE = 'Standing report: external links and pinned sources';
+            const MARKER = '<!-- standing-report:checks.yml -->';
+            const BOT = 'github-actions[bot]';
             const probe = fs.readFileSync(process.env.PROBE_FILE, 'utf8');
+            let expiryText = '';
+            try { expiryText = fs.readFileSync(process.env.EXPIRY_FILE, 'utf8'); } catch (e) { expiryText = ''; }
+            const expiryLine = expiryText.split('\n').find(l => l.startsWith('expired-claims ')) || '';
+            const em = expiryLine.match(/^expired-claims total=(\d+) .*?unreadable total=(\d+)/);
+            const expired = em ? Number(em[1]) : null;
+            const unreadable = em ? Number(em[2]) : null;
             const external = process.env.EXTERNAL || `not run (check-links ${process.env.LINKS_RESULT})`;
             const dangling = process.env.DANGLING || 'unknown';
             // Read both tally lines by field name, and fail closed: a missing line or
@@ -343,13 +432,18 @@ jobs:
             const zero = (t, keys) => t !== null && keys.every(k => Number.isInteger(t[k]) && t[k] === 0);
             const probeClean = zero(pinsTally, ['broken', 'refused', 'moved', 'unknown'])
               && zero(urlTally, ['broken']);
-            const clean = external === 'clean' && dangling === '0' && probeClean;
+            const expiryClean = expired === 0 && unreadable === 0;
+            const clean = external === 'clean' && dangling === '0' && probeClean && expiryClean;
             const today = new Date().toISOString().slice(0, 10);
             const run = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
 
+            const expirySummary = em ? `${expired} expired, ${unreadable} unreadable or undated`
+                                     : 'unknown (the expiry check printed no tally)';
             const body = [
+              MARKER,
               'This issue is updated in place by the weekly run of `checks.yml`, and no run files a new one.',
               '',
+              `- Measurement claims: ${expirySummary} (\`python3 scripts/check-measurement-expiry.py\`)`,
               `- Dangling internal links in the live docs: ${dangling} (actionable; \`python3 scripts/measure-link-reachability.py --links\`)`,
               `- External link check: ${external} (mostly upstream rot; the failing URLs are in the check-links job log)`,
               '- Pinned sources, from `analysis/revalidation-and-pins.md`:',
@@ -364,7 +458,9 @@ jobs:
             const issues = await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner, repo: context.repo.repo, state: 'all', per_page: 100,
             });
-            const existing = issues.find(i => !i.pull_request && i.title === TITLE);
+            const byBot = (i) => i.user && i.user.login === BOT;
+            const existing = issues.find(i => !i.pull_request && byBot(i) && (i.body || '').includes(MARKER))
+              || issues.find(i => !i.pull_request && byBot(i) && i.title === TITLE);
 
             if (!existing) {
               if (clean) return;   // nothing to report and no issue yet
@@ -375,3 +471,42 @@ jobs:
               owner: context.repo.owner, repo: context.repo.repo,
               issue_number: existing.number, body, state: clean ? 'closed' : 'open',
             });
+
+  # On a pushed release tag, rebuild the offline bundle and the reducer
+  # archive from the tag with the release script, and print both SHA-256
+  # values to the job summary. The RELEASES.md row is written after the tag
+  # is pushed, so this job prints rather than compares; the maintainer checks
+  # the two values against the row. The v2026.11, v2026.12 and v2026.12.1
+  # bundles were built from the working tree, before the bundle step read the
+  # tag with git archive, so a rebuild of those tags is not expected to match.
+  rebuild-release-bundle:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install the one dependency, hash-checked
+        run: python -m pip install --quiet --require-hashes -r .github/requirements-ci.txt
+
+      - name: Rebuild the bundle from the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          SHA=$(git rev-list -n1 "refs/tags/${TAG}")
+          bash scripts/build-release-bundle.sh bundle "$TAG" "$SHA" | tee "$RUNNER_TEMP/bundle.txt"
+          {
+            echo "Rebuilt from ${TAG} (${SHA}); compare with the RELEASES.md row:"
+            echo '```'
+            cat "$RUNNER_TEMP/bundle.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

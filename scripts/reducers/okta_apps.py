@@ -31,7 +31,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import emit, field, read_rows  # noqa: E402
+from _common import emit, field, read_rows, require_columns, run  # noqa: E402
 from ai_catalog import ai_vendor  # noqa: E402
 
 OBS = {"ai-apps-in-idp", "ai-apps-federated", "ai-apps-not-federated", "ai-apps-inactive"}
@@ -42,7 +42,9 @@ def main(argv: list[str]) -> int:
     if len(argv) != 1:
         sys.exit(__doc__.strip().splitlines()[-1])
     seen, fed, notfed, inactive = set(), 0, 0, 0
-    for row in read_rows(argv[0]):
+    rows = read_rows(argv[0])
+    require_columns(rows, "label", "App name", "Application", "Name")
+    for row in rows:
         label = field(row, "label", "App name", "Application", "Name")
         if not ai_vendor(label, row.get("name")):
             continue
@@ -65,4 +67,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run(main)

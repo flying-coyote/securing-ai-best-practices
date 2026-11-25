@@ -27,8 +27,12 @@
 #              check-prompt-blocks.py passes on it with no tag given (the
 #              placeholders are in place and no file names another release),
 #              concatenate the release files into one offline bundle, compute
-#              its SHA-256, and add the release row to the working tree's
-#              RELEASES.md (tag, date, commit SHA, bundle hash, pins).
+#              its SHA-256, write `scripts/reducers/` from the same commit as a
+#              tar archive (`git archive`, so the same commit gives the same
+#              bytes) with its own SHA-256, and add the release row to the
+#              working tree's RELEASES.md (tag, date, commit SHA, bundle hash,
+#              pins, and the reducer archive's hash in the Notes column). Both
+#              files go in dist/ and are the release's assets.
 #   3. by hand: bump the README and ONE-LINE-PROMPT blocks to the tagged SHA on
 #              the default branch; check-prompt-blocks.py then holds them to it.
 #
@@ -145,16 +149,26 @@ PY
       [[ "$tagged" == "$sha" ]] || die "tag ${tag} points at ${tagged}, not ${sha}"
     fi
     SRC=$(mktemp -d)
-    trap 'rm -rf "$SRC"' EXIT
+    WORK=$(mktemp -d)
+    trap 'rm -rf "$SRC" "$WORK"' EXIT
     git -C "$ROOT" archive "$sha" | tar -x -C "$SRC"
+    # The reducers a practitioner runs, from the same commit, so a review can
+    # check the scripts it ran against the hash in RELEASES.md.
+    # A commit without the folder (only a trimmed test tree) gets no archive,
+    # and the row and output say so instead of naming a hash.
+    if git -C "$ROOT" cat-file -e "${sha}:scripts/reducers" 2>/dev/null; then
+      git -C "$ROOT" archive --format=tar --prefix="securing-ai-reducers-${tag}/" \
+        -o "$WORK/reducers.tar" "$sha" scripts/reducers
+    fi
     python3 "$(dirname "${BASH_SOURCE[0]}")/check-prompt-blocks.py" --root "$SRC" >&2 \
       || die "check-prompt-blocks.py fails on ${sha}: the tagged commit must carry the placeholders and name no other release"
-    python3 - "$ROOT" "$tag" "$sha" "${ALLOW_MISSING:-0}" "$SRC" <<'PY'
-import hashlib, re, sys
+    python3 - "$ROOT" "$tag" "$sha" "${ALLOW_MISSING:-0}" "$SRC" "$WORK/reducers.tar" <<'PY'
+import hashlib, re, shutil, sys
 from pathlib import Path
 import yaml
 out_root, tag, sha, allow_missing = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4] == "1"
 root = Path(sys.argv[5])  # the archived commit; outputs go to out_root
+reducers_tar = Path(sys.argv[6])
 routing = yaml.safe_load((root / "routing.yaml").read_text(encoding="utf-8"))
 ac_text = (root / "AUDIT-CONTEXT.md").read_text(encoding="utf-8")
 m = re.search(r"^Release: (\S+?)\. Date: (\d{4}-\d{2}-\d{2})\.$", ac_text, re.M)
@@ -203,6 +217,14 @@ digest = hashlib.sha256(data).hexdigest()
 out = out_root / "dist" / f"securing-ai-best-practices-{tag}.md"
 out.parent.mkdir(exist_ok=True)
 out.write_bytes(data)
+rout = out_root / "dist" / f"securing-ai-best-practices-{tag}-reducers.tar"
+if reducers_tar.is_file():
+    rdigest = hashlib.sha256(reducers_tar.read_bytes()).hexdigest()
+    shutil.copyfile(reducers_tar, rout)
+    rnote = f"reducer archive {rout.name} SHA-256 `{rdigest}`"
+else:
+    rdigest = None
+    rnote = "no reducer archive (scripts/reducers is not in this commit)"
 
 pins = "see analysis/revalidation-and-pins.md"
 pd = root / "analysis/revalidation-and-pins.md"
@@ -220,11 +242,17 @@ if re.search(rf"^\| {re.escape(tag)} \|", rtext, re.M):
 header = "| Tag | Date | Commit SHA | Bundle SHA-256 | Pins | Agents tested | Notes |\n|---|---|---|---|---|---|---|\n"
 if header not in rtext:
     sys.exit("ERROR: RELEASES.md release-log table header not found")
-row = f"| {tag} | {date} | `{sha}` | `{digest}` | {pins} | to record after the dry runs | {len(files)} files |\n"
+row = (f"| {tag} | {date} | `{sha}` | `{digest}` | {pins} | to record after the dry runs | "
+       f"{len(files)} files; {rnote} |\n")
 rtext = rtext.replace(header, header + row, 1)
 rel.write_text(rtext, encoding="utf-8")
 print(f"bundle: {out.relative_to(out_root)} ({len(data)} bytes, {len(files)} files)")
 print(f"sha256: {digest}")
+if rdigest:
+    print(f"reducers: {rout.relative_to(out_root)} ({rout.stat().st_size} bytes)")
+    print(f"reducers sha256: {rdigest}")
+else:
+    print("WARNING: scripts/reducers is not in this commit, so no reducer archive was built")
 if missing or missing_routed:
     print(f"WARNING: built with ALLOW_MISSING=1; missing Always Fetch docs: {missing}; "
           f"missing routed docs: {missing_routed}")

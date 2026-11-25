@@ -35,7 +35,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import emit, field, read_rows  # noqa: E402
+from _common import emit, field, read_rows, require_columns, run  # noqa: E402
 from ai_catalog import ai_vendor  # noqa: E402
 
 OBS = {"ai-extensions-total", "ai-extensions-force-installed", "ai-extensions-admin-allowed",
@@ -58,7 +58,9 @@ def main(argv: list[str]) -> int:
     if len(argv) != 1:
         sys.exit(__doc__.strip().splitlines()[-1])
     modes: dict[str, str] = {}
-    for row in read_rows(argv[0]):
+    rows = read_rows(argv[0])
+    require_columns(rows, "App name", "Extension name", "Name", "Display name")
+    for row in rows:
         name = field(row, "App name", "Extension name", "Name", "Display name")
         if not ai_vendor(name):
             continue
@@ -78,4 +80,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run(main)

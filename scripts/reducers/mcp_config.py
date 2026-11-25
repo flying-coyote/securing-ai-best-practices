@@ -34,9 +34,11 @@ Per server the reducer decides, without printing anything about it:
                    more characters with no spaces, not a number or a boolean,
                    after any `Bearer`, `Basic` or `Token` prefix) and is not a
                    reference (`${VAR}`, `$VAR`, `env:VAR`, `op://...`,
-                   `{{...}}`, `<...>`), the same rule for `--name value` and
+                   `{{...}}`, `<...>`, or any value that interpolates `${...}`
+                   or `{{...}}`), the same rule for `--name value` and
                    `--name=value` arguments, plus token-shaped strings
-                   anywhere in args, env, headers or the URL; each counts once
+                   anywhere in args, env, headers or the URL, and a password in
+                   the URL's userinfo (`https://user:password@host`); each counts once
                    and no value is ever printed
 
 The config shapes are the clients' documented formats (Tier B); the secret
@@ -47,7 +49,10 @@ Output: mcp-server-count, mcp-local-count, mcp-remote-count,
 mcp-unpinned-count, mcp-pinned-count, mcp-launch-unknown-count and
 mcp-inline-secret-count, and the signals mcp-unpinned and mcp-remote (the
 counts; mcp-unpinned is not-checked rather than 0 when no server was found
-unpinned but some launch could not be read), with agent-static-secrets
+unpinned but some launch could not be read, and both are not-checked
+rather than 0 when an input file could not be parsed and was skipped, or
+when no server was found in any file), with
+agent-static-secrets
 set to true when any inline secret is found (false is never printed, because a
 clean config file does not show that agents hold no long-lived keys).
 
@@ -62,7 +67,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import NOT_CHECKED, emit, load_structured  # noqa: E402
+from _common import NOT_CHECKED, InputError, emit, load_structured, run  # noqa: E402
 
 OBS = {"mcp-server-count", "mcp-local-count", "mcp-remote-count", "mcp-unpinned-count",
        "mcp-pinned-count", "mcp-inline-secret-count", "mcp-launch-unknown-count"}
@@ -100,13 +105,20 @@ SECRET_WORDS = {"key", "apikey", "token", "secret", "password", "passwd", "pwd",
 REFERENCE = re.compile(r"^\s*(\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*|env:[A-Za-z_][A-Za-z0-9_]*|op://\S+"
                        r"|\{\{.*\}\}|<[^>]+>)\s*$")
 SCHEME = re.compile(r"^\s*(bearer|basic|token)\s+", re.I)
+# The leading guard keeps "risk-management-framework" from reading as an `sk-` key.
 TOKEN_SHAPES = re.compile(
-    r"(sk-(ant-|proj-)?[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}"
+    r"(?<![A-Za-z0-9])(sk-(ant-|proj-)?[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}"
     r"|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|glpat-[A-Za-z0-9_-]{16,}|AIza[0-9A-Za-z_-]{30,}"
     r"|Bearer\s+[A-Za-z0-9._~+/=-]{20,})")
 URL_SECRET = re.compile(r"[?&](api[_-]?key|key|token|access[_-]?token|secret)=[^&\s]+", re.I)
+# A password in the URL's userinfo (scheme://user:password@host); `user@host` alone is not one.
+URL_USERINFO = re.compile(r"^[a-z][a-z0-9+.-]*://[^/@\s:]*:([^/@\s]+)@", re.I)
+# A value that interpolates a variable anywhere (`prefix-${VAR}`, `Bearer ${env:X}`) is a reference.
+EMBEDDED_REF = re.compile(r"\$\{[^}]+\}|\{\{[^}]+\}\}")
 EXACT_NPM = re.compile(r"^(@[^/\s]+/)?[^@\s]+@v?\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$")
-EXACT_PY = re.compile(r"^[A-Za-z0-9_.\[\],-]+(==|@)v?\d+(\.\d+)*([-+.][0-9A-Za-z.-]+)?$")
+# `@` pins only with a full major.minor.patch (EXACT_NPM), because npm reads
+# `pkg@1` and `pkg@1.2` as ranges; `==` pins at any precision.
+EXACT_PY = re.compile(r"^[A-Za-z0-9_.\[\],-]+==v?\d+(\.\d+)*([-+.][0-9A-Za-z.-]+)?$")
 
 
 def find_servers(node, out: list):
@@ -234,7 +246,7 @@ def credential_value(v) -> bool:
     if not isinstance(v, str):
         return False
     v = SCHEME.sub("", v.strip(), count=1).strip()
-    if not v or REFERENCE.match(v) or re.search(r"\s", v) or len(v) < 8:
+    if not v or REFERENCE.match(v) or EMBEDDED_REF.search(v) or re.search(r"\s", v) or len(v) < 8:
         return False
     return not (v.isdigit() or v.lower() in ("true", "false", "none", "null"))
 
@@ -271,7 +283,9 @@ def count_secrets(server: dict) -> int:
         elif i + 1 < len(args) and not args[i + 1].startswith("-"):
             n += credential_value(args[i + 1])
     url = str(server.get("url") or "")
-    if URL_SECRET.search(url) or TOKEN_SHAPES.search(url):
+    userinfo = URL_USERINFO.match(url)
+    if (URL_SECRET.search(url) or TOKEN_SHAPES.search(url)
+            or (userinfo and not EMBEDDED_REF.search(userinfo.group(1)) and not REFERENCE.match(userinfo.group(1)))):
         n += 1
     return n
 
@@ -280,8 +294,17 @@ def main(argv: list[str]) -> int:
     if not argv:
         sys.exit(__doc__.strip().splitlines()[-1])
     servers: list[dict] = []
+    skipped = 0
     for p in argv:
-        find_servers(load_structured(p), servers)
+        try:
+            find_servers(load_structured(p), servers)
+        except (InputError, OSError):
+            skipped += 1  # one unreadable file does not abort the others; counted below
+    if skipped == len(argv):
+        raise InputError("no input file could be read as JSON, JSON with comments, or TOML")
+    if skipped:
+        sys.stderr.write(f"skipped {skipped} of {len(argv)} input files that could not be parsed; "
+                         "counts that would read as clean print not-checked instead.\n")
     local = remote = unp = pin = unknown = secrets = 0
     for s in servers:
         stype = str(s.get("type") or "").lower()
@@ -300,7 +323,10 @@ def main(argv: list[str]) -> int:
                 unknown += 1
         secrets += count_secrets(s)
     # a zero would read as clean; with unread launches it is only a floor
-    signals = {"mcp-unpinned": unp if (unp or not unknown) else NOT_CHECKED, "mcp-remote": remote}
+    # With no server parsed, a 0 would read as clean (route.py treats a read 0 so),
+    # though the files may simply not be the ones that hold the servers.
+    signals = {"mcp-unpinned": unp if (unp or not (unknown or skipped or not servers)) else NOT_CHECKED,
+               "mcp-remote": remote if (remote or not (skipped or not servers)) else NOT_CHECKED}
     if secrets:
         signals["agent-static-secrets"] = True
     emit("mcp-config", 1,
@@ -312,4 +338,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run(main)

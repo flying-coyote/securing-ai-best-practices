@@ -29,16 +29,77 @@ def _norm(h: str) -> str:
     return re.sub(r"[^a-z0-9]", "", h.lower())
 
 
+class InputError(Exception):
+    """An input the reducer cannot read as a complete export. Its message is a
+    fixed sentence written by the reducer, never text from the input or a path."""
+
+
+# Keys a paginated API response uses to point at the next page. A page that
+# carries one is part of a longer list, so counting it would undercount.
+NEXT_PAGE_KEYS = {"odatanextlink", "nextlink", "nextpagetoken", "nextpage", "next", "nextcursor"}
+
+
+def _strip_jsonc(raw: str) -> str:
+    """Remove // and /* */ comments outside strings, and a trailing comma before
+    a closing bracket or brace (VS Code's mcp.json and settings files are JSONC)."""
+    out, i, n = [], 0, len(raw)
+    while i < n:
+        c = raw[i]
+        if c == '"':
+            j = i + 1
+            while j < n and raw[j] != '"':
+                j += 2 if raw[j] == "\\" else 1
+            out.append(raw[i:j + 1])
+            i = j + 1
+        elif raw.startswith("//", i):
+            while i < n and raw[i] != "\n":
+                i += 1
+        elif raw.startswith("/*", i):
+            end = raw.find("*/", i + 2)
+            i = n if end < 0 else end + 2
+        elif c == "," and re.match(r"\s*[}\]]", raw[i + 1:i + 1 + 4096] or ""):
+            i += 1  # a trailing comma before a closing brace or bracket
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+def parse_json(raw: str):
+    """JSON, then JSONC, then NDJSON (one object per line). Raises InputError."""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+    try:
+        return json.loads(_strip_jsonc(raw))
+    except json.JSONDecodeError:
+        pass
+    lines = [ln for ln in raw.splitlines() if ln.strip()]
+    if len(lines) > 1:
+        try:
+            return [json.loads(ln) for ln in lines]
+        except json.JSONDecodeError:
+            pass
+    raise InputError("the input is not JSON, JSON with comments, or one JSON object per line")
+
+
 def read_rows(path: str | Path) -> list[dict]:
-    """Rows from a CSV, a JSON list, or a JSON object wrapping a list under
-    `value`, `items`, `data` or `apps`. Every string is sanitized; keys are
-    normalized to lower-case alphanumerics so header spelling does not matter."""
+    """Rows from a CSV, a JSON list, NDJSON, or a JSON object wrapping a list under
+    `value`, `items`, `data`, `apps`, `grants` or `extensions`. Every string is
+    sanitized; keys are normalized to lower-case alphanumerics so header spelling
+    does not matter. Raises InputError for an input that holds no rows, or that
+    is one page of a paginated response (a next-page key beside the list), since
+    either would otherwise print counts that read as complete."""
     raw = Path(path).read_bytes().decode("utf-8-sig", errors="replace")
     stripped = raw.lstrip()
     rows: list = []
     if stripped.startswith("[") or stripped.startswith("{"):
-        data = json.loads(raw)
+        data = parse_json(raw)
         if isinstance(data, dict):
+            if any(_norm(str(k)) in NEXT_PAGE_KEYS and data[k] for k in data):
+                raise InputError("the export is one page of a longer list (it carries a next-page link); "
+                                 "merge every page into one JSON list and run again")
             for k in ("value", "items", "data", "apps", "grants", "extensions"):
                 if isinstance(data.get(k), list):
                     data = data[k]
@@ -48,8 +109,18 @@ def read_rows(path: str | Path) -> list[dict]:
         rows = [r for r in data if isinstance(r, dict)]
     else:
         rows = list(csv.DictReader(io.StringIO(raw)))
-    rows = sanitize_record(rows, context=Path(path).name)
+    if not rows:
+        raise InputError("the export holds no rows, which cannot be told apart from a wrong or empty file")
+    rows = sanitize_record(rows)
     return [{_norm(str(k)): v for k, v in r.items() if k is not None} for r in rows]
+
+
+def require_columns(rows: list[dict], *aliases: str) -> None:
+    """Raise InputError unless some row carries one of the aliases, so a file
+    with none of the expected columns is refused instead of counted as zero."""
+    want = {_norm(a) for a in aliases}
+    if not any(want & set(r) for r in rows):
+        raise InputError("none of the expected columns was found; check the export type and its column names")
 
 
 def field(row: dict, *aliases: str):
@@ -62,15 +133,37 @@ def field(row: dict, *aliases: str):
 
 
 def load_structured(path: str | Path):
-    """A JSON or TOML file, sanitized."""
+    """A JSON, JSONC or TOML file, sanitized. Raises InputError when unparseable."""
     p = Path(path)
     raw = p.read_bytes().decode("utf-8-sig", errors="replace")
     if p.suffix.lower() == ".toml":
         import tomllib
-        data = tomllib.loads(raw)
+        try:
+            data = tomllib.loads(raw)
+        except tomllib.TOMLDecodeError:
+            raise InputError("the input is not valid TOML") from None
     else:
-        data = json.loads(raw)
-    return sanitize_record(data, context=p.name)
+        data = parse_json(raw)
+    return sanitize_record(data)
+
+
+def run(main) -> None:
+    """Run a reducer's main and exit. An InputError or any unexpected exception
+    prints one fixed line on standard error (the exception's type name at most,
+    never its message, a path or a traceback, since a message can quote the
+    input) and nothing on standard output."""
+    try:
+        code = main(sys.argv[1:])
+    except InputError as e:
+        sys.stderr.write(f"reducer refused its input: {e}. Nothing was printed on standard output.\n")
+        sys.exit(2)
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception as e:  # noqa: BLE001 - the point is that nothing escapes unguarded
+        sys.stderr.write(f"reducer failed ({type(e).__name__}) and printed nothing on standard output; "
+                         "check the export type, and paste only standard output into a review.\n")
+        sys.exit(2)
+    sys.exit(code)
 
 
 def _valid(v) -> bool:

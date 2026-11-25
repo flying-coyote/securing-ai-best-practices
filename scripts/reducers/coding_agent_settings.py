@@ -3,12 +3,14 @@
 
 Input: any number of files, each optionally prefixed with its scope as
 `managed:PATH`, `user:PATH`, `project:PATH` or `local:PATH`. Without a prefix
-the scope is inferred where the vendor documents an unambiguous name or path:
-`managed-settings.json`, or a file under a documented system directory
-(`/etc/claude-code/`, `/Library/Application Support/ClaudeCode/`,
-`C:\\Program Files\\ClaudeCode\\`, `/etc/cursor/`, `/Library/Application
-Support/Cursor/`, `C:\\ProgramData\\Cursor\\`), is managed, and
-`settings.local.json` is local. Anything else is user or project and is
+the scope is inferred from location only: a file whose absolute path starts
+with a documented system directory (`/etc/claude-code/`, `/Library/Application
+Support/ClaudeCode/`, `C:\\Program Files\\ClaudeCode\\`, `/etc/cursor/`,
+`/Library/Application Support/Cursor/`, `C:\\ProgramData\\Cursor\\`) is managed,
+whatever its name, and `settings.local.json` is local. A file named
+`managed-settings.json` anywhere else is not treated as managed, because a
+project or user file can carry that name; pass `managed:` for a copy of the
+managed file taken off a machine. Anything else is user or project and is
 treated as not managed, which is the safe reading. Two products are read, from
 their documented formats (Tier B, vendor documentation of what a setting
 does):
@@ -42,6 +44,11 @@ Signals, each reported only as far as the files can show it:
       `allowManagedMcpServersOnly` is true and `allowedMcpServers` is
       non-empty, true otherwise; not-checked with no Claude Code managed file
 
+An input file that cannot be parsed is skipped and counted on standard error,
+and any of the last three signals that would have printed false prints
+not-checked instead, because the skipped file could hold the hook or setting
+that makes it true. When no file can be parsed, nothing is printed.
+
 Hook commands, matchers, rule text, server names and paths are never printed.
 
 Usage: python scripts/reducers/coding_agent_settings.py [scope:]FILE [...]
@@ -54,14 +61,18 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import NOT_CHECKED, emit, load_structured  # noqa: E402
+from _common import NOT_CHECKED, InputError, emit, load_structured, run  # noqa: E402
 
 OBS = {"settings-files-read", "managed-tier-seen", "hooks-configured", "hooks-fail-closed",
        "hooks-outside-managed", "deny-rules", "disable-all-hooks-set", "managed-locks-set"}
 SIGNALS = {"coding-agent-managed-tier-absent", "hook-fail-open", "hooks-user-disableable", "mcp-allowlist-absent"}
 SCOPES = {"managed", "user", "project", "local"}
-MANAGED_DIRS = ("/etc/claude-code/", "/library/application support/claudecode/", "program files/claudecode/",
-                "/etc/cursor/", "/library/application support/cursor/", "programdata/cursor/")
+# The documented system directories, matched at the start of the path (after
+# any drive letter), so a project or user file that happens to be named
+# managed-settings.json, or a copy under some other tree, is not the managed tier.
+MANAGED_DIRS = re.compile(r"^(?:[a-z]:)?/(?:etc/claude-code/|library/application support/claudecode/"
+                          r"|program files/claudecode/|etc/cursor/|library/application support/cursor/"
+                          r"|programdata/cursor/)")
 
 
 def split_arg(arg: str) -> tuple[str, str]:
@@ -70,7 +81,7 @@ def split_arg(arg: str) -> tuple[str, str]:
         return m.group(1), m.group(2)
     low = arg.replace("\\", "/").lower()
     name = Path(low).name
-    if name.startswith("managed-settings") or any(d in low for d in MANAGED_DIRS):
+    if MANAGED_DIRS.match(low):
         return "managed", arg
     if name == "settings.local.json":
         return "local", arg
@@ -107,10 +118,16 @@ def main(argv: list[str]) -> int:
     files = hooks_total = fail_closed = outside = deny = disable_all = locks = 0
     managed_seen = cc_managed_seen = False
     allowlist_enforced = False
+    skipped = 0
     for arg in argv:
         scope, path = split_arg(arg)
-        data = load_structured(path)
+        try:
+            data = load_structured(path)
+        except (InputError, OSError):
+            skipped += 1  # one unreadable file does not abort the others; counted below
+            continue
         if not isinstance(data, dict):
+            skipped += 1
             continue
         files += 1
         is_cursor = "version" in data and isinstance(data.get("hooks"), dict)
@@ -132,6 +149,11 @@ def main(argv: list[str]) -> int:
                     allowlist_enforced = True
         else:
             outside += len(hs)
+    if skipped == len(argv):
+        raise InputError("no input file could be read as a settings or hooks object")
+    if skipped:
+        sys.stderr.write(f"skipped {skipped} of {len(argv)} input files that could not be parsed; "
+                         "values that would read as clean print not-checked instead.\n")
     signals = {
         "coding-agent-managed-tier-absent": False if managed_seen else NOT_CHECKED,
         "hook-fail-open": (hooks_total > fail_closed) if hooks_total else NOT_CHECKED,
@@ -141,6 +163,9 @@ def main(argv: list[str]) -> int:
                                    else False),
         "mcp-allowlist-absent": (not allowlist_enforced) if cc_managed_seen else NOT_CHECKED,
     }
+    if skipped:  # a skipped file could hold the hook or setting that turns a false into a true
+        signals = {k: (NOT_CHECKED if v is False and k != "coding-agent-managed-tier-absent" else v)
+                   for k, v in signals.items()}
     emit("coding-agent-settings", 1,
          {"settings-files-read": files, "managed-tier-seen": managed_seen, "hooks-configured": hooks_total,
           "hooks-fail-closed": fail_closed, "hooks-outside-managed": outside, "deny-rules": deny,
@@ -150,4 +175,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run(main)

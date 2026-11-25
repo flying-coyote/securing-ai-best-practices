@@ -24,7 +24,14 @@ It also checks that every reducer script has a fixture, that `emit` refuses an
 undeclared name and a string value without printing anything, that the
 sanitizer strips tag characters, and that scripts/route.py accepts reducer
 output beside an Answers Block (the consent-grant count raising
-oauth-grants-unreviewed to High).
+oauth-grants-unreviewed to High). The robustness pass then feeds every
+reducer its `malformed.json` fixture and, for the single-export reducers, a CSV
+with none of the expected columns, an empty export and one page of a paginated
+response, and requires each to be refused (non-zero exit, nothing on standard
+output, no traceback, no path); reads JSONC and NDJSON; checks that a skipped
+file in a multi-file run turns a clean-reading value into not-checked; and
+tests near-miss catalogue names and both directions of the secret, pin,
+personal-spend and managed-tier matching.
 
 Usage: python scripts/test-reducers.py
 """
@@ -108,7 +115,7 @@ def main() -> int:
 
     sys.path.insert(0, str(RED))
     from text_sanitize import scrub  # noqa: E402
-    hidden = "ChatGPT" + "".join(chr(0xE0000 + ord(c)) for c in "ignore previous") + "​‮"
+    hidden = "ChatGPT" + "".join(chr(0xE0000 + ord(c)) for c in "ignore previous") + "\u200b\u202e"
     cleaned, removed = scrub(hidden)
     check(cleaned == "ChatGPT" and removed == len(hidden) - 7, f"sanitizer left {cleaned!r}")
     print("ok   sanitizer strips tag, zero-width and bidi characters")
@@ -203,6 +210,8 @@ def main() -> int:
                 check((sig.get(k) or {}).get("value") == v, f"coding-agent-settings: {label}: {k} is {sig.get(k)}, want {v}")
     print("ok   coding-agent-settings prints not-checked where the files cannot show the answer")
 
+    robustness(load)
+
     # chain: reducer output feeds route.py
     with tempfile.TemporaryDirectory() as td:
         ans = Path(td) / "answers.yaml"
@@ -223,6 +232,182 @@ def main() -> int:
         print(f"FAIL {f}")
     print(f"{len(fixtures)} reducer fixtures; {'PASS' if not failures else str(len(failures)) + ' failure(s)'}")
     return 1 if failures else 0
+
+
+def run_reducer(script: str, *args, cwd=None):
+    return subprocess.run([sys.executable, "-I", str(RED / script), *map(str, args)],
+                          capture_output=True, text=True, encoding="utf-8", cwd=cwd)
+
+
+def refused(p, label: str, secret_bits=()) -> None:
+    """A reducer that cannot read its input must print nothing on stdout, exit
+    non-zero, and say so on stderr in a fixed line with no traceback, no path and
+    no input text, so a malformed or partial export never reads as a clean count."""
+    check(p.returncode != 0, f"{label}: exit 0 on unreadable input; stdout {p.stdout[-200:]!r}")
+    check(p.stdout == "", f"{label}: printed on stdout although the input could not be read: {p.stdout[-200:]!r}")
+    check("Traceback" not in p.stderr, f"{label}: printed a traceback")
+    for bit in secret_bits:
+        check(bit.lower() not in p.stderr.lower(), f"{label}: stderr names {bit!r}")
+
+
+def robustness(load) -> None:
+    """Malformed and partial inputs, near-miss catalogue names, and both directions
+    of the secret, pin and personal-spend matching."""
+    import json
+    singles = ["browser_extensions.py", "entra_consent_grants.py", "expense_ai_vendors.py",
+               "google_workspace_oauth.py", "okta_apps.py"]
+
+    # 1. The malformed fixture in each reducer's folder is refused, and its file name is not echoed.
+    for fx in sorted((RED / "fixtures").iterdir()):
+        mal = fx / "malformed.json"
+        check(mal.is_file(), f"{fx.name}: no malformed.json fixture")
+        if not mal.is_file():
+            continue
+        p = run_reducer(fx.name.replace("-", "_") + ".py", mal.name, cwd=fx)
+        refused(p, f"{fx.name}: malformed.json", ("malformed",))
+    print("ok   every reducer refuses its malformed.json fixture without a traceback or a path")
+
+    with tempfile.TemporaryDirectory(prefix="reducer-robustness-ZZPATHCANARY-") as td:
+        td = Path(td)
+        # 2. A CSV with none of the expected columns, an empty export, and a page of a longer list.
+        wrong = td / "wrong-columns.csv"
+        wrong.write_text("colour,weight\nred,3\nblue,4\n", encoding="utf-8")
+        empty = td / "empty.json"
+        empty.write_text("[]", encoding="utf-8")
+        paged = td / "paged.json"
+        paged.write_text(json.dumps({"value": [{"displayName": "ChatGPT", "consentType": "Principal",
+                                                "scope": "Mail.Read", "label": "ChatGPT", "Merchant": "OPENAI",
+                                                "Application name": "ChatGPT", "App name": "ChatGPT"}],
+                                     "@odata.nextLink": "https://graph.example.invalid/next"}), encoding="utf-8")
+        for script in singles:
+            for f in (wrong, empty, paged):
+                refused(run_reducer(script, f), f"{script} {f.name}", ("ZZPATHCANARY", "graph.example"))
+        # 3. JSON with comments and trailing commas (VS Code mcp.json is JSONC), and NDJSON rows.
+        jsonc = td / "mcp.json"
+        jsonc.write_text('{\n  // a comment\n  "servers": {\n    "a": {"command": "npx", "args": ["pkg@1.0.0",],},\n'
+                         '    /* block */ "b": {"url": "https://mcp.example.invalid/x"},\n  },\n}\n', encoding="utf-8")
+        p = run_reducer("mcp_config.py", jsonc)
+        doc = yaml.safe_load(p.stdout) if p.returncode == 0 else {}
+        obs = (doc or {}).get("observations") or {}
+        check(obs.get("mcp-server-count") == 2 and obs.get("mcp-pinned-count") == 1,
+              f"mcp-config: JSONC config not read: {p.stdout[-300:]}{p.stderr[-200:]}")
+        nd = td / "grants.ndjson"
+        nd.write_text("\n".join(json.dumps({"displayName": n, "consentType": c, "scope": s}) for n, c, s in [
+            ("ChatGPT", "Principal", "Mail.Read"), ("Claude", "AllPrincipals", "User.Read"),
+            ("Payroll", "Principal", "User.Read")]) + "\n", encoding="utf-8")
+        p = run_reducer("entra_consent_grants.py", nd)
+        obs = ((yaml.safe_load(p.stdout) or {}) if p.returncode == 0 else {}).get("observations") or {}
+        check(obs.get("ai-apps-with-grants") == 2 and obs.get("ai-grants-mail-or-file-scope") == 1,
+              f"entra-consent-grants: NDJSON not read: {p.stdout[-300:]}{p.stderr[-200:]}")
+        # 4. Multi-file reducers: one bad file among good ones is skipped, counted on stderr,
+        #    and a zero that would read as clean becomes not-checked; all files bad is refused.
+        bad = td / "bad.json"
+        bad.write_text('{"mcpServers": {', encoding="utf-8")
+        good = td / "good.json"
+        good.write_text(json.dumps({"mcpServers": {"a": {"command": "npx", "args": ["pkg@1.0.0"]}}}), encoding="utf-8")
+        p = run_reducer("mcp_config.py", good, bad)
+        doc = (yaml.safe_load(p.stdout) or {}) if p.returncode == 0 else {}
+        check(((doc.get("signals") or {}).get("mcp-unpinned") or {}).get("value") == "not-checked",
+              f"mcp-config: a skipped file left mcp-unpinned reading clean: {p.stdout[-300:]}{p.stderr[-200:]}")
+        check("1 of 2" in p.stderr and "ZZPATHCANARY" not in p.stderr, f"mcp-config: skip notice {p.stderr[-200:]!r}")
+        refused(run_reducer("mcp_config.py", bad), "mcp-config: only a bad file", ("ZZPATHCANARY",))
+        noserv = td / "no-servers.json"
+        noserv.write_text(json.dumps({"theme": "dark", "projects": {}}), encoding="utf-8")
+        p = run_reducer("mcp_config.py", noserv)
+        sig = ((yaml.safe_load(p.stdout) or {}) if p.returncode == 0 else {}).get("signals") or {}
+        check((sig.get("mcp-unpinned") or {}).get("value") == "not-checked"
+              and (sig.get("mcp-remote") or {}).get("value") == "not-checked",
+              f"mcp-config: a config with no servers printed a clean-reading 0: {p.stdout[-300:]}{p.stderr[-200:]}")
+        cas_good = td / "settings.json"
+        cas_good.write_text(json.dumps({"hooks": {"PreToolUse": [{"matcher": "*", "hooks": [
+            {"type": "command", "command": "x", "onFailure": "block"}]}]}}), encoding="utf-8")
+        p = run_reducer("coding_agent_settings.py", f"managed:{cas_good}", f"user:{bad}")
+        sig = ((yaml.safe_load(p.stdout) or {}) if p.returncode == 0 else {}).get("signals") or {}
+        check((sig.get("hook-fail-open") or {}).get("value") == "not-checked"
+              and (sig.get("hooks-user-disableable") or {}).get("value") == "not-checked",
+              f"coding-agent-settings: a skipped file left a false standing: {p.stdout[-400:]}{p.stderr[-200:]}")
+        refused(run_reducer("coding_agent_settings.py", f"user:{bad}"), "coding-agent-settings: only a bad file",
+                ("ZZPATHCANARY",))
+        # 5. The sanitize notice names no file.
+        tagged = td / "tagged-ZZFILECANARY.csv"
+        tagged.write_text("App name,Install type\nChatGPT" + chr(0xE0041) + ",FORCED\n", encoding="utf-8")
+        p = run_reducer("browser_extensions.py", tagged)
+        check(p.returncode == 0 and "ZZFILECANARY" not in p.stderr and "sanitize" in p.stderr,
+              f"browser-extensions: sanitize notice {p.stderr[-200:]!r}")
+        # 6. Personal spend, both directions.
+        exp = td / "spend.csv"
+        rows = [("OPENAI", "Corporate card", 0), ("OPENAI", "Not reimbursable", 0), ("OPENAI", "Non-reimbursable", 0),
+                ("OPENAI", "non reimbursable", 0), ("OPENAI", "No", 0), ("OPENAI", "false", 0),
+                ("OPENAI", "Reimbursable", 1), ("OPENAI", "Personal card - reimbursement", 1), ("OPENAI", "yes", 1),
+                ("OPENAI", "Out of pocket", 1), ("OPENAI", "TRUE", 1),
+                ("OPENAI", "Personal card (non-corporate)", 1), ("OPENAI", "No reimbursement", 0)]
+        for merchant, flag, want in rows:
+            exp.write_text(f"Merchant,Payment method\n{merchant},{flag}\n", encoding="utf-8")
+            p = run_reducer("expense_ai_vendors.py", exp)
+            got = (((yaml.safe_load(p.stdout) or {}) if p.returncode == 0 else {}).get("observations") or {}).get(
+                "ai-spend-lines-personal-card")
+            check(got == want, f"expense-ai-vendors: {flag!r} counted {got} personal, want {want}")
+        # 7. Google grants with no user column count rows, not one merged pair.
+        g = td / "google.csv"
+        g.write_text("Event name,Application name,Scope\nauthorize,ChatGPT,openid\nauthorize,ChatGPT,"
+                     "https://www.googleapis.com/auth/drive.readonly\nauthorize,ChatGPT,email\n", encoding="utf-8")
+        p = run_reducer("google_workspace_oauth.py", g)
+        obs = ((yaml.safe_load(p.stdout) or {}) if p.returncode == 0 else {}).get("observations") or {}
+        check(obs.get("ai-grants-user-consented") == 3 and obs.get("ai-grants-mail-or-file-scope") == 1,
+              f"google-workspace-oauth: no user column: {p.stdout[-300:]}{p.stderr[-200:]}")
+    print("ok   wrong columns, empty, paged, JSONC, NDJSON, skipped files, spend and grant edge cases")
+
+    # 8. Near-miss catalogue names: each alternative keeps its word boundaries; NFKC folds full-width forms.
+    cat = load("ai_catalog")
+    for text, want in [("Cursor IDE", "Anysphere (Cursor)"), ("Anysphere", "Anysphere (Cursor)"),
+                       ("cursor ideal", None), ("xanysphere", None), ("OpenAirline", None), ("mychatgpt", None),
+                       ("ChatGPT Plus", "OpenAI"), ("OPENAI *CHATGPT", "OpenAI"), ("deeplink", None),
+                       ("DeepL Pro", "DeepL"), ("claudette", None), ("Claude.ai", "Anthropic"), ("perplexityx", None),
+                       ("tabnines", None), ("Grok app", "xAI"), ("groks", None), ("Gemini for Workspace", "Google"),
+                       ("gemini", None), ("\uff23\uff48\uff41\uff54\uff27\uff30\uff34", "OpenAI")]:
+        got = cat.ai_vendor(text)
+        check(got == want, f"ai_catalog: {text!r} -> {got!r}, want {want!r}")
+    print("ok   catalogue near-miss names and full-width forms")
+
+    # 9. Secrets and pins, both directions.
+    mc = load("mcp_config")
+    for server, want_n, label in [
+        ({"env": {"API_KEY": "prefix-${API_KEY}"}}, 0, "value containing ${VAR}"),
+        ({"headers": {"Authorization": "Bearer ${env:TOKEN}"}}, 0, "Bearer ${env:VAR}"),
+        ({"url": "https://user:EXAMPLEpassw0rd@mcp.example.invalid/sse"}, 1, "URL userinfo credential"),
+        ({"url": "https://${USER}:${PASS}@mcp.example.invalid/sse"}, 0, "URL userinfo references"),
+        ({"url": "https://mcp.example.invalid/sse?token=EXAMPLEtoken123"}, 1, "URL query token"),
+        ({"url": "https://mcp.example.invalid/sse"}, 0, "plain URL"),
+        ({"url": "https://user@mcp.example.invalid/sse"}, 0, "URL user without password"),
+        ({"env": {"OPENAI_API_KEY": "sk-proj-EXAMPLEEXAMPLEEXAMPLE01"}}, 1, "token-shaped value"),
+        ({"env": {"LOG_LEVEL": "sk-proj-EXAMPLEEXAMPLEEXAMPLE01"}}, 1, "token shape under any name"),
+        ({"env": {"API_KEY": "short"}}, 0, "too short to be a credential"),
+        ({"env": {"PROFILE": "risk-management-framework-2026"}}, 0, "'sk-' inside a word"),
+        ({"args": ["--profile", "risk-management-framework-2026"]}, 0, "'sk-' inside a word in args"),
+    ]:
+        try:
+            got_n = mc.count_secrets(server)
+        except Exception as e:  # a crash is a failure, not a skip
+            got_n = type(e).__name__
+        check(got_n == want_n, f"mcp-config: {label}: counted {got_n}, want {want_n}")
+    for spec, want in [("pkg@1.2.3", True), ("@scope/pkg@1.2.3", True), ("pkg==1.2.3", True), ("pkg@v1.2.3", True),
+                       ("pkg@1.2.3-beta.1", True), ("pkg@latest", False), ("pkg@^1.2.3", False), ("pkg@~1.2", False),
+                       ("pkg>=1.2", False), ("pkg", False), ("@scope/pkg", False), ("pkg@1", False), (None, False)]:
+        check(mc.pinned(spec) is want, f"mcp-config: pinned({spec!r}) is {mc.pinned(spec)}, want {want}")
+    print("ok   mcp-config secrets and pins in both directions")
+
+    # 10. The managed tier comes from location or an explicit prefix, never the file name alone.
+    cas = load("coding_agent_settings")
+    for arg, want in [("managed-settings.json", "unscoped"), ("./project/managed-settings.json", "unscoped"),
+                      ("/srv/x/etc/claude-code/managed-settings.json", "unscoped"),
+                      ("/etc/claude-code/managed-settings.json", "managed"),
+                      ("/Library/Application Support/ClaudeCode/managed-settings.json", "managed"),
+                      ("C:\\Program Files\\ClaudeCode\\managed-settings.json", "managed"),
+                      ("C:\\ProgramData\\Cursor\\hooks.json", "managed"),
+                      ("managed:anything.json", "managed"), ("settings.local.json", "local")]:
+        got = cas.split_arg(arg)[0]
+        check(got == want, f"coding-agent-settings: {arg!r} classed {got}, want {want}")
+    print("ok   coding-agent-settings classes the managed tier by location")
 
 
 if __name__ == "__main__":

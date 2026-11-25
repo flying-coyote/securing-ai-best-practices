@@ -1,0 +1,9 @@
+# The one CI dependency, installed with `pip install --require-hashes`. The
+# hashes are PyPI's own SHA-256 digests for PyYAML 6.0.2, read from
+# https://pypi.org/pypi/PyYAML/6.0.2/json on 2026-11-24: the CPython 3.12
+# manylinux wheels for x86_64 and aarch64 (the runners' Python) and the sdist.
+# To bump: change the version and replace the hashes from the same JSON.
+PyYAML==6.0.2 \
+    --hash=sha256:80bab7bfc629882493af4aa31a4cfa43a4c57c83813253626916b8c7ada83476 \
+    --hash=sha256:1f71ea527786de97d1a0cc0eacd1defc0985dcf6b3f17bb77dcfc8c34bec4dc5 \
+    --hash=sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e

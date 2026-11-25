@@ -11,7 +11,10 @@ The reducer reads, per row:
               the AI-product match; never printed)
   scopes      Scope, Scopes or Requested scopes
   user        User, Actor or Email, used only to count one grant per app and
-              user pair; never printed and never kept after the run
+              user pair; never printed and never kept after the run. A row
+              with no user counts as its own grant, so an export without a
+              user column counts grant rows, and repeated events for one
+              user count more than once there
 
 The column names are the maintainer's reading of the export (Tier D; the
 console's column labels have changed before). A row with no app name counts
@@ -31,7 +34,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import emit, field, read_rows  # noqa: E402
+from _common import emit, field, read_rows, require_columns, run  # noqa: E402
 from ai_catalog import ai_vendor  # noqa: E402
 from consent_common import scopes, touches_mail_or_files  # noqa: E402
 
@@ -43,7 +46,9 @@ def main(argv: list[str]) -> int:
     if len(argv) != 1:
         sys.exit(__doc__.strip().splitlines()[-1])
     apps, pairs, mail_pairs, unparsed = set(), set(), set(), 0
-    for row in read_rows(argv[0]):
+    rows = read_rows(argv[0])
+    require_columns(rows, "Application name", "App name", "Client name", "Name")
+    for i, row in enumerate(rows):
         event = str(field(row, "Event name", "Event") or "").strip().lower()
         if event not in GRANT_EVENTS:
             continue
@@ -54,7 +59,10 @@ def main(argv: list[str]) -> int:
         if not ai_vendor(name):
             continue
         app = str(name).strip().lower()
-        who = str(field(row, "User", "Actor", "Email") or "").strip().lower()
+        # With no user on the row, each row is its own grant: merging them into one
+        # (app, "") pair would undercount, while counting rows can only overcount
+        # repeated events for one user, which the docstring states.
+        who = str(field(row, "User", "Actor", "Email") or "").strip().lower() or f"row-{i}"
         apps.add(app)
         pairs.add((app, who))
         if touches_mail_or_files(scopes(field(row, "Scope", "Scopes", "Requested scopes"))):
@@ -67,4 +75,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run(main)

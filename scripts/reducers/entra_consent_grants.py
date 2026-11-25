@@ -36,7 +36,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _common import emit, field, read_rows  # noqa: E402
+from _common import emit, field, read_rows, require_columns, run  # noqa: E402
 from ai_catalog import ai_vendor  # noqa: E402
 from consent_common import scopes, touches_mail_or_files  # noqa: E402
 
@@ -48,7 +48,9 @@ def main(argv: list[str]) -> int:
     if len(argv) != 1:
         sys.exit(__doc__.strip().splitlines()[-1])
     apps, mailfile, user, admin, unparsed = set(), 0, 0, 0, 0
-    for row in read_rows(argv[0]):
+    rows = read_rows(argv[0])
+    require_columns(rows, "displayName", "appDisplayName", "clientDisplayName", "Application name", "App name", "Name")
+    for row in rows:
         name = field(row, "displayName", "appDisplayName", "clientDisplayName", "Application name", "App name", "Name")
         ctype = str(field(row, "consentType", "consent type", "Granted through", "consent") or "").strip().lower()
         kind = ("admin" if ctype in ("allprincipals", "admin", "admin consent", "administrator")
@@ -75,4 +77,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run(main)

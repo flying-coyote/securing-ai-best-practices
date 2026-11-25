@@ -15,6 +15,7 @@ case-insensitively against the sanitized text, with word boundaries.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 CATALOG: list[tuple[str, str]] = [
     (r"openai|chat\s?gpt", "OpenAI"),
@@ -49,15 +50,23 @@ CATALOG: list[tuple[str, str]] = [
     (r"monica\s*-?\s*(chatgpt|ai)", "Monica"),
 ]
 
-_COMPILED = [(re.compile(rf"(?<![a-z0-9]){p}(?![a-z0-9])", re.I), v) for p, v in CATALOG]
+# The pattern is grouped so the word boundaries apply to every alternative, not
+# only the first and last (ungrouped, "cursor ideal" and "xanysphere" matched).
+_COMPILED = [(re.compile(rf"(?<![a-z0-9])(?:{p})(?![a-z0-9])", re.I), v) for p, v in CATALOG]
 
 
 def ai_vendor(*texts) -> str | None:
-    """The canonical vendor if any text names a catalogued AI product, else None."""
+    """The canonical vendor if any text names a catalogued AI product, else None.
+
+    Text is NFKC-normalized first, which folds full-width and other compatibility
+    forms (a full-width "ChatGPT" matches). It does not fold cross-script
+    look-alikes such as a Cyrillic "a" inside a Latin name, so a deliberately
+    disguised name can still be missed; that only lowers a count, which is
+    already a floor."""
     for t in texts:
         if not t:
             continue
-        s = str(t)
+        s = unicodedata.normalize("NFKC", str(t))
         for rx, vendor in _COMPILED:
             if rx.search(s):
                 return vendor

@@ -234,11 +234,13 @@ def main() -> int:
 
 
 def sources_report(path: Path) -> None:
-    """List SOURCES.md URLs that answer refused or broken. The CI link checker
-    counts 401, 403 and 999 as alive so a bot filter never turns a pull request
-    red, which means a source that refuses every fetch would otherwise never be
-    seen; this table is where the weekly review sees it, as a task to check by
-    hand or move to the Unverified quarantine. It never fails the run."""
+    """List SOURCES.md URLs that answer refused or broken. The scheduled link
+    checker counts only 2xx and 3xx answers as alive, so it reports refused
+    pages too, but its log lists every markdown file's links together; this
+    table is where the weekly review sees the sources alone, as a task to check
+    by hand or move to the Unverified quarantine. A broken source keeps the
+    standing issue open; a refused one (usually a bot filter) is listed for a
+    hand check. It never fails the run."""
     import concurrent.futures, re as _re
     try:
         text = path.read_text(encoding="utf-8")
