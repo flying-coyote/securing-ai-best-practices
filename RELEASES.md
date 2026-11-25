@@ -21,3 +21,13 @@ The first release, v2026.11, is the small-organization slice (v0.1 in the build 
 - Bundle SHA-256 is the checksum of the offline bundle built from that commit.
 - Pins are the framework, schema and catalogue versions the release was checked against, copied from `analysis/revalidation-and-pins.md` at freeze (MITRE ATLAS and ATT&CK releases, the CoSAI registry commit, the OCSF and MCP specification versions, the OWASP list edition, and the CISA KEV catalogue version, among others).
 - Agents tested names each agent and version the block was run against on the fixtures, in fetch mode and offline mode.
+
+## Checking a block and a bundle
+
+The block you paste should come from `README.md` or `ONE-LINE-PROMPT.md` as github.com shows them, and its commit SHA should be a row in the table above with the tag beside it matching that row. The tags carry no signature and no commit carries one that verifies, so this table, on the default branch, is the only record to compare against; in a clone, `git rev-list -n1 <tag>` prints the commit a tag points at.
+
+Check the offline bundle's SHA-256 against its row before you attach it. These commands live here rather than in `ONE-LINE-PROMPT.md`, because the review reads that file and the files it reads carry no shell commands (Decision 6).
+
+- Linux: `sha256sum <file>`
+- macOS: `shasum -a 256 <file>`
+- PowerShell: `Get-FileHash <file>` (SHA-256 is its default)
