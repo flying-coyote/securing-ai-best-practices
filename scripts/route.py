@@ -70,6 +70,13 @@ Rules, all read from routing.yaml (AUDIT-CONTEXT.md states them for agents):
   - An item whose docs are all under analysis/stubs/ carries `declared-gap`,
     and the output records `priority-basis`: the scores are the author's
     judgement (Tier D).
+  - Every item carries its confidence from the row's `evidence`: the
+    `evidence-tier` its backing Summary states for this action (with
+    `tier-source: doc` where the row fell back to the doc's frontmatter tier)
+    and the `convergence`. An item backed by a doc whose frontmatter says
+    `maintenance: frozen` lists it under `frozen-docs` with its last-verified
+    date; a written doc with no maintenance value, or an unknown one, is an
+    error.
   - INVENTORY rows fetch nothing. Docs are the four Always Fetch docs, then the
     docs of selected actions, then of selected review rows, deduplicated in
     that order.
@@ -239,7 +246,8 @@ def merge(answers: dict, reducer_docs: list[dict], conflicts: list | None = None
 
 # ---------- routing ----------
 
-def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, int]) -> dict:
+def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, int],
+          frozen: dict[str, str] | None = None) -> dict:
     rows = data["signals"]
     by_key = {r["key"]: r for r in rows}
     order = {r["key"]: i for i, r in enumerate(rows)}
@@ -507,8 +515,18 @@ def route(data: dict, answers: dict, reducer_docs: list[dict], seq: dict[str, in
                     "confidence": conf, "docs": list(r.get("docs", []))}
             if e is not None and isinstance(e["value"], str):
                 item["answered"] = e["value"]
+            ev = r.get("evidence") or {}
+            if ev:
+                # confidence is the row's own: the tier its backing Summary states for this action, and the convergence
+                item["evidence-tier"] = ev.get("tier")
+                if ev.get("tier-source"):
+                    item["tier-source"] = ev["tier-source"]
+                item["convergence"] = ev.get("convergence")
             if item["docs"] and all(d.startswith(STUB_DIR) for d in item["docs"]):
                 item["declared-gap"] = True  # backed only by a stub: print "declared gap" on the action line
+            fz = [f"{d} (not revalidated since {(frozen or {})[d]})" for d in item["docs"] if d in (frozen or {})]
+            if fz:
+                item["frozen-docs"] = fz  # print "frozen reference, not revalidated since <date>" beside the action
             if escalated:
                 item["escalated"] = True
             if confirm:
@@ -611,7 +629,34 @@ def run(root: Path, answers_path: Path, reducer_paths: list[Path]) -> dict:
             raise AnswersError(f"{p}: a second output from reducer '{doc['reducer']}'; give each reducer's output once")
         seen.add(doc["reducer"])
         reducer_docs.append(doc)
-    return route(data, answers, reducer_docs, load_sequence(root, data))
+    return route(data, answers, reducer_docs, load_sequence(root, data), load_frozen(root, data))
+
+
+MAINTENANCE = {"maintained", "frozen"}
+
+
+def load_frozen(root: Path, data: dict) -> dict[str, str]:
+    """Return {doc path: last-verified} for every routed doc whose frontmatter says maintenance: frozen.
+
+    A routed doc not written yet is skipped (the repo routes to docs before they exist); a doc that
+    exists with no maintenance value, or one outside the known set, is an error rather than a silent
+    maintained, so a typo cannot hide a frozen doc's date from the review."""
+    out: dict[str, str] = {}
+    paths = {d for r in data.get("signals") or [] for d in r.get("docs") or []} | set(data.get("always-fetch") or [])
+    for d in sorted(paths):
+        p = root / d
+        if not p.is_file():
+            continue
+        m = re.match(r"^---\n(.*?)\n---\n", p.read_text(encoding="utf-8"), re.S)
+        fm = (yaml.safe_load(m.group(1)) or {}) if m else {}
+        if fm.get("status") not in ("PRODUCTION", "EMERGING"):
+            continue  # a placeholder or retired doc carries no maintenance commitment
+        mt = fm.get("maintenance")
+        if mt not in MAINTENANCE:
+            raise AnswersError(f"{d}: maintenance {mt!r} is not one of {sorted(MAINTENANCE)}")
+        if mt == "frozen":
+            out[d] = str(fm.get("last-verified"))
+    return out
 
 
 def load_sequence(root: Path, data: dict) -> dict[str, int]:

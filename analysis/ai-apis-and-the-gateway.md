@@ -11,7 +11,8 @@ pins:
   - "CoSAI secure-ai-tooling 622605a1"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-05-13
+revalidate-by: 2027-04-18
+maintenance: maintained
 status: EMERGING
 measurement-claims:
   - claim: "Ten MCP tools/call exchanges through the official Python SDK 2.3.0 produced four tool errors, every one returned as a tool result with isError: true inside a successful JSON-RPC response, and the server masked three different causes behind the same text, Error executing tool <name>"

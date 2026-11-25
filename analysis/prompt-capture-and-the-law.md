@@ -13,7 +13,8 @@ pins:
   - "18 U.S.C. §2511, as read 2026-11-09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-04-10
+revalidate-by: 2027-06-03
+maintenance: maintained
 status: EMERGING
 ---
 
@@ -128,6 +129,7 @@ It does not mean a capture is lawful because it matches the conditions above, wh
 - 2026-11-24: the AI Act high-risk reading by intended purpose, the named counts behind "probably in breach", the US column restated as no federal bar found with state law not analysed, and the pointer section on vendors, transfers and access requests are my judgement (Tier D).
 - Revalidate-by is five months out because final EDPB guidelines or the Omnibus could move a row.
 - 2026-11-24: EDPB Guidelines 1/2024 paragraphs 126 to 127 were checked on 2026-11-10 only by a second model and have not been read at the primary.
+- 2026-11-24: `revalidate-by` moved to 2027-06-03 so that no more than three maintained documents fall due in any 30 days (`revalidation-and-pins.md`, "Maintained and frozen documents"); the reasons above still decide where this document sits in that order.
 
 ## Sources
 

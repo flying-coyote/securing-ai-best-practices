@@ -8,8 +8,8 @@ pins:
   - "NIST AI 600-1 2024-07"
   - "EU AI Act consolidated CELEX-02024R1689-20260727"
 summary-section: "Summary for the review"
-last-verified: 2026-11-10
-revalidate-by: 2027-03-06
+last-verified: 2026-11-24
+maintenance: frozen
 status: EMERGING
 ---
 
@@ -18,6 +18,8 @@ status: EMERGING
 Evidence tier: Mixed, A for what the three standards prescribe and where the AI Act reaches, D for the reading that this repo's evidence stops at the consumer side of S8 and for every judgement about what to do first.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-24. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 This document is a stub: its four actions rest on the OWASP Top 10 for LLM Applications 2026, NIST AI 600-1 and the AI Act text (Tier A for what they prescribe), and on no measurement or research of this repo's own. This repo studied S8 as the place where an organization consumes a model API, and it has not studied the case where the organization wraps that API in a feature and ships it to its own customers, so for the three signals that route here the review should send the reader to the standards and say plainly that the repo carries no measured evidence of its own. The standards are specific enough to act on while that gap stays open.
 
@@ -63,6 +65,7 @@ It does not mean the repo considers shipped AI features low-risk because it rout
 - The OWASP entries are cited by their 2026 IDs, read from the 2026 edition PDF on 2026-11-10. The IDs moved between editions (Improper Output Handling and Unbounded Consumption carried different numbers in 2025), so controls keyed to the 2025 IDs need re-mapping, and the edition-mapping gap is carried in [`revalidation-and-pins.md`](../revalidation-and-pins.md).
 - `revalidate-by` is just under four months out because the Article 50(2) compliance date for systems already on the market passes on 2026-12-02 inside that window, and the AI Act has been amended once already in 2026, so the Article 50 and high-risk lines are the ones to re-read first.
 - The choice of per-customer usage and spend as the first abuse signal is my judgement (Tier D, 2026-11-10), drawn from the consumer-side reading that a cost anomaly on a single key or identity is a better signal of stolen-credential cost abuse than a volume anomaly across a fleet, which is itself a Tier D comparison and has not been tested on the provider side.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core. `last-verified` moved to 2026-11-24 because each of the three sources below was re-read at its publisher that day (VERIFICATION-LOG.md, "Follow-up reads, 2026-11-24, second pass"), which is every source this stub cites.
 
 ## Sources
 

@@ -35,6 +35,8 @@ actions:
   docs:
   - analysis/agent-identity-and-delegation.md
   - analysis/mcp-servers-and-manifest-drift.md
+  evidence-tier: A; Tier D for the broker threshold
+  convergence: single-source
   confirm-within-days: 7
 - key: agent-kill-switch-absent
   weight: PROBLEM
@@ -44,6 +46,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  evidence-tier: A for the practice; nothing measured here
+  convergence: single-source
   declared-gap: true
 - key: grounding-permissions-unreviewed
   weight: PROBLEM
@@ -53,6 +57,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/assistant-oversharing.md
+  evidence-tier: B
+  convergence: single-source
   declared-gap: true
 - key: coding-agent-managed-tier-absent
   weight: PROBLEM
@@ -62,6 +68,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/coding-agent-hooks-and-policy.md
+  evidence-tier: B
+  convergence: single-source
 - key: saas-ai-toggles-unreviewed
   weight: PROBLEM
   band: Medium
@@ -70,6 +78,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/saas-embedded-ai-and-vendor-terms.md
+  evidence-tier: B for what each setting does, D for the cadence
+  convergence: single-source
 - key: audit-log-off-coding-agent
   weight: PROBLEM
   band: Medium
@@ -78,6 +88,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/telemetry-by-surface.md
+  evidence-tier: B
+  convergence: single-source
 - key: audit-log-off-managed-model-platform
   weight: PROBLEM
   band: Medium
@@ -86,6 +98,8 @@ actions:
   confidence: believed
   docs:
   - analysis/telemetry-by-surface.md
+  evidence-tier: B
+  convergence: single-source
   confirm-within-days: 7
 review:
 - key: ai-gateway-absent
@@ -96,6 +110,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/ai-apis-and-the-gateway.md
+  evidence-tier: B for the features, D for the sequencing
+  convergence: single-source
 docs:
 - analysis/evidence-tiers.md
 - analysis/surface-ownability.md

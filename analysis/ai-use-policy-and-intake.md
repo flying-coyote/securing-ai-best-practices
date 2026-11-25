@@ -8,7 +8,8 @@ pins:
   - "ISO/IEC 42001 2023"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-04-06
+revalidate-by: 2027-05-18
+maintenance: maintained
 status: EMERGING
 ---
 
@@ -121,6 +122,7 @@ A larger organization with an established third-party risk and architecture-revi
 - No `measurement-claims` rows: nothing in this document is a re-runnable lab result.
 - 2026-11-24: the 8-K is graded A only for the filing and what it states, with the account of events at B, after a re-read at sec.gov; the intake form gained a privacy check and an exception path (seven checks); the consumer-grade rule is stated here in the form `rent-or-own-sized-to-the-org.md` should also carry; Summary item 5 no longer says an acknowledgement is US monitoring notice. AI literacy (AI Act Article 4 in Regulation (EU) 2024/1689) is not covered, and whether Regulation (EU) 2026/1744 changed that article has not been read for this document.
 - Dated judgement markers, 2026-11-10: the ordering of policy before telemetry, the seven-question intake form (six until 2026-11-24), the small-organization template and the advice to approve with conditions rather than decline are the author's judgement.
+- 2026-11-24: `revalidate-by` moved to 2027-05-18 so that no more than three maintained documents fall due in any 30 days (`revalidation-and-pins.md`, "Maintained and frozen documents"); the reasons above still decide where this document sits in that order.
 
 ## Sources
 

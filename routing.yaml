@@ -28,10 +28,18 @@
 #   also-accepts    answer values beyond true/false/count/unsure that select the row
 #   platform-of     on a pattern row, the platform each surface implies; every
 #                   implied platform is asked
+#   evidence        the confidence printed beside the row's action: `tier` is the
+#                   tier label the backing doc's Summary states for the action this
+#                   row triggers, copied as written (compound labels included), and
+#                   `convergence` is the doc's convergence (Decision 7); where no
+#                   Summary action states a tier, `tier-source: doc` marks the doc's
+#                   frontmatter tier instead
 #   (a doc path under analysis/stubs/ marks a stub-backed row; the review prints "declared gap")
 # scripts/check-routing-coverage.py fails when an escalation has no
 # escalate-if, when a name in escalate-if or requires is neither a key nor a
-# declared observation, and when a row's factors do not fold into its band.
+# declared observation, when a row's factors do not fold into its band, and
+# when a row with docs has no evidence tier and convergence, or a tier its
+# docs' Summaries do not state.
 
 version: 0
 release: v2026.12.1
@@ -58,8 +66,9 @@ observation-confidence:
   believed: "The person answering thinks so. Keeps its band, adds a confirm-within deadline (priority-rubric.confirm-believed-within-days) and a confirm-with role."
 
 # Priority is how bad the condition is if it is true. It is separate from
-# confidence, which is the backing doc's evidence-tier and convergence and is
-# printed beside every action. Each PROBLEM or REVIEW row scores four factors
+# confidence, which is the row's `evidence` (the tier the backing doc's Summary
+# states for this action, and the convergence) and is printed beside every
+# action. Each PROBLEM or REVIEW row scores four factors
 # from 0 to 2 and the sum folds into a band. An escalation names the condition
 # under which the band rises; it is applied only when that condition was
 # observed, never assumed.
@@ -188,6 +197,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/build-buy-and-the-high-priest.md]
+    evidence: {tier: "D for the default", convergence: single-source}
     why: "Selects the small-org interview branch. Sizing comes first because the rent-or-own judgement and the effort ranking both depend on staff and regulatory load."
   - key: org-size-large-regulated
     family: profile
@@ -195,6 +205,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/build-buy-and-the-high-priest.md]
+    evidence: {tier: "D for the staffing, Tier A and B for the gaps", convergence: single-source}
     why: "Selects the full interview branch."
   - key: profile-rent-heavy
     family: profile
@@ -204,6 +215,7 @@ signals:
     implies-no: [surface-S9, surface-S11, surface-S12]
     weight: INVENTORY
     docs: [analysis/rent-or-own-sized-to-the-org.md]
+    evidence: {tier: "D for the default", convergence: single-source}
     why: "None of the three surfaces where the organization owns every CoSAI component it instantiates is present, so effort goes to identity, the enforcement point, configuration and exported logs."
   - key: profile-own-heavy
     family: profile
@@ -215,6 +227,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 0, reversibility: 1, blast: 1}
     docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/models-you-hold.md]
+    evidence: {tier: "D for the staffing, Tier A and B for the gaps", convergence: single-source}
     why: "At least one fully owned surface is present, which brings its patching, logging, identity and detection with it."
   - key: residency-requirement
     family: profile
@@ -222,6 +235,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/rent-or-own-sized-to-the-org.md, analysis/saas-embedded-ai-and-vendor-terms.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Residency can rule out a rented product or justify owning one; processing location and capacity routing are checked per rented surface."
 
   # --- surface ---
@@ -232,6 +246,7 @@ signals:
     weight: INVENTORY
     enables: [saas-ai-toggles-unreviewed, vendor-training-optout-unknown, ai-subprocessor-review-absent, oauth-grants-unreviewed, grounding-permissions-unreviewed, plan-tier-below-audit]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S1 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S2
     family: surface
@@ -240,6 +255,7 @@ signals:
     weight: INVENTORY
     enables: [audit-log-off-<platform>, content-channel-off, content-channel-on, plan-tier-below-audit, vendor-training-optout-unknown, grounding-permissions-unreviewed, sensitivity-labels-absent, restricted-search-unset]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S2 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S3
     family: surface
@@ -248,6 +264,7 @@ signals:
     weight: INVENTORY
     enables: [shadow-ai-method-none, shadow-ai-method-network-only, tenant-restriction-absent, audit-log-off-<platform>]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S3 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S4
     family: surface
@@ -256,6 +273,7 @@ signals:
     weight: INVENTORY
     enables: [coding-agent-managed-tier-absent, hook-fail-open, hooks-user-disableable, mcp-allowlist-absent, mcp-unpinned, mcp-remote, agent-static-secrets, plan-tier-below-audit, audit-log-off-<platform>]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S4 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S5
     family: surface
@@ -264,6 +282,7 @@ signals:
     weight: INVENTORY
     enables: [mcp-allowlist-absent, mcp-unpinned, mcp-remote, mcp-manifest-snapshot-absent, agent-static-secrets, nhi-inventory-absent, audit-log-off-<platform>, agent-identity-owner-absent]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S5 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S6
     family: surface
@@ -272,6 +291,7 @@ signals:
     weight: INVENTORY
     enables: [agent-publish-approval-absent, maker-credential-agents, agent-external-sharing-unreviewed, connector-sprawl-unreviewed, agent-builder-self-hosted-exposed, nhi-inventory-absent, agent-identity-owner-absent]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S6 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S7
     family: surface
@@ -280,6 +300,7 @@ signals:
     weight: INVENTORY
     enables: [agent-publish-approval-absent, connector-sprawl-unreviewed, audit-log-off-<platform>, cloud-trail-default-only, ai-gateway-absent, gateway-token-store-unreviewed, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, agent-identity-owner-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S7 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S8
     family: surface
@@ -288,6 +309,7 @@ signals:
     weight: INVENTORY
     enables: [ai-gateway-absent, gateway-token-store-unreviewed, cloud-trail-default-only, agent-static-secrets, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S8 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S9
     family: surface
@@ -296,6 +318,7 @@ signals:
     weight: INVENTORY
     enables: [inference-runtime-default-bind, model-store-unscanned, pickle-formats-present, ai-gateway-absent, gateway-token-store-unreviewed, output-handling-unreviewed, pre-release-eval-absent, abuse-monitoring-absent, shipped-feature-tool-scope-unreviewed, shipped-feature-tenant-isolation-unknown]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S9 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S10
     family: surface
@@ -304,6 +327,7 @@ signals:
     weight: INVENTORY
     enables: [inference-runtime-default-bind, model-store-unscanned, pickle-formats-present]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S10 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S11
     family: surface
@@ -312,6 +336,7 @@ signals:
     weight: INVENTORY
     enables: [fine-tuned-models, training-record-absent, model-store-unscanned]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S11 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S12
     family: surface
@@ -320,6 +345,7 @@ signals:
     weight: INVENTORY
     enables: [rag-acl-propagation-unknown, ingestion-integrity-unreviewed, embeddings-outside-governance]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S12 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
   - key: surface-S13
     family: surface
@@ -328,6 +354,7 @@ signals:
     weight: INVENTORY
     enables: [ai-analyst-ungraded, containment-pre-authorized-broad, telemetry-into-llm]
     docs: [analysis/surface-ownability.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Enables the S13 family rows. The CoSAI component map decides which parts of this surface are the organization's to secure."
 
   # --- profile ---
@@ -341,6 +368,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/rent-or-own-sized-to-the-org.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "A small organization owning a surface takes on the full operating load of it; the review names that cost beside any recommendation to keep owning it."
   - key: surface-unknown
     family: profile
@@ -351,6 +379,7 @@ signals:
       band: High
       factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
     docs: [analysis/inventory-and-shadow-ai.md]
+    evidence: {tier: "B, first-party lab", convergence: single-source}
     why: "Every later control assumes an inventory; without one the review cannot say what is in scope, so discovery is the first action."
 
   # --- record ---
@@ -368,6 +397,7 @@ signals:
       escalation: "High when that platform's surface is internet-reachable and handles regulated data"
       escalate-if: [internet-reachable-<platform>, regulated-data-<platform>]
     docs: [analysis/telemetry-by-surface.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "The platform's own audit log is the record the organization can hold for a rented surface; the vendor's admin documentation says what it captures and whether it is on by default."
   - key: content-channel-off
     family: record
@@ -378,6 +408,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/telemetry-by-surface.md, analysis/what-to-log-and-what-it-costs.md]
+    evidence: {tier: "B for the switches; D for the decision", convergence: single-source}
     why: "The content half of the record is off by default on most sanctioned platforms; whether that is right depends on the capture tier and the law, so it is reviewed rather than flagged."
   - key: content-channel-on
     family: record
@@ -388,6 +419,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 2, reversibility: 0, blast: 0}
     docs: [analysis/telemetry-by-surface.md, analysis/what-to-log-and-what-it-costs.md]
+    evidence: {tier: "B for the switches; D for the decision", convergence: single-source}
     why: "Captured content is a store of whatever users typed, with the retention, access and erasure duties that brings."
   - key: content-lands-vendor
     family: record
@@ -399,6 +431,7 @@ signals:
       band: Low
       factors: {reach: 1, stakes: 1, reversibility: 0, blast: 0}
     docs: [analysis/telemetry-by-surface.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Content held by the vendor is retained on the vendor's terms and reachable only through its export."
   - key: content-lands-own-cloud
     family: record
@@ -410,6 +443,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 0}
     docs: [analysis/telemetry-by-surface.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Content in the organization's own cloud is under its own retention and access controls."
   - key: content-lands-laptop
     family: record
@@ -421,6 +455,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 0}
     docs: [analysis/telemetry-by-surface.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Content on endpoints is scattered, hard to retain consistently and hard to erase."
   - key: schema-none
     family: record
@@ -428,6 +463,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/landing-ai-events-in-ocsf.md]
+    evidence: {tier: "A for the headers, B for the lab", convergence: single-source}
     why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
   - key: schema-vendor-json
     family: record
@@ -436,6 +472,7 @@ signals:
     weight: INVENTORY
     enables: [hunt-keys-untyped]
     docs: [analysis/landing-ai-events-in-ocsf.md]
+    evidence: {tier: "B for what each mapper did, D for the combined design", convergence: single-source}
     why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
   - key: schema-otel
     family: record
@@ -444,6 +481,7 @@ signals:
     weight: INVENTORY
     enables: [hunt-keys-untyped]
     docs: [analysis/landing-ai-events-in-ocsf.md]
+    evidence: {tier: "B for stability, D for the column landing", convergence: single-source}
     why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
   - key: schema-ocsf
     family: record
@@ -452,6 +490,7 @@ signals:
     weight: INVENTORY
     enables: [hunt-keys-untyped]
     docs: [analysis/landing-ai-events-in-ocsf.md]
+    evidence: {tier: "A for the schema, B for the lab", convergence: single-source}
     why: "OCSF is the schema standard the landing doc maps to; the emitted format decides how much normalization the pipeline owes."
   - key: hunt-keys-untyped
     family: record
@@ -462,6 +501,7 @@ signals:
       band: Low
       factors: {reach: 1, stakes: 0, reversibility: 0, blast: 1}
     docs: [analysis/landing-ai-events-in-ocsf.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "A record that validates can still put its hunt keys where every query must parse them; in the lab run the doc cites, at 1M synthetic calls, that layout ran the pre-registered hunts 4.7x to 22.5x slower than typed columns."
   - key: prompt-capture-tier-none
     family: record
@@ -472,6 +512,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 0, reversibility: 0, blast: 1}
     docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
   - key: prompt-capture-tier-metadata
     family: record
@@ -483,6 +524,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 0}
     docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
   - key: prompt-capture-tier-hash
     family: record
@@ -494,6 +536,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 0}
     docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "A for keyed over plain hashing; D for the two uses", convergence: single-source}
     why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
   - key: prompt-capture-tier-delta
     family: record
@@ -505,6 +548,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 0}
     docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "B regulator guidance, D for the tier mapping", convergence: single-source}
     why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
   - key: prompt-capture-tier-full
     family: record
@@ -519,6 +563,7 @@ signals:
       escalate-if: [jurisdiction-eu, dpia-absent]
       escalate-weight: PROBLEM
     docs: [analysis/what-to-log-and-what-it-costs.md, analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "Data-protection law ties what may be captured to purpose and proportionality (GDPR Articles 5 and 35); metadata is cheap and full text is the costly, regulated tier."
   - key: jurisdiction-eu
     family: record
@@ -526,6 +571,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "A statute, B regulator", convergence: single-source}
     why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named."
   - key: jurisdiction-us
     family: record
@@ -533,6 +579,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "Mixed", tier-source: doc, convergence: single-source}
     why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named. A us-only answer triggers the sentence saying the law doc is EU-first and naming what it does not answer."
   - key: jurisdiction-uk
     family: record
@@ -540,6 +587,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "A statute, B regulator", convergence: single-source}
     why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named."
   - key: jurisdiction-other
     family: record
@@ -547,6 +595,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "Mixed", tier-source: doc, convergence: single-source}
     why: "Capture rules differ by jurisdiction, so the law doc is read for the regions named."
   - key: content-captured-gdpr
     family: record
@@ -575,6 +624,7 @@ signals:
       band: High
       factors: {reach: 0, stakes: 2, reversibility: 2, blast: 2}
     docs: [analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "A statute, B guidance", convergence: single-source}
     why: "GDPR Article 35, and the same article of UK GDPR, requires a DPIA for processing likely to result in high risk, which systematic monitoring of employees' text usually is. Not legal advice."
   - key: works-council-unconsulted
     family: record
@@ -587,6 +637,7 @@ signals:
       band: High
       factors: {reach: 0, stakes: 2, reversibility: 2, blast: 2}
     docs: [analysis/prompt-capture-and-the-law.md]
+    evidence: {tier: "A statute", convergence: single-source}
     why: "Co-determination law in several EU states (Germany's Works Constitution Act, section 87(1) no. 6, for example) gives the works council a say over technical monitoring of employees. Not legal advice."
   - key: record-in-agent-reach
     family: record
@@ -597,6 +648,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 2, blast: 1}
     docs: [analysis/tamper-evident-record.md]
+    evidence: {tier: "A for the control, B for the features", convergence: single-source}
     why: "A record the producing identity can edit or delete is weak evidence, so the first step is exporting it where that identity cannot delete it (NIST SP 800-53 AU-9(2)); signed chains are worth their cost mainly where a regulator, court or incident review will ask for proof."
   - key: telemetry-into-llm
     family: record
@@ -607,6 +659,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/telemetry-is-an-injection-surface.md]
+    evidence: {tier: "A for the exposure, D for the practice", convergence: single-source}
     why: "Event text carries attacker-controlled strings, so a model reading it is exposed to prompt injection, which OWASP's Top 10 for LLM Applications names as a risk class."
 
   # --- identity ---
@@ -619,6 +672,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 2, reversibility: 0, blast: 1}
     docs: [analysis/agent-identity-and-delegation.md]
+    evidence: {tier: "B for the features, D for the buy threshold", convergence: single-source}
     why: "Identity controls start from an inventory of non-human identities; the agent usually borrows a human or workload identity rather than holding its own."
   - key: agent-static-secrets
     family: identity
@@ -629,6 +683,7 @@ signals:
       band: High
       factors: {reach: 2, stakes: 2, reversibility: 1, blast: 1}
     docs: [analysis/agent-identity-and-delegation.md, analysis/mcp-servers-and-manifest-drift.md]
+    evidence: {tier: "A; Tier D for the broker threshold", convergence: single-source}
     why: "Long-lived secrets in agent configuration are the credential-theft path; short-lived, scoped credentials are the standard replacement."
   - key: delegation-record-absent
     family: identity
@@ -639,6 +694,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/agent-identity-and-delegation.md]
+    evidence: {tier: "B, one IdP at one version", convergence: single-source}
     why: "Low on the risk factors: internal-only, business data rather than credentials, reversible by changing what gets logged, and it slows one team's investigation; the doc says what can be assembled meanwhile."
   - key: agent-identity-owner-absent
     family: identity
@@ -649,6 +705,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 1, blast: 1}
     docs: [analysis/agent-identity-and-delegation.md]
+    evidence: {tier: "B for the sponsor and dormancy features below; Tier D for the cadence and the test", convergence: single-source}
     why: "An agent identity outlives the project that made it, because nobody leaves the company when an agent stops being used, so without an owner and an offboarding check its grants stay live after anyone remembers them."
   - key: ai-gateway-absent
     family: identity
@@ -659,6 +716,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 0, blast: 2}
     docs: [analysis/ai-apis-and-the-gateway.md]
+    evidence: {tier: "B for the features, D for the sequencing", convergence: single-source}
     why: "An owned enforcement point is where policy, logging and key custody can be applied independent of each client."
   - key: ai-gateway-present
     family: identity
@@ -666,6 +724,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/ai-apis-and-the-gateway.md]
+    evidence: {tier: "B for the features, D for the sequencing", convergence: single-source}
     why: "A gateway present enables the token-store question."
   - key: gateway-token-store-unreviewed
     family: identity
@@ -677,6 +736,7 @@ signals:
       band: High
       factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
     docs: [analysis/ai-apis-and-the-gateway.md]
+    evidence: {tier: "A for the KEV record, B for the controls, D for the custody question", convergence: single-source}
     why: "The gateway holds every upstream key, so compromising it compromises every route behind it."
   - key: cloud-trail-default-only
     family: identity
@@ -687,6 +747,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/ai-apis-and-the-gateway.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Default management-plane trails differ by provider in whether model invocations appear at all; the cloud provider's logging documentation is the primary."
 
   # --- incident-response ---
@@ -699,6 +760,7 @@ signals:
       band: High
       factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
     docs: [analysis/stubs/ai-incident-response.md]
+    evidence: {tier: "A for the practice; nothing measured here", convergence: single-source}
     why: "Incident response needs a containment step for each AI surface; the organization's existing IR standard is extended rather than replaced."
 
   # --- coding-agent ---
@@ -711,6 +773,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 2, reversibility: 0, blast: 1}
     docs: [analysis/coding-agent-hooks-and-policy.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Vendors document a managed settings tier for exactly this; without it every control is a user preference."
   - key: hook-fail-open
     family: coding-agent
@@ -721,6 +784,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/coding-agent-hooks-and-policy.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Failure defaults differ by vendor and several fail open, so a crashed hook allows the action it was meant to stop."
   - key: hooks-user-disableable
     family: coding-agent
@@ -731,6 +795,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 0, blast: 1}
     docs: [analysis/coding-agent-hooks-and-policy.md]
+    evidence: {tier: "B, D for the ordering", convergence: single-source}
     why: "Deny rules held where hooks were switched off in the lab run the doc cites."
 
   # --- mcp ---
@@ -743,6 +808,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 2, reversibility: 0, blast: 1}
     docs: [analysis/mcp-servers-and-manifest-drift.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "The MCP specification's security best practices and the client vendor's managed allowlist are the controls; an allowlist that can be bypassed is an inventory, not a control."
   - key: mcp-unpinned
     family: mcp
@@ -753,6 +819,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/mcp-servers-and-manifest-drift.md]
+    evidence: {tier: "D for the practice, B for the exposure", convergence: single-source}
     why: "An unpinned package runs whatever the registry serves at start time, which is a software supply-chain exposure."
   - key: mcp-remote
     family: mcp
@@ -763,6 +830,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/mcp-servers-and-manifest-drift.md]
+    evidence: {tier: "B for caller and decision logging, D for header logging", convergence: single-source}
     why: "A remote server's tool list and behaviour can change without any local change."
   - key: mcp-manifest-snapshot-absent
     family: mcp
@@ -773,6 +841,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/mcp-servers-and-manifest-drift.md]
+    evidence: {tier: "B, D for the operating conditions", convergence: single-source}
     why: "Tool-description changes on a remote or registry-served server show up as a diff once the manifest is deterministic, and without the snapshot a changed description reaches the agent unseen."
   - key: mcp-spec-pre-2026-07
     family: mcp
@@ -780,6 +849,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/landing-ai-events-in-ocsf.md, analysis/mcp-servers-and-manifest-drift.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Logging and security behaviour differ across MCP specification revisions, and the docs are pinned to the 2026-07-28 revision."
 
   # --- shadow-ai ---
@@ -792,6 +862,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/inventory-and-shadow-ai.md]
+    evidence: {tier: "B, first-party lab", convergence: single-source}
     why: "Discovery is an inventory join across several sources; without any method the approved list is the only list."
   - key: shadow-ai-method-network-only
     family: shadow-ai
@@ -802,6 +873,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/inventory-and-shadow-ai.md]
+    evidence: {tier: "B, first-party lab", convergence: single-source}
     why: "Network methods alone found a small share of planted cases in the lab run the doc cites; identity and endpoint sources fill the rest."
   - key: oauth-grants-unreviewed
     family: shadow-ai
@@ -814,6 +886,7 @@ signals:
       escalation: "High when any AI-category grant carries mail or file scopes"
       escalate-if: [ai-grants-mail-or-file-scope]
     docs: [analysis/inventory-and-shadow-ai.md]
+    evidence: {tier: "B, with Tier A for why it matters", convergence: single-source}
     why: "OAuth consent is how most AI SaaS reaches mail and files; the identity platform's own grant report is the source."
   - key: tenant-restriction-absent
     family: shadow-ai
@@ -824,6 +897,7 @@ signals:
       band: Low
       factors: {reach: 1, stakes: 1, reversibility: 0, blast: 0}
     docs: [analysis/inventory-and-shadow-ai.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Tenant restrictions stop personal accounts on a sanctioned service; the vendor and SSE documentation describe the header."
 
   # --- saas ---
@@ -836,6 +910,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    evidence: {tier: "B for what each setting does, D for the cadence", convergence: single-source}
     why: "Vendors switch AI features on inside products already approved; the admin console and the vendor's AI terms are the primary sources."
   - key: vendor-training-optout-unknown
     family: saas
@@ -846,6 +921,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 2, blast: 1}
     docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Data used for training cannot be recalled, so the opt-out is checked in the contract and the console, not assumed."
   - key: ai-subprocessor-review-absent
     family: saas
@@ -856,6 +932,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 1, blast: 0}
     docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    evidence: {tier: "A for the obligation", convergence: single-source}
     why: "AI features often add a model provider as a sub-processor; the vendor's sub-processor list and DPA are the sources."
   - key: plan-tier-below-audit
     family: saas
@@ -866,6 +943,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 2, blast: 1}
     docs: [analysis/rent-or-own-sized-to-the-org.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "For a renter the plan tier decides more of the record than any setting; the vendor's plan comparison page is the source, dated."
 
   # --- artifacts ---
@@ -875,6 +953,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/models-you-hold.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Enables the artifact rows below."
   - key: model-store-unscanned
     family: artifacts
@@ -885,6 +964,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/models-you-hold.md]
+    evidence: {tier: "B for T5, A for the bypass CVEs", convergence: single-source}
     why: "General SBOM tooling did not recognise most model artifacts as AI in the lab run the doc cites; a hash inventory comes first, with a model-file scanner as a filter, and no single scanner is relied on for pickle files."
   - key: pickle-formats-present
     family: artifacts
@@ -895,6 +975,7 @@ signals:
       band: High
       factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
     docs: [analysis/models-you-hold.md]
+    evidence: {tier: "A for the CVEs, D for the policy order", convergence: single-source}
     why: "Loading such a file can run arbitrary code on the host; safer formats exist and the doc names them."
   - key: inference-runtime-default-bind
     family: artifacts
@@ -907,6 +988,7 @@ signals:
       escalation: "High when the runtime is internet-reachable"
       escalate-if: [runtime-internet-reachable]
     docs: [analysis/models-you-hold.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "The runtime's own documentation describes its default bind and authentication, so the exposure is checkable rather than assumed; the doc's action is nothing listening off loopback without authentication, and an internet-reachable listener is the worst case."
   - key: fine-tuned-models
     family: artifacts
@@ -917,6 +999,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 2, blast: 0}
     docs: [analysis/fine-tuned-model-is-a-data-store.md]
+    evidence: {tier: "A for memorization, D for the rule", convergence: single-source}
     why: "Peer-reviewed work shows fine-tuned models can memorize and reproduce training records, so the model is a data store."
   - key: training-record-absent
     family: artifacts
@@ -927,6 +1010,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 2, blast: 0}
     docs: [analysis/fine-tuned-model-is-a-data-store.md]
+    evidence: {tier: "D for the record, A for why it is needed", convergence: single-source}
     why: "Without the link, erasure and incident scoping cannot reach the model."
 
   # --- governance ---
@@ -939,6 +1023,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 2}
     docs: [analysis/ai-use-policy-and-intake.md]
+    evidence: {tier: "A that a policy is expected; Tier D for the content", convergence: single-source}
     why: "NIST AI RMF 1.0 (Govern) and ISO/IEC 42001 both start from policy and accountability; for most organizations these come before telemetry."
   - key: ai-tool-intake-absent
     family: governance
@@ -949,6 +1034,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 2}
     docs: [analysis/ai-use-policy-and-intake.md, analysis/configure-before-you-buy.md]
+    evidence: {tier: "A for third-party structure; Tier D for the form", convergence: single-source}
     why: "An intake path is the point where the configure-first check runs."
   - key: ai-owner-unnamed
     family: governance
@@ -959,6 +1045,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 0, reversibility: 1, blast: 2}
     docs: [analysis/ai-use-policy-and-intake.md]
+    evidence: {tier: "A for the structure", convergence: single-source}
     why: "NIST AI RMF 1.0 (Govern) assigns accountability; without an owner, findings have nowhere to go."
   - key: incumbent-inventory-absent
     family: governance
@@ -969,6 +1056,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
     docs: [analysis/configure-before-you-buy.md]
+    evidence: {tier: "B for the agency precedent; Tier D for the three-column shape", convergence: single-source}
     why: "Configuring what is already paid for comes before buying; the list is the starting point."
   - key: vendor-evaluation-in-progress
     family: governance
@@ -979,6 +1067,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/reading-vendor-claims.md, analysis/build-buy-and-the-high-priest.md]
+    evidence: {tier: "D for the ask; Tier B for why sensor position decides reach", convergence: single-source}
     why: "Vendor efficacy claims are Tier C; the doc gives the written questions to ask before relying on one."
   - key: custom-build-planned
     family: governance
@@ -989,6 +1078,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/build-buy-and-the-high-priest.md]
+    evidence: {tier: "D, resting on Tier A debt and truck-factor evidence", convergence: single-source}
     why: "Every custom system needs people to keep it running for as long as it lives; maintenance is most of a system's lifecycle cost in the literature the doc cites."
   - key: vendor-terms-unknown
     family: governance
@@ -999,6 +1089,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/saas-embedded-ai-and-vendor-terms.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "The vendor's terms and DPA are the primary sources; unknown terms are a contract question, not a configuration one."
   - key: coverage-view-absent
     family: governance
@@ -1009,6 +1100,7 @@ signals:
       band: Low
       factors: {reach: 0, stakes: 0, reversibility: 0, blast: 2}
     docs: [analysis/incumbent-tool-coverage.md]
+    evidence: {tier: "B facts, D grades", convergence: single-source}
     why: "Mapping tooling onto the CoSAI component map shows where coverage sits; low priority because it informs rather than protects."
 
   # --- frameworks ---
@@ -1018,6 +1110,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "A for each framework's own scope, D for the labels", convergence: single-source}
     why: "The frameworks doc says what MITRE ATLAS reaches and what it does not."
   - key: framework-claimed-owasp
     family: frameworks
@@ -1025,6 +1118,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "A for each framework's own scope, D for the labels", convergence: single-source}
     why: "The frameworks doc says what OWASP Top 10 for LLM Applications reaches and what it does not."
   - key: framework-claimed-nist-ai-rmf
     family: frameworks
@@ -1032,6 +1126,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "A for each framework's own scope, D for the labels", convergence: single-source}
     why: "The frameworks doc says what NIST AI RMF reaches and what it does not."
   - key: framework-claimed-iso-42001
     family: frameworks
@@ -1039,6 +1134,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "A for each framework's own scope, D for the labels", convergence: single-source}
     why: "The frameworks doc says what ISO/IEC 42001 reaches and what it does not."
   - key: framework-claimed-cosai
     family: frameworks
@@ -1046,6 +1142,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "A for each framework's own scope, D for the labels", convergence: single-source}
     why: "The frameworks doc says what CoSAI reaches and what it does not."
   - key: framework-claimed-eu-ai-act
     family: frameworks
@@ -1053,6 +1150,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "A for each framework's own scope, D for the labels", convergence: single-source}
     why: "The frameworks doc says what the EU AI Act reaches and what it does not."
   - key: framework-claimed-scf
     family: frameworks
@@ -1060,6 +1158,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "A for each framework's own scope, D for the labels", convergence: single-source}
     why: "The frameworks doc says what the Secure Controls Framework reaches and what it does not."
   - key: mapping-treated-as-coverage
     family: frameworks
@@ -1070,6 +1169,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
     docs: [analysis/frameworks-and-what-they-reach.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "A mapping says a control is relevant, not that anything is detected; the frameworks doc shows where the chain is weak."
   - key: owasp-ids-2025
     family: frameworks
@@ -1077,6 +1177,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/frameworks-and-what-they-reach.md, analysis/revalidation-and-pins.md]
+    evidence: {tier: "A for the edition", convergence: single-source}
     why: "The OWASP project published a 2026 edition of the list (page dated 2026-08-03), so controls keyed to 2025 IDs are flagged for a re-check against the edition the pins doc records."
 
   # --- soc ---
@@ -1086,6 +1187,7 @@ signals:
     method: [I]
     weight: INVENTORY
     docs: [analysis/evaluating-ai-in-the-soc.md]
+    evidence: {tier: "B for the method, D for the threshold of trust", convergence: single-source}
     why: "Enables the SOC evaluation rows."
   - key: ai-analyst-ungraded
     family: soc
@@ -1096,6 +1198,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/evaluating-ai-in-the-soc.md]
+    evidence: {tier: "B for the method, D for the threshold of trust", convergence: single-source}
     why: "Grade the AI analyst the way a detection is graded, and never let it grade itself."
   - key: containment-pre-authorized-broad
     family: soc
@@ -1106,6 +1209,7 @@ signals:
       band: High
       factors: {reach: 1, stakes: 2, reversibility: 1, blast: 2}
     docs: [analysis/evaluating-ai-in-the-soc.md]
+    evidence: {tier: "D", convergence: single-source}
     why: "A wrong containment at machine speed has organization-wide blast radius; scoped, reversible, logged actions on assets nothing else depends on are the line."
 
   # --- assistant-oversharing ---
@@ -1118,6 +1222,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 1, blast: 2}
     docs: [analysis/stubs/assistant-oversharing.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "An assistant grounded on company content surfaces whatever the user can technically reach; the assistant vendor's governance guidance (Tier B) and CoSAI data-governance controls are the sources."
   - key: sensitivity-labels-absent
     family: assistant-oversharing
@@ -1128,6 +1233,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 0, blast: 1}
     docs: [analysis/stubs/assistant-oversharing.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Labels are what the vendor's assistant controls read; the vendor documentation is the source."
   - key: restricted-search-unset
     family: assistant-oversharing
@@ -1138,6 +1244,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
     docs: [analysis/stubs/assistant-oversharing.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "Vendors document scope restriction as the interim control during a permissions review."
 
   # --- rag ---
@@ -1150,6 +1257,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 1, blast: 1}
     docs: [analysis/stubs/rag-stores.md]
+    evidence: {tier: "A for the practice", convergence: single-source}
     why: "CoSAI controls and the OWASP LLM Top 10 retrieval entries describe the failure; the stub points at both."
   - key: ingestion-integrity-unreviewed
     family: rag
@@ -1160,6 +1268,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/stubs/rag-stores.md]
+    evidence: {tier: "A", convergence: single-source}
     why: "Poisoned or attacker-authored content in the store reaches every answer that retrieves it."
   - key: embeddings-outside-governance
     family: rag
@@ -1170,6 +1279,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 1, blast: 0}
     docs: [analysis/stubs/rag-stores.md]
+    evidence: {tier: "A", convergence: single-source}
     why: "Embeddings derived from sensitive data carry some of it; the stub names the standards that say so."
 
   # --- agent-builders ---
@@ -1182,6 +1292,7 @@ signals:
       band: Medium
       factors: {reach: 1, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/stubs/agent-builders.md]
+    evidence: {tier: "A for the control, B and C for the platform settings", convergence: single-source}
     why: "The platform's own governance controls (Tier B) and CoSAI agent controls are the sources."
   - key: maker-credential-agents
     family: agent-builders
@@ -1192,6 +1303,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 2, reversibility: 0, blast: 1}
     docs: [analysis/stubs/agent-builders.md]
+    evidence: {tier: "A, B and C", convergence: single-source}
     why: "An agent on its maker's credentials acts with the maker's full access for every user."
   - key: agent-external-sharing-unreviewed
     family: agent-builders
@@ -1202,6 +1314,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 0}
     docs: [analysis/stubs/agent-builders.md]
+    evidence: {tier: "B", convergence: single-source}
     why: "External sharing makes an internal agent internet-reachable."
   - key: connector-sprawl-unreviewed
     family: agent-builders
@@ -1212,6 +1325,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 0, blast: 2}
     docs: [analysis/stubs/agent-builders.md]
+    evidence: {tier: "A, B and C", convergence: single-source}
     why: "Each connector widens what an agent can reach; the platform's connector policy is the control."
   - key: agent-builder-self-hosted-exposed
     family: agent-builders
@@ -1224,6 +1338,7 @@ signals:
       escalation: "High when the builder is internet-reachable"
       escalate-if: [builder-internet-reachable]
     docs: [analysis/stubs/agent-builders.md]
+    evidence: {tier: "A for the KEV and ATLAS record, D for the check", convergence: single-source}
     why: "CISA KEV 2026.11.09 lists exploited vulnerabilities in self-hosted builders, and a builder keeps model keys and connector tokens behind one credential store, so internet reach, patch state and authentication are checked before the governance settings."
 
   # --- ai-you-ship ---
@@ -1236,6 +1351,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/stubs/ai-you-ship.md]
+    evidence: {tier: "A for the risk category", convergence: single-source}
     why: "OWASP's Top 10 for LLM Applications carries an output-handling entry, and NIST AI 600-1 profiles generative-AI risks for organizations that build and deploy these systems."
   - key: pre-release-eval-absent
     family: ai-you-ship
@@ -1246,6 +1362,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 0, reversibility: 0, blast: 1}
     docs: [analysis/stubs/ai-you-ship.md]
+    evidence: {tier: "A", convergence: single-source}
     why: "NIST AI 600-1 and, where in scope, the EU AI Act set evaluation expectations for providers."
   - key: abuse-monitoring-absent
     family: ai-you-ship
@@ -1256,6 +1373,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 0, blast: 1}
     docs: [analysis/stubs/ai-you-ship.md]
+    evidence: {tier: "A for the actions, D for the choice of first signal", convergence: single-source}
     why: "A public AI feature is an internet-reachable surface with its own abuse patterns."
   - key: shipped-feature-tool-scope-unreviewed
     family: ai-you-ship
@@ -1266,6 +1384,7 @@ signals:
       band: Medium
       factors: {reach: 2, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/stubs/ai-you-ship.md]
+    evidence: {tier: "Mixed", tier-source: doc, convergence: single-source}
     why: "A shipped feature that calls tools can act beyond what the customer asked; the stub declares the gap and names the standard to read meanwhile."
   - key: shipped-feature-tenant-isolation-unknown
     family: ai-you-ship
@@ -1276,6 +1395,7 @@ signals:
       band: High
       factors: {reach: 1, stakes: 2, reversibility: 2, blast: 1}
     docs: [analysis/stubs/ai-you-ship.md]
+    evidence: {tier: "Mixed", tier-source: doc, convergence: single-source}
     why: "Content disclosed to another customer cannot be recalled; the stub declares the gap and names the standard to read meanwhile."
 
   # --- incident-response ---
@@ -1288,6 +1408,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 1, reversibility: 1, blast: 1}
     docs: [analysis/stubs/ai-incident-response.md]
+    evidence: {tier: "A", convergence: single-source}
     why: "Extend the existing IR standard; CoSAI is the AI-specific source the stub points at."
   - key: model-rollback-untested
     family: incident-response
@@ -1298,6 +1419,7 @@ signals:
       band: Medium
       factors: {reach: 0, stakes: 0, reversibility: 1, blast: 2}
     docs: [analysis/stubs/ai-incident-response.md]
+    evidence: {tier: "A for the practice; nothing measured here", convergence: single-source}
     why: "A rollback that has never run is a hope, and model changes are frequent on rented surfaces."
 
 special-keys:

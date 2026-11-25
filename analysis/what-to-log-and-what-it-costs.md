@@ -7,7 +7,8 @@ pins:
   - "OCSF 1.9.0"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-05-06
+revalidate-by: 2027-01-08
+maintenance: maintained
 status: EMERGING
 measurement-claims:
   - claim: "Per million billed tokens, coding tier, Parquet with zstd at its default level 1: metadata only about 1.1 KB, metadata plus prompt and response hashes about 2.6 KB, delta text 26 to 32 KB, full prompt as sent about 0.2 MB to 0.9 MB, roughly 180 to 800 times the metadata footprint, with the top of that range from a single-seed exploratory probe"

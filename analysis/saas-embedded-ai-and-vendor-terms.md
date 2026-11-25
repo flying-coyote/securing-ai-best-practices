@@ -8,7 +8,8 @@ pins:
   - "ISO/IEC 42001 2023"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-12
+revalidate-by: 2027-04-04
+maintenance: maintained
 status: EMERGING
 ---
 

@@ -9,7 +9,7 @@ pins:
   - "CISA KEV catalog 2026.11.09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-08
+maintenance: frozen
 status: EMERGING
 ---
 
@@ -18,6 +18,8 @@ status: EMERGING
 Evidence tier: Mixed, A for what the CoSAI control YAML says, B for what each platform's own governance documentation says a setting does, C for the rows flagged as read through a search excerpt, a vendor blog or a community post, and D for the order I would turn things on.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 This document is a stub: the actions below rest on the CoSAI agent controls (Tier A), on each platform's own governance pages read once on 2026-11-09 (Tier B, with the rows marked C read through excerpts, vendor blogs or a community post), and on the CISA KEV and ATLAS record for the self-hosted row, with no lab run behind any of them. This family is a declared gap. The repo has not researched how publish approval, run-as identity, external sharing and connector scope behave across low-code agent builders (S6) and managed AI build platforms (S7), so the review should send the reader to the standard and to the platform's own governance page first, and use this stub only for the mapping and the defaults it records.
 
@@ -80,6 +82,7 @@ A blocked connector or an authenticated channel does not make an agent safe to r
 - The `agent-builder-self-hosted-exposed` row and its action were added on 2026-11-24 after an outside review noted that the KEV entries cited here had no routed action. Its factor scores (reach 1, stakes 2, reversibility 1, blast 1, Medium, rising to High when the builder is internet-reachable) are my judgement, Tier D: stakes are 2 because the builder's store holds credentials, reversibility is 1 because rotating them takes effort, and blast is 1 because a builder is usually one team's surface. The KEV counts it rests on are the pinned 2026.11.09 counts already in this stub; the feed was read again on 2026-11-24 for the vulnerability names only, and the pin was not moved.
 - The ai-config-pointers set is a separate repository, the platforms layer beside this one (Decision 12), and it is not yet public, so this document calls it forthcoming and carries no link to it; its pages will be linked, never copied, once it has a public address.
 - The CoSAI control descriptions are paraphrased, and the KEV count was re-derived from catalogue 2026.11.09 on 2026-11-10.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

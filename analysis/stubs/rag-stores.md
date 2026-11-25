@@ -8,7 +8,7 @@ pins:
   - "OWASP Top 10 for LLM Applications 2026"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-04-14
+maintenance: frozen
 status: EMERGING
 ---
 
@@ -17,6 +17,8 @@ status: EMERGING
 Evidence tier: Mixed, A for what the CoSAI risk map and the OWASP Top 10 for LLM Applications 2026 say, D for the ownership framing and for my reading of where CoSAI is silent, and no lab result behind any of it.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 This document is a stub: its actions rest on the OWASP Top 10 for LLM Applications 2026 and the CoSAI risk map at the pinned commit (Tier A for what they say), with no lab result or research of this repo's own behind any of them. This repo has no researched document for retrieval pipelines and vector stores yet, so for S12 the review should send the reader to two standards that already describe the failure modes well, which are OWASP's LLM09:2026 Vector and Embedding Weaknesses, with LLM02:2026 and LLM01:2026 for the disclosure and injection consequences, and the CoSAI risk map's Retrieval/Vector Store Poisoning risk together with the controls it lists. What the repo cannot yet say is how often real deployments get these wrong or which store configurations make the safe choice the default, and that is the gap below.
 
@@ -59,6 +61,7 @@ It does not mean the standards are wrong where they are silent, or that a deploy
 - The CoSAI counts (37 controls, 36 risks, five controls on the poisoning risk, one control naming the RAG content component explicitly) were read from the YAML at the pinned commit on 2026-11-10.
 - 2026-11-24: an outside review noted that the ingestion action treated internal content as trusted and that no action covered instructions in retrieved content, although `telemetry-is-an-injection-surface.md` hands that problem to this stub; trust is now defined by who can write to the source, and a fourth action bounds what a retrieval-fed agent can do.
 - `revalidate-by` is about five months out because both pins are young (the OWASP edition was published in August 2026) and a CoSAI commit that adds a retrieval access-control or retention control would change the third paragraph of the analysis.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

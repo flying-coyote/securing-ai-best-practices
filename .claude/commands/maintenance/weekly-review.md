@@ -76,6 +76,28 @@ WR=$(mktemp -d)
 
    Given no paths, the script reports the full count and never fails, which is why the review reads the numbers rather than the exit code. A non-zero `expired` forces `DRIFT`, and so does a non-zero `unreadable`, because a claim the script could not parse is a claim nobody is checking. An empty value for either means the script's output changed shape, and the review must not record a number it did not read.
 
+   Then list the maintained documents due for revalidation. Only documents with `maintenance: maintained` carry a `revalidate-by` and are revalidated on a schedule; frozen documents are not revalidated by this review or the quarterly sweep unless the maintainer decides to bring one back into the core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), and the expiry script above reports their past-date claims without gating them.
+
+   ```bash
+   python3 - <<'PY' > "$WR/due.txt"
+   import re, yaml, pathlib, datetime
+   today = datetime.date.today()
+   for p in sorted(pathlib.Path("analysis").rglob("*.md")):
+       if p.name == "CANONICAL-DOC-TEMPLATE.md":
+           continue
+       m = re.match(r"^---\n(.*?)\n---\n", p.read_text(encoding="utf-8"), re.S)
+       fm = (yaml.safe_load(m.group(1)) or {}) if m else {}
+       if fm.get("maintenance") != "maintained":
+           continue
+       rb = fm.get("revalidate-by")
+       if (rb - today).days <= 14:
+           print(f"DUE {p} revalidate-by {rb}")
+   PY
+   due=$(grep -c '^DUE' "$WR/due.txt")
+   ```
+
+   Every `DUE` line goes into next week's priorities as a revalidation task: re-read the document's sources at their publishers, record each read in `analysis/VERIFICATION-LOG.md`, move `last-verified` only when the sources have been re-read, and set the next `revalidate-by` in the same slot of the schedule so that no more than three maintained documents fall due in any 30 days (`check-routing-coverage.py` enforces that). The expiry script lists a maintained document already past its date as `docs-past-revalidate-by` without failing, so the `DUE` list here is where an overdue one shows up. `due` is reported and never gated on its own.
+
 5. Pins and the KEV snapshot.
 
    ```bash
@@ -227,7 +249,7 @@ WR=$(mktemp -d)
 14. Print the self-test line and append it to the log. The run prints exactly one line in this shape, with every value derived during this run, and appends it, dated, to `scans/weekly-review-log.md`, followed by one indented line per `DRIFT` item from step 13.
 
     ```bash
-    line="WEEKLY-REVIEW SELF-TEST: routable=$routable always-fetch=$always stubs=$stubs signals=$signals readme-match=<yes|no> routing=$routing fixtures=$fixtures exclusions=$exclusions prompt-blocks=$blocks reducers=$reducers expired-claims=$expired unreadable-claims=$unreadable pins-doc=$pins_doc pins-behind=$pins_behind sources-curated=$curated convergence-fields=$conv_present/$((routable + stubs)) absorption-rows=$map_rows/$((routable + stubs)) follows=$follows_docs lane-conflicts=$lane_conflicts map-verified=$map_verified dangling-live=$dangling_live wrong-status=$wrong_status guidance=$guidance instrument=$instrument declared-gaps=$declared_gaps stale-markers=$stale_markers protected=$protected required=$required force-push=$force_push delete-on-merge=$del_on_merge squash-only=$squash/$merge_commit/$rebase stale-branches=$stale_branches days-since-quarterly-scan=$scan_days => <OK|DRIFT>"
+    line="WEEKLY-REVIEW SELF-TEST: routable=$routable always-fetch=$always stubs=$stubs signals=$signals readme-match=<yes|no> routing=$routing fixtures=$fixtures exclusions=$exclusions prompt-blocks=$blocks reducers=$reducers expired-claims=$expired unreadable-claims=$unreadable revalidation-due=$due pins-doc=$pins_doc pins-behind=$pins_behind sources-curated=$curated convergence-fields=$conv_present/$((routable + stubs)) absorption-rows=$map_rows/$((routable + stubs)) follows=$follows_docs lane-conflicts=$lane_conflicts map-verified=$map_verified dangling-live=$dangling_live wrong-status=$wrong_status guidance=$guidance instrument=$instrument declared-gaps=$declared_gaps stale-markers=$stale_markers protected=$protected required=$required force-push=$force_push delete-on-merge=$del_on_merge squash-only=$squash/$merge_commit/$rebase stale-branches=$stale_branches days-since-quarterly-scan=$scan_days => <OK|DRIFT>"
     echo "$line"
     case "$line" in
       *"<"*|*"=>  "*|*"= "*) echo "REFUSED: the line still carries a placeholder or an empty value; nothing appended" ;;
@@ -238,7 +260,7 @@ WR=$(mktemp -d)
 
     Replace `<yes|no>` and `<OK|DRIFT>` with this run's values first; the `case` refuses to append a line that still carries a `<` placeholder or a value left empty because its variable was never set. The log is append-only: never edit or delete an earlier entry, and a week with no entry is a week the review did not run, which next week's run says in its own entry.
 
-    `OK` means every comparison above matched and nothing is overdue. Any of the following makes it `DRIFT`, and each drifted check must already be in step 13's priorities: a README mismatch; a failing routing, fixture, exclusion, prompt-block, reducer or pins-doc check; a non-zero expired or unreadable claim count; SOURCES curated more than 45 days ago; a missing convergence field; absorption rows short of `routable + stubs`, a non-zero `lane_conflicts`, or an overdue sweep date; a non-zero `dangling-live` or `wrong-status`, a `guidance` figure that is not `n/n`, or `instrument=BROKEN`; a non-zero `stale-markers`; any repository setting off its expected value; a non-zero `stale-branches`; or the quarterly scan overdue as step 12 defines it. `pins-behind` and `declared-gaps` are reported and never gated, for the reasons in steps 5 and 10. If the line cannot be printed with real values, the review did not run its checks, and saying it did is the failure this line exists to prevent.
+    `OK` means every comparison above matched and nothing is overdue. Any of the following makes it `DRIFT`, and each drifted check must already be in step 13's priorities: a README mismatch; a failing routing, fixture, exclusion, prompt-block, reducer or pins-doc check; a non-zero expired or unreadable claim count; SOURCES curated more than 45 days ago; a missing convergence field; absorption rows short of `routable + stubs`, a non-zero `lane_conflicts`, or an overdue sweep date; a non-zero `dangling-live` or `wrong-status`, a `guidance` figure that is not `n/n`, or `instrument=BROKEN`; a non-zero `stale-markers`; any repository setting off its expected value; a non-zero `stale-branches`; or the quarterly scan overdue as step 12 defines it. `pins-behind`, `revalidation-due` and `declared-gaps` are reported and never gated, for the reasons in steps 4, 5 and 10. If the line cannot be printed with real values, the review did not run its checks, and saying it did is the failure this line exists to prevent.
 
 15. Commit, every run, since step 14 always changes the log. Only the files this review edits, by explicit path: `scans/weekly-review-log.md` (always), `README.md` (the count line), `ABSORPTION-MAP.md` (a correction to match frontmatter), `analysis/revalidation-and-pins.md` (the KEV pin) and any document whose convergence value was set back. Use one branch for the review and merge it through a pull request, since `main` is protected.
 

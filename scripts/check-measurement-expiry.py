@@ -12,6 +12,15 @@ files; the full expired count still prints on one summary line for the weekly
 review. Passing --changed-files with no paths therefore never fails, which is
 what CI does on push and scheduled runs.
 
+A second change follows the maintained and frozen split in
+analysis/revalidation-and-pins.md. A doc's frontmatter `maintenance` must be
+`maintained` or `frozen` wherever it carries measurement claims; any other
+value, or none, is an error rather than a silent exemption. Claims in a frozen
+doc are still parsed and validated, and the ones past their date are counted
+and listed, but they never fail the run. A maintained doc whose own
+`revalidate-by` has passed is listed and counted for the weekly review, and
+never fails the run, because Decision 11 gates on expired claims only.
+
 Usage:
     python scripts/check-measurement-expiry.py                      # fail on any expired claim
     python scripts/check-measurement-expiry.py --changed-files a.md # fail only for a.md
@@ -37,6 +46,8 @@ class MeasurementExpiryChecker:
         self.expired_claims = []
         self.expiring_soon = []  # Within 30 days
         self.frozen_claims = []  # revalidate: never — deliberately unrepeatable
+        self.frozen_doc_claims = []  # past their date, but in a doc marked maintenance: frozen; reported, never gated
+        self.docs_due = []  # maintained docs past their own revalidate-by; reported, never gated
         # Files whose claims could not be read. Upstream printed a warning and
         # carried on, so an unreadable claim counted as current: the fail-open
         # shape. Here an error is reported and fails the run (scoped like an
@@ -58,6 +69,8 @@ class MeasurementExpiryChecker:
 
         return {
             "frozen": self.frozen_claims,
+            "frozen_doc": self.frozen_doc_claims,
+            "docs_due": self.docs_due,
             "errors": self.errors,
             "expired": self.expired_claims,
             "expiring_soon": self.expiring_soon,
@@ -78,9 +91,17 @@ class MeasurementExpiryChecker:
             if not frontmatter:
                 return  # No frontmatter, skip
 
+            maintenance = frontmatter.get("maintenance")
+            if maintenance == "maintained" and "revalidate-by" in frontmatter:
+                self._check_doc_revalidate_by(pattern_file, frontmatter["revalidate-by"], today)
+
             # Check for measurement-claims field
             if "measurement-claims" not in frontmatter:
                 return  # No measurement claims, skip
+
+            if maintenance not in ("maintained", "frozen"):
+                # An unknown or missing value must not exempt a doc's claims, or a typo would be a bypass.
+                raise ValueError(f"maintenance {maintenance!r} is not 'maintained' or 'frozen'")
 
             claims = frontmatter["measurement-claims"]
             if not isinstance(claims, list):
@@ -89,7 +110,7 @@ class MeasurementExpiryChecker:
 
             # Check each claim
             for claim in claims:
-                self._check_claim(pattern_file, claim, today)
+                self._check_claim(pattern_file, claim, today, frozen_doc=(maintenance == "frozen"))
 
         except Exception as e:
             print(f"   ⚠️  Error checking {pattern_file}: {e}")
@@ -108,7 +129,18 @@ class MeasurementExpiryChecker:
         # error rather than treating the file as having no claims.
         return yaml.safe_load(match.group(1))
 
-    def _check_claim(self, pattern_file: Path, claim: Dict, today):
+    def _check_doc_revalidate_by(self, pattern_file: Path, value, today):
+        """A maintained doc past its own revalidate-by is due for revalidation; listed, never gated."""
+        d = value if isinstance(value, date) else None
+        if d is None:
+            try:
+                d = datetime.strptime(str(value).strip(), "%Y-%m-%d").date()
+            except ValueError:
+                raise ValueError(f"invalid revalidate-by {value!r}")
+        if d < today:
+            self.docs_due.append({"file": str(pattern_file), "revalidate-by": d.isoformat(), "days_overdue": (today - d).days})
+
+    def _check_claim(self, pattern_file: Path, claim: Dict, today, frozen_doc: bool = False):
         """Check a single measurement claim for expiry."""
         if not isinstance(claim, dict):
             raise ValueError(f"a measurement claim is not a mapping: {str(claim)[:60]!r}")
@@ -153,6 +185,16 @@ class MeasurementExpiryChecker:
                 raise ValueError(f"invalid revalidate date {revalidate_str!r}")
         if isinstance(date_str, date):
             date_str = date_str.isoformat()
+
+        if frozen_doc:
+            # frozen reference: validated above, reported if past its date, never gated
+            if revalidate_date < today:
+                self.frozen_doc_claims.append({
+                    "file": str(pattern_file),
+                    "claim": claim_text,
+                    "revalidate": revalidate_str,
+                })
+            return
 
         # Check if expired
         if revalidate_date < today:
@@ -282,6 +324,10 @@ def main():
     print(f"\n📊 Summary:")
     print(f"   ⚠️  Expired: {expired_count} claims")
     print(f"   ⏰ Expiring soon (30 days): {expiring_soon_count} claims")
+    print(f"   🧊 Past date in frozen docs (reported, not gated): {len(results['frozen_doc'])} claims")
+    print(f"   📅 Maintained docs past revalidate-by (reported, not gated): {len(results['docs_due'])}")
+    for d in results["docs_due"]:
+        print(f"      - {d['file']}: document revalidate-by {d['revalidate-by']} ({d['days_overdue']} days overdue)")
 
     if expired_count > 0:
         print(f"\n⚠️  EXPIRED CLAIMS FOUND:")
@@ -316,6 +362,7 @@ def main():
         in_scope = [c for c in results["expired"] if Path(c["file"]).resolve() in changed]
         err_scope = [e for e in results["errors"] if Path(e["file"]).resolve() in changed]
         print(f"\nexpired-claims total={expired_count} in-changed-files={len(in_scope)} "
+              f"frozen-doc-past-date total={len(results['frozen_doc'])} docs-past-revalidate-by total={len(results['docs_due'])} "
               f"unreadable total={len(results['errors'])} in-changed-files={len(err_scope)} "
               f"files-checked={results['checked_files']} date={results['check_date']}")
         if err_scope:

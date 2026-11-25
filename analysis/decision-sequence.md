@@ -11,7 +11,8 @@ pins:
   - "CISA KEV catalogVersion 2026.11.09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-01-26
+revalidate-by: 2027-02-03
+maintenance: maintained
 status: EMERGING
 ---
 

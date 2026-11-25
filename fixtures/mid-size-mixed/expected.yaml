@@ -44,6 +44,8 @@ actions:
   docs:
   - analysis/agent-identity-and-delegation.md
   - analysis/mcp-servers-and-manifest-drift.md
+  evidence-tier: A; Tier D for the broker threshold
+  convergence: single-source
 - key: dpia-absent
   weight: PROBLEM
   band: High
@@ -52,6 +54,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/prompt-capture-and-the-law.md
+  evidence-tier: A statute, B guidance
+  convergence: single-source
 - key: prompt-capture-tier-full
   weight: PROBLEM
   band: High
@@ -61,6 +65,8 @@ actions:
   docs:
   - analysis/what-to-log-and-what-it-costs.md
   - analysis/prompt-capture-and-the-law.md
+  evidence-tier: D
+  convergence: single-source
   escalated: true
 - key: hook-fail-open
   weight: PROBLEM
@@ -70,6 +76,8 @@ actions:
   confidence: read
   docs:
   - analysis/coding-agent-hooks-and-policy.md
+  evidence-tier: B
+  convergence: single-source
 - key: mcp-allowlist-absent
   weight: PROBLEM
   band: Medium
@@ -78,6 +86,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/mcp-servers-and-manifest-drift.md
+  evidence-tier: B
+  convergence: single-source
 - key: oauth-grants-unreviewed
   weight: PROBLEM
   band: Medium
@@ -86,6 +96,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/inventory-and-shadow-ai.md
+  evidence-tier: B, with Tier A for why it matters
+  convergence: single-source
 - key: rag-acl-propagation-unknown
   weight: PROBLEM
   band: Medium
@@ -94,7 +106,11 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/rag-stores.md
+  evidence-tier: A for the practice
+  convergence: single-source
   declared-gap: true
+  frozen-docs:
+  - analysis/stubs/rag-stores.md (not revalidated since 2026-11-10)
 - key: agent-publish-approval-absent
   weight: PROBLEM
   band: Medium
@@ -103,7 +119,11 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/agent-builders.md
+  evidence-tier: A for the control, B and C for the platform settings
+  convergence: single-source
   declared-gap: true
+  frozen-docs:
+  - analysis/stubs/agent-builders.md (not revalidated since 2026-11-10)
 - key: nhi-inventory-absent
   weight: PROBLEM
   band: Medium
@@ -112,6 +132,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/agent-identity-and-delegation.md
+  evidence-tier: B for the features, D for the buy threshold
+  convergence: single-source
 - key: audit-log-off-managed-model-platform
   weight: PROBLEM
   band: Medium
@@ -120,6 +142,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/telemetry-by-surface.md
+  evidence-tier: B
+  convergence: single-source
 - key: output-handling-unreviewed
   weight: PROBLEM
   band: Medium
@@ -128,7 +152,11 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-you-ship.md
+  evidence-tier: A for the risk category
+  convergence: single-source
   declared-gap: true
+  frozen-docs:
+  - analysis/stubs/ai-you-ship.md (not revalidated since 2026-11-24)
 - key: incumbent-inventory-absent
   weight: PROBLEM
   band: Medium
@@ -137,6 +165,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/configure-before-you-buy.md
+  evidence-tier: B for the agency precedent; Tier D for the three-column shape
+  convergence: single-source
 review:
 - key: gateway-token-store-unreviewed
   weight: REVIEW
@@ -146,6 +176,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/ai-apis-and-the-gateway.md
+  evidence-tier: A for the KEV record, B for the controls, D for the custody question
+  convergence: single-source
 - key: mcp-unpinned
   weight: REVIEW
   band: Medium
@@ -154,6 +186,8 @@ review:
   confidence: read
   docs:
   - analysis/mcp-servers-and-manifest-drift.md
+  evidence-tier: D for the practice, B for the exposure
+  convergence: single-source
 - key: mcp-remote
   weight: REVIEW
   band: Medium
@@ -162,6 +196,8 @@ review:
   confidence: read
   docs:
   - analysis/mcp-servers-and-manifest-drift.md
+  evidence-tier: B for caller and decision logging, D for header logging
+  convergence: single-source
 - key: mcp-manifest-snapshot-absent
   weight: REVIEW
   band: Medium
@@ -170,6 +206,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/mcp-servers-and-manifest-drift.md
+  evidence-tier: B, D for the operating conditions
+  convergence: single-source
 - key: own-heavy-small-org
   weight: REVIEW
   band: Medium
@@ -178,6 +216,8 @@ review:
   confidence: derived
   docs:
   - analysis/rent-or-own-sized-to-the-org.md
+  evidence-tier: D
+  convergence: single-source
 - key: ai-subprocessor-review-absent
   weight: REVIEW
   band: Medium
@@ -186,6 +226,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/saas-embedded-ai-and-vendor-terms.md
+  evidence-tier: A for the obligation
+  convergence: single-source
 - key: sensitivity-labels-absent
   weight: REVIEW
   band: Medium
@@ -194,6 +236,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/stubs/assistant-oversharing.md
+  evidence-tier: B
+  convergence: single-source
   declared-gap: true
 - key: embeddings-outside-governance
   weight: REVIEW
@@ -203,7 +247,11 @@ review:
   confidence: believed
   docs:
   - analysis/stubs/rag-stores.md
+  evidence-tier: A
+  convergence: single-source
   declared-gap: true
+  frozen-docs:
+  - analysis/stubs/rag-stores.md (not revalidated since 2026-11-10)
   confirm-within-days: 7
 - key: cloud-trail-default-only
   weight: REVIEW
@@ -213,6 +261,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/ai-apis-and-the-gateway.md
+  evidence-tier: B
+  convergence: single-source
 - key: model-rollback-untested
   weight: REVIEW
   band: Medium
@@ -221,6 +271,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  evidence-tier: A for the practice; nothing measured here
+  convergence: single-source
   declared-gap: true
 - key: vendor-evaluation-in-progress
   weight: REVIEW
@@ -231,6 +283,11 @@ review:
   docs:
   - analysis/reading-vendor-claims.md
   - analysis/build-buy-and-the-high-priest.md
+  evidence-tier: D for the ask; Tier B for why sensor position decides reach
+  convergence: single-source
+  frozen-docs:
+  - analysis/reading-vendor-claims.md (not revalidated since 2026-11-10)
+  - analysis/build-buy-and-the-high-priest.md (not revalidated since 2026-11-10)
 - key: profile-own-heavy
   weight: REVIEW
   band: Low
@@ -240,6 +297,10 @@ review:
   docs:
   - analysis/rent-or-own-sized-to-the-org.md
   - analysis/models-you-hold.md
+  evidence-tier: D for the staffing, Tier A and B for the gaps
+  convergence: single-source
+  frozen-docs:
+  - analysis/models-you-hold.md (not revalidated since 2026-11-10)
 - key: coverage-view-absent
   weight: REVIEW
   band: Low
@@ -248,6 +309,10 @@ review:
   confidence: owner-stated
   docs:
   - analysis/incumbent-tool-coverage.md
+  evidence-tier: B facts, D grades
+  convergence: single-source
+  frozen-docs:
+  - analysis/incumbent-tool-coverage.md (not revalidated since 2026-11-10)
 - key: delegation-record-absent
   weight: REVIEW
   band: Low
@@ -256,6 +321,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/agent-identity-and-delegation.md
+  evidence-tier: B, one IdP at one version
+  convergence: single-source
 - key: content-channel-on
   weight: REVIEW
   band: Low
@@ -265,6 +332,8 @@ review:
   docs:
   - analysis/telemetry-by-surface.md
   - analysis/what-to-log-and-what-it-costs.md
+  evidence-tier: B for the switches; D for the decision
+  convergence: single-source
 - key: content-lands-own-cloud
   weight: REVIEW
   band: Low
@@ -273,6 +342,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/telemetry-by-surface.md
+  evidence-tier: B
+  convergence: single-source
 docs:
 - analysis/evidence-tiers.md
 - analysis/surface-ownability.md

@@ -39,6 +39,10 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/models-you-hold.md
+  evidence-tier: A for the CVEs, D for the policy order
+  convergence: single-source
+  frozen-docs:
+  - analysis/models-you-hold.md (not revalidated since 2026-11-10)
 - key: agent-kill-switch-absent
   weight: PROBLEM
   band: High
@@ -47,6 +51,8 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  evidence-tier: A for the practice; nothing measured here
+  convergence: single-source
   declared-gap: true
 - key: containment-pre-authorized-broad
   weight: PROBLEM
@@ -56,6 +62,10 @@ actions:
   confidence: believed
   docs:
   - analysis/evaluating-ai-in-the-soc.md
+  evidence-tier: D
+  convergence: single-source
+  frozen-docs:
+  - analysis/evaluating-ai-in-the-soc.md (not revalidated since 2026-11-10)
   confirm-within-days: 7
 - key: inference-runtime-default-bind
   weight: PROBLEM
@@ -65,6 +75,10 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/models-you-hold.md
+  evidence-tier: B
+  convergence: single-source
+  frozen-docs:
+  - analysis/models-you-hold.md (not revalidated since 2026-11-10)
   escalated: true
 - key: ai-analyst-ungraded
   weight: PROBLEM
@@ -74,6 +88,10 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/evaluating-ai-in-the-soc.md
+  evidence-tier: B for the method, D for the threshold of trust
+  convergence: single-source
+  frozen-docs:
+  - analysis/evaluating-ai-in-the-soc.md (not revalidated since 2026-11-10)
 - key: model-store-unscanned
   weight: PROBLEM
   band: Medium
@@ -82,6 +100,10 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/models-you-hold.md
+  evidence-tier: B for T5, A for the bypass CVEs
+  convergence: single-source
+  frozen-docs:
+  - analysis/models-you-hold.md (not revalidated since 2026-11-10)
 - key: mapping-treated-as-coverage
   weight: PROBLEM
   band: Medium
@@ -90,6 +112,10 @@ actions:
   confidence: owner-stated
   docs:
   - analysis/frameworks-and-what-they-reach.md
+  evidence-tier: B
+  convergence: single-source
+  frozen-docs:
+  - analysis/frameworks-and-what-they-reach.md (not revalidated since 2026-11-10)
 review:
 - key: record-in-agent-reach
   weight: REVIEW
@@ -99,6 +125,10 @@ review:
   confidence: owner-stated
   docs:
   - analysis/tamper-evident-record.md
+  evidence-tier: A for the control, B for the features
+  convergence: single-source
+  frozen-docs:
+  - analysis/tamper-evident-record.md (not revalidated since 2026-11-10)
 - key: telemetry-into-llm
   weight: REVIEW
   band: Medium
@@ -107,6 +137,10 @@ review:
   confidence: owner-stated
   docs:
   - analysis/telemetry-is-an-injection-surface.md
+  evidence-tier: A for the exposure, D for the practice
+  convergence: single-source
+  frozen-docs:
+  - analysis/telemetry-is-an-injection-surface.md (not revalidated since 2026-11-10)
 - key: fine-tuned-models
   weight: REVIEW
   band: Medium
@@ -115,6 +149,10 @@ review:
   confidence: owner-stated
   docs:
   - analysis/fine-tuned-model-is-a-data-store.md
+  evidence-tier: A for memorization, D for the rule
+  convergence: single-source
+  frozen-docs:
+  - analysis/fine-tuned-model-is-a-data-store.md (not revalidated since 2026-11-10)
 - key: training-record-absent
   weight: REVIEW
   band: Medium
@@ -123,6 +161,10 @@ review:
   confidence: owner-stated
   docs:
   - analysis/fine-tuned-model-is-a-data-store.md
+  evidence-tier: D for the record, A for why it is needed
+  convergence: single-source
+  frozen-docs:
+  - analysis/fine-tuned-model-is-a-data-store.md (not revalidated since 2026-11-10)
 - key: ai-playbook-absent
   weight: REVIEW
   band: Medium
@@ -131,6 +173,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  evidence-tier: A
+  convergence: single-source
   declared-gap: true
 - key: model-rollback-untested
   weight: REVIEW
@@ -140,6 +184,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/stubs/ai-incident-response.md
+  evidence-tier: A for the practice; nothing measured here
+  convergence: single-source
   declared-gap: true
 - key: custom-build-planned
   weight: REVIEW
@@ -149,6 +195,10 @@ review:
   confidence: owner-stated
   docs:
   - analysis/build-buy-and-the-high-priest.md
+  evidence-tier: D, resting on Tier A debt and truck-factor evidence
+  convergence: single-source
+  frozen-docs:
+  - analysis/build-buy-and-the-high-priest.md (not revalidated since 2026-11-10)
 - key: profile-own-heavy
   weight: REVIEW
   band: Low
@@ -158,6 +208,10 @@ review:
   docs:
   - analysis/rent-or-own-sized-to-the-org.md
   - analysis/models-you-hold.md
+  evidence-tier: D for the staffing, Tier A and B for the gaps
+  convergence: single-source
+  frozen-docs:
+  - analysis/models-you-hold.md (not revalidated since 2026-11-10)
 - key: coverage-view-absent
   weight: REVIEW
   band: Low
@@ -166,6 +220,10 @@ review:
   confidence: owner-stated
   docs:
   - analysis/incumbent-tool-coverage.md
+  evidence-tier: B facts, D grades
+  convergence: single-source
+  frozen-docs:
+  - analysis/incumbent-tool-coverage.md (not revalidated since 2026-11-10)
 - key: delegation-record-absent
   weight: REVIEW
   band: Low
@@ -174,6 +232,8 @@ review:
   confidence: owner-stated
   docs:
   - analysis/agent-identity-and-delegation.md
+  evidence-tier: B, one IdP at one version
+  convergence: single-source
 - key: content-channel-off
   weight: REVIEW
   band: Low
@@ -183,6 +243,8 @@ review:
   docs:
   - analysis/telemetry-by-surface.md
   - analysis/what-to-log-and-what-it-costs.md
+  evidence-tier: B for the switches; D for the decision
+  convergence: single-source
 - key: prompt-capture-tier-metadata
   weight: REVIEW
   band: Low
@@ -192,6 +254,8 @@ review:
   docs:
   - analysis/what-to-log-and-what-it-costs.md
   - analysis/prompt-capture-and-the-law.md
+  evidence-tier: B
+  convergence: single-source
 docs:
 - analysis/evidence-tiers.md
 - analysis/surface-ownability.md

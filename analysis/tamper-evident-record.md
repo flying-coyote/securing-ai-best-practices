@@ -12,7 +12,7 @@ pins:
   - "AWS CloudTrail and Amazon S3 Object Lock documentation as read 2026-11-10"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-06-10
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "In Claude Code 2.1.321 headless, the evidence of a PreToolUse hook or permission-rule decision lived in four places (session transcript, stream-json, debug log, OpenTelemetry) and only OpenTelemetry was a wire format; the transcript and debug log are local files under the user's own config and working paths; one host, one version, one run per cell"
@@ -50,6 +50,8 @@ measurement-claims:
 Evidence tier: Mixed, with the OCSF 1.9.0 schema, NIST SP 800-53, GDPR Article 17 and two peer-reviewed papers on secure logging at A, vendor documentation of what a feature does and six single-host lab runs at B (the PAN-OS replay at B/C, two runs independently verified), and the storage design and the order of the practices at D.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 This repo's working thesis is that most of the telemetry about an AI agent today is the agent's harness describing itself, written on the same machine under the same user the agent runs as, so the first question about that record is who can change it, because a record the actor can edit or switch off proves little about what the actor did. The practices below move the record out of reach first, then make tampering detectable with a key the actor does not hold, then deal with storage.
 
@@ -143,6 +145,7 @@ It does not mean local transcripts are worthless. They are often the richest rec
 - 2026-11-10: the PME error strings are paraphrased because the raw strings carry temporary paths.
 - 2026-11-24: an outside review noted that the document recommended immutable storage with no erasure caveat and demonstrated a silenced exporter with no control that would notice it; two summary actions and the paragraphs behind them were added, both Tier D designs over A and B sources, and the Article 17 and Object Lock retention texts were read on that date. The same review suggested moving the storage-layer section to a reference document; that move needs a new file and is left to the maintainer, and the section now says it answers no routed question.
 - Decision 16 choices: the determinism byte counts are quoted per run because the variation is the finding; R5's 12 of 15 is the OCSF-native rule under canonical hashing, and its contract-drift rule fired on 9 of 15.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

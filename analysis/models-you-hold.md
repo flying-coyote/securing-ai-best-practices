@@ -13,7 +13,7 @@ pins:
   - "Ollama, llama.cpp server (master), vLLM (latest) and LM Studio documentation as read 2026-11-10"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-03
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "Pointed at six artifacts (a named GGUF file, the same weights in Ollama's store, a safetensors directory, an npm and a pip MCP server, a VS Code extension), Syft, Trivy, ai-bom and cyclonedx-bom found 4 of 6 in some form and 1 of 6 typed as an AI artifact under the pre-registered name match (3 of 6 found without the non-pre-registered Trivy rootfs mode); a lenient path rule added at scoring raises that to 5 of 6 and 2 of 6; no tool saw the Ollama store and no model component carried a usable PURL or CPE; one host, one fixture set, 3 identical runs"
@@ -47,6 +47,8 @@ measurement-claims:
 Evidence tier: Mixed, with NVD CVE records, the CISA KEV catalogue, MITRE ATLAS v2026.10 and peer-reviewed backdoor research at A, two verified lab runs on one host and runtime project documentation of their own defaults at B, vendor research and exposure counts I could not re-read at C with the bias flagged, and the order of the practices at D.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 An organization that holds model weights takes on the controls a hosted provider would otherwise run, and the first finding is that the tooling a security team already owns does not see the weights as AI: in lab run R4 one of six artifacts was typed as an AI artifact under the pre-registered match, no model got an identifier a vulnerability matcher can use, and the Ollama store was seen by no tool. So the work starts with an inventory keyed on a hash of the weights, then the format and loader rules, then the runtime's documented defaults, which leave authentication off in each of the three runtimes whose documentation states it.
 
@@ -158,6 +160,7 @@ It does not mean SBOM tooling is useless for AI, since in R4 it handled MCP serv
 - 2026-11-10: lab numbers were re-derived from the RESULTS files at 91e44df, CVEs from the NVD API, runtime rows from each project's page, ATLAS IDs from the v2026.10 release file and CoSAI statements from the YAML at 622605a1.
 - 2026-11-24: the `trust_remote_code` policy, the signing practice and the Ray and MLflow bind and authentication check are my judgement (Tier D); the digest home now matches fine-tuned-model-is-a-data-store.md (`unmapped`, not `uid`).
 - 2026-11-10: the practice order, the scanner-as-filter reading and the KEV reading are my judgement (Tier D); `revalidate-by` is just under three months out because the document cites ATLAS IDs.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

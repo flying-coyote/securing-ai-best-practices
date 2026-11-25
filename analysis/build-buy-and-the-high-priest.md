@@ -11,7 +11,7 @@ pins:
   - "CISA KEV catalog 2026.11.09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-06-28
+maintenance: frozen
 status: EMERGING
 ---
 
@@ -20,6 +20,8 @@ status: EMERGING
 Evidence tier: Mixed. Tier A for the peer-reviewed work on technical debt, truck factors, abandonment and lock-in, for the standards that require an inventory, for the Sigma specification's format, for CISA's KEV catalogue and for the CoSAI control IDs; Tier B for Reed's essay, Conway's 1968 trade-magazine paper, the mirroring study (whose abstract was read only through a search summary), the SRE book, the METR trial (a preprint), the CIO Council playbook and OMB M-25-21; Tier C for DORA 2024's self-report association and Veracode's vendor benchmark, bias flagged; Tier D for the transfer of open-source results to internal tools, the build list, the preconditions and the configure-first view, all labelled where used.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 A custom AI-security tool is cheap to build this year and as expensive to keep as software has ever been, because maintenance is the larger share of a system's lifetime cost and an internal tool usually has one person who understands it, so a build should be priced on who upgrades it in month four and what happens when that person leaves.
 
@@ -122,6 +124,7 @@ It does not mean building is wrong, since the five cases above are builds I'd re
 - What was read at the primary, and when. The drafting pass of 2026-11-10 lists Avelino 2016 and 2019, METR, Coelho and Valente, OMB M-25-21, SRE chapter 1, CISA KEV and the CoSAI IDs at `622605a1` as re-read, but the verification log for the same day could confirm only the two Avelino abstracts itself and marks three items "Gemini only": the 86 percent figure, which is in the 2019 paper's body, the SRE chapter 1 cap, and Coelho and Valente's 104 projects and nine reasons. Those three were read at the primary on 2026-11-24 (the arXiv full texts of 1906.08058, where the 86 percent sits in the RQ2 answer, and 1707.02327, and the chapter at sre.google) and each says what this document says, as the follow-up table in `VERIFICATION-LOG.md` records. MacCormack, DORA and Veracode rest on abstracts, vendor posts and search summaries.
 - 2026-11-24: Conway regraded from C to B and MacCormack cited at B for how it was read, Sigma and KEV moved to A to match `analysis/evidence-tiers.md`, the Reed's-law dependency of the preconditions stated, the 80 to 90 percent figure pointed at its one statement in `analysis/decision-sequence.md`, and "evaluation harness" split into a filter test set and a model evaluation harness.
 - `revalidate-by` sits about seven and a half months out because the document depends more on the software-engineering literature than on monthly framework releases.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

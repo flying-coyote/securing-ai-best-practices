@@ -101,7 +101,7 @@ def test_expiry() -> None:
     for label, block, want in cases:
         with tempfile.TemporaryDirectory() as td:
             r = Path(td)
-            write(r, "analysis/doc.md", "---\nstatus: EMERGING\nmeasurement-claims:\n" + block
+            write(r, "analysis/doc.md", "---\nstatus: EMERGING\nmaintenance: maintained\nmeasurement-claims:\n" + block
                   + "---\n\n# Doc \u2014 with non-ASCII text, caf\u00e9\n")
             p = py("check-measurement-expiry.py", "--patterns-dir", r / "analysis", cwd=r)
             check(p.returncode == want, f"expiry: {label} claim exits {want}", p.stdout[-400:])
@@ -109,6 +109,29 @@ def test_expiry() -> None:
                 q = py("check-measurement-expiry.py", "--patterns-dir", r / "analysis", "--changed-files",
                        r / "analysis" / "doc.md", cwd=r)
                 check(q.returncode == 1, f"expiry: {label} claim fails when its doc is in the change", q.stdout[-300:])
+
+
+def test_expiry_maintenance() -> None:
+    """Frozen docs are exempt from the expiry gate but still validated; an unknown value is no bypass."""
+    past = "  - claim: \"x\"\n    source: \"s\"\n    revalidate: 2000-01-01\n"
+    cases = [
+        ("a past claim in a frozen doc is reported, not gated", "maintenance: frozen\n", past, 0, "frozen-doc-past-date total=1"),
+        ("a past claim in a maintained doc fails", "maintenance: maintained\n", past, 1, None),
+        ("a claim in a doc with no maintenance value fails", "", past, 1, "maintenance"),
+        ("a claim in a doc with an unknown maintenance value fails", "maintenance: freezed\n", past, 1, "maintenance"),
+        ("an undated claim in a frozen doc still fails", "maintenance: frozen\n",
+         "  - claim: \"x\"\n    source: \"s\"\n", 1, None),
+        ("a maintained doc past its own revalidate-by is listed, not gated", "maintenance: maintained\nrevalidate-by: 2000-01-01\n",
+         "  - claim: \"x\"\n    source: \"s\"\n    revalidate: 2099-01-01\n", 0, "docs-past-revalidate-by total=1"),
+    ]
+    for label, fm, block, want, needle in cases:
+        with tempfile.TemporaryDirectory() as td:
+            r = Path(td)
+            write(r, "analysis/doc.md", "---\nstatus: EMERGING\n" + fm + "measurement-claims:\n" + block + "---\n\n# Doc\n")
+            p = py("check-measurement-expiry.py", "--patterns-dir", r / "analysis", cwd=r)
+            q = py("check-measurement-expiry.py", "--patterns-dir", r / "analysis", "--changed-files", cwd=r)
+            out = p.stdout + q.stdout
+            check(p.returncode == want and (needle is None or needle in out), f"expiry: {label}", out[-500:])
 
 
 def test_probe_tally() -> None:
@@ -242,6 +265,7 @@ def test_bundle_reducer_archive() -> None:
 def main() -> int:
     test_check_pins()
     test_expiry()
+    test_expiry_maintenance()
     test_probe_tally()
     test_links()
     test_exclusions()

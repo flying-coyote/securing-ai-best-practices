@@ -7,6 +7,7 @@ pins: []
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
 revalidate-by: 2027-05-10
+maintenance: maintained
 status: EMERGING
 ---
 
@@ -27,7 +28,9 @@ pins:                                         # versions the doc was checked aga
   - "OCSF <version>"
 summary-section: "Summary for the review"     # the heading the review reads first
 last-verified: YYYY-MM-DD
-revalidate-by: YYYY-MM-DD                     # staggered 3 to 8 months out; 3 if ATLAS-dependent
+revalidate-by: YYYY-MM-DD                     # maintained docs only: staggered 3 to 8 months out, 3 if ATLAS-dependent,
+                                              # at most three maintained docs due in any 30 days; frozen docs omit it
+maintenance: maintained | frozen              # maintained: Always Fetch or routed by a small-org golden; frozen otherwise
 status: PRODUCTION | EMERGING | RETIRING | RETIRED | REFERENCE | ARCHIVED
 follows: "..."                                # optional; mutually exclusive with replacement-by
 replacement-by: "..."                         # required when RETIRING or RETIRED
@@ -48,7 +51,8 @@ measurement-claims:                           # optional; re-runnable claims onl
 | `surfaces` | Which of the thirteen surfaces the doc applies to, by S-number. |
 | `pins` | The framework, schema and catalogue versions the doc was checked against, so a release can tell which docs a new upstream version reopens. |
 | `summary-section` | The exact heading of the routable summary. The review reads this section for every routed doc and reads below it only when an action needs the depth. |
-| `last-verified`, `revalidate-by` | When the claims were last checked, and when they expire. |
+| `last-verified`, `revalidate-by` | When the claims were last checked, and, on a maintained document, when they expire. `last-verified` moves only when the document's sources are re-read. |
+| `maintenance` | `maintained` for the maintained core (the four Always Fetch documents and every document the two small-org fixtures route to), which carries a `revalidate-by` and is revalidated by the weekly review; `frozen` for everything else, which carries no `revalidate-by`, opens its Summary with the line `Frozen reference: not revalidated since <last-verified>.`, keeps its `measurement-claims` reported but not gated, and is still checked structurally by every other script. Any other value fails the routing-coverage check. See `revalidation-and-pins.md`, "Maintained and frozen documents". |
 | `status` | `PRODUCTION` validated and active; `EMERGING` not yet validated or carrying a declared gap; `RETIRING` deferring to a cleared replacement; `RETIRED` tombstone; `REFERENCE` imported reference; `ARCHIVED` superseded. |
 | `follows`, `replacement-by` | The two absorption lanes (see `CONTRIBUTING.md` and `ABSORPTION-MAP.md`). |
 | `measurement-claims` | Dated quantitative claims something can re-run, each pinned to a commit, release or dated primary. A frozen claim takes `revalidate: never` with a one-line reason in the notes. Judgements, perspectives and models with stated assumptions do not go here; they carry a dated prose marker and, where they are repo-level, a pointer to `DECISIONS.md`. |
@@ -56,7 +60,7 @@ measurement-claims:                           # optional; re-runnable claims onl
 
 ## Size budget
 
-The routable summary section stays under about 350 words and opens with the doc's thesis in one or two sentences, then the practices as actions, each with its effort (S, M or L) and the tier of its evidence. The whole document aims for about 2,500 words and should not pass 4,000; depth beyond that belongs in the lab repo or the cited primaries, linked. The reason is arithmetic: a review reads four Always Fetch documents and up to about eight routed ones beside a long interview, and an agent that runs out of context drops the end of the review, which is where the Question Packets and the appendices live. These numbers are a starting budget and will be re-set once the fixtures measure a full run's context use.
+The routable summary section stays under about 350 words and opens with the doc's thesis in one or two sentences, then the practices as actions, each with its effort (S, M or L) and the tier of its evidence. Write each tier as `Tier X` followed by its qualifier (`Tier B for the features, D for the threshold`), because each routing row copies the label of the action it triggers into its `evidence` field and `scripts/check-routing-coverage.py` fails when a row's label no longer appears in the Summary, so editing a label here means editing the row too. The whole document aims for about 2,500 words and should not pass 4,000; depth beyond that belongs in the lab repo or the cited primaries, linked. The reason is arithmetic: a review reads four Always Fetch documents and up to about eight routed ones beside a long interview, and an agent that runs out of context drops the end of the review, which is where the Question Packets and the appendices live. These numbers are a starting budget and will be re-set once the fixtures measure a full run's context use.
 
 ## Default-state rows
 

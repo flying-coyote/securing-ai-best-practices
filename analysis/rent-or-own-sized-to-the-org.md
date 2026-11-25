@@ -7,7 +7,8 @@ pins:
   - "CoSAI secure-ai-tooling 622605a1"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-03
+revalidate-by: 2027-02-17
+maintenance: maintained
 status: EMERGING
 ---
 

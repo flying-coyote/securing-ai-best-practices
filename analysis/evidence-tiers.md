@@ -6,7 +6,8 @@ surfaces: []
 pins: []
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-06-14
+revalidate-by: 2027-06-17
+maintenance: maintained
 status: EMERGING
 ---
 
@@ -18,7 +19,7 @@ Evidence tier: D, because the ladder is the maintainer's judgement about how to 
 
 A source's tier depends on what it is cited for, so the same vendor page can be Tier B for what a setting does and Tier C for how well it works, and the tier always measures confidence in a claim, never how urgent an action is. Every review fetches this document so that the confidence printed beside each action means the same thing to the agent and to the reader.
 
-- Print the backing document's frontmatter `evidence-tier` and `convergence` beside every action, read from the frontmatter and never inferred from the prose, and where the document is Mixed name the tier of the specific claim the action rests on. Effort S; Tier D (repo rule).
+- Print the routing row's `evidence` beside every action: the tier label the backing document's Summary states for the action that row triggers, copied as written, and the document's convergence. Where a row says `tier-source: doc` or carries no `evidence`, print the document's frontmatter `evidence-tier` and `convergence` and name the tier of the specific claim the action rests on, and never infer either from the prose. Effort S; Tier D (repo rule).
 - Keep priority and confidence apart: priority comes from the rubric in `routing.yaml`, so a Tier A source never raises a band and a Tier D perspective orders actions inside a band without raising one. Effort S; Tier D.
 - Treat any vendor claim about efficacy, speed or comparison as Tier C with the bias flagged, however it is phrased, and say so in the action. Effort S; Tier D.
 - Carry compound labels as written ("A schema; D grades") rather than collapsing them to the higher or the average tier. Effort S; Tier D.
@@ -82,8 +83,8 @@ The ladder is adapted, under the MIT licence, from `analysis/evidence-tiers.md` 
 | Axis | Question it answers | Where it comes from | What it may never do |
 |---|---|---|---|
 | Priority | How bad is this if it is true? | the four-factor rubric in `routing.yaml`, folded into High, Medium or Low | be raised by a source's tier |
-| Evidence tier | How good is the source behind the practice? | the backing document's frontmatter, and the claim's inline tier where the document is Mixed | be read from prose or guessed |
-| Convergence | How broadly is the practice adopted? | frontmatter; born `single-source`, `converged` only by the standards route or the weekly review (Decision 7) | be inferred from a single citation |
+| Evidence tier | How good is the source behind the practice? | the routing row's `evidence`, which copies the tier the backing document's Summary states for that action and which `check-routing-coverage.py` holds to that Summary; the document's frontmatter where the row says `tier-source: doc` | be read from prose or guessed |
+| Convergence | How broadly is the practice adopted? | the routing row, which carries its document's frontmatter value; born `single-source`, `converged` only by the standards route or the weekly review (Decision 7) | be inferred from a single citation, or set higher on a row than on its document |
 | Observation confidence | How sure is the practitioner that the condition holds here? | the interview or a reducer: read, owner-stated or believed | change a tier; a believed observation keeps its band and adds a confirm-within deadline instead |
 
 The axes are easy to blur because they all sound like confidence, so the review prints them as separate fields, and a reader can see that a High action backed by a Tier D perspective rests on a real exposure and a weak argument for the fix, which is a different thing from a Low action backed by a Tier A standard.
@@ -109,6 +110,7 @@ A tier is not a vendor ranking, and a vendor whose documentation is cited at B h
 - No claim in this document is re-runnable, so it carries no `measurement-claims` rows.
 - `revalidate-by` is set seven months out because the ladder depends on no framework release and moves only when the evidence rubric it follows changes; the offset also keeps it off the template's expiry date.
 - `surfaces` is empty because the ladder applies to every surface equally and routes only through `audit-always-fetch`.
+- 2026-11-24: the confidence printed beside an action moved from the document's frontmatter to the routing row, because 30 of the 31 documents were `Mixed` and all 31 `single-source`, so every action printed the same value. Each row now copies the tier its backing Summary states for the action it triggers, and convergence stays the document's value under Decision 7, so no row carries anything but `single-source` today. This is a proposed amendment to Decision 3, pending the maintainer.
 
 ## Sources
 

@@ -8,7 +8,8 @@ pins:
   - "MITRE ATLAS v2026.10 (released 2026-10-28)"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-01-15
+revalidate-by: 2027-01-18
+maintenance: maintained
 status: EMERGING
 ---
 

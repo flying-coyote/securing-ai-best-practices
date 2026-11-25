@@ -12,7 +12,7 @@ pins:
   - "OpenSec arXiv-2601.21083-v3"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-06-02
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "Over a synthetic OCSF 1.9.0 api_activity store with the ai_operation profile, at 2,000 benign sessions per seed over three seeds, the only rule that reached DETECTED on both planted chain shapes and all four plant strata was the session rule that walks delegation to the root session and qualifies the exfiltration leg by content, at precision 1.0, recall 1.0 and 0 false positives on every seed in SQLite and DuckDB 1.5.3; the clean score rests on a fixture credential string and a fixed burst threshold, and the lookalike rates were chosen by the run author"
@@ -42,6 +42,8 @@ measurement-claims:
 Evidence tier: Mixed, with one independent preprint at B that I have read at abstract level only, practitioner conference talks at B for method and C wherever a vendor describes its own agent, two pre-registered lab designs at D because they were frozen by an agent, have not been owner-reviewed and have not run, one verified lab run on synthetic data at B, and the containment-scope line and the evaluation cadence at D as my judgement.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 An AI analyst in the SOC fails in two ways that a single accuracy score hides, acting before the evidence is in and missing more as the evidence pile grows, and a detection team already owns the method that measures both: planted ground truth over its own telemetry, scored by a check with no opinion. No first-party rate exists for either failure yet, because the lab measurement that would produce one is pre-registered and not yet run.
 
@@ -148,6 +150,7 @@ None of this says AI analysts are bad at the job, and the doc deliberately carri
 - R3 and R11 were frozen by an agent and have not been owner-reviewed. The R3 verifier left one point open, that the testbed null hunts also run at all three volume levels, which the run-count line states and the volume paragraph does not.
 - 2026-11-24: the OpenSec abstract was re-read (body not read), the restraint finding moved to D in the summary, R3 and R11 moved to D with their spend estimates in an appendix, and the containment line gained the service and privileged account carve-out; all judgement (Tier D).
 - Dated marker: the containment line and the evaluation ordering are my judgement as of 2026-11-10 and move once R3 runs.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Appendix: spend estimates for the unrun designs
 

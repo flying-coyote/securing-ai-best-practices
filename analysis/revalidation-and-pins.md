@@ -24,7 +24,8 @@ pins:
   - "CISA KEV catalog 2026.11.09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-01-19
+revalidate-by: 2027-01-04
+maintenance: maintained
 status: EMERGING
 measurement-claims:
   - claim: "Between MITRE ATLAS v2026.06 and v2026.10 the technique count went from 173 to 221, with 56 added, 8 removed, 12 renamed and 68 of the 165 surviving IDs given changed definition text; the 8 removed IDs left the STIX bundle with no revoked flag, no deprecated flag and no revoked-by relationship"
@@ -50,7 +51,7 @@ Evidence tier: Mixed. The release records, STIX diffs, statute dates and catalog
 
 ## Summary for the review
 
-A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12.1; pins last verified 2026-11-10. If the review date is past 2027-01-19, print that these pins are unverified since then.
+A review is only as current as the framework versions it was checked against, and the AI frameworks this repo leans on are moving faster than many security teams re-read them, so every review prints the release it ran from, the pins below and this document's last-verified date, and every recommendation names what would reopen it. Release: v2026.12.1; pins last verified 2026-11-10. If the review date is past 2027-01-04, print that these pins are unverified since then.
 
 - Print the release tag from `RELEASES.md`, the pins list and the last-verified date in the "Staleness and open revalidation triggers" section of every output. Effort S. Tier D.
 - Record the framework version on every mapping row, rule tag and coverage record that cites an ATLAS, ATT&CK, OWASP or CoSAI ID, because ATLAS removed eight technique IDs in four releases without tombstones. Effort S. Tier A for the removal, B for the practice.
@@ -64,7 +65,7 @@ A review is only as current as the framework versions it was checked against, an
 
 When I re-ran an ATLAS-to-D3FEND crosswalk against the October 2026 ATLAS release, eight technique IDs, seven of which had rows in my mapping queue, were simply gone. They had not been marked revoked or deprecated, and nothing in the STIX bundle pointed from the old ID to wherever its content had moved, so the only reason I noticed is that the rebaseline script diffs every release against the previous one by external ID and printed eight lines with nothing on the right-hand side (Tier B, atlas-d3fend-crosswalk `VERSION-DIFF-2026-11.md` §1, over Tier A MITRE data). A consumer that trusted the flags, which is how ATT&CK tooling usually works, would have carried eight live-looking techniques with June definitions into its next build and never known.
 
-That is the general problem this document exists to manage. A recommendation in this repo rests on some combination of a framework release, a schema version, a protocol revision, a catalogue snapshot and a vendor default, and each of those moves on its own schedule, some monthly, some never, and some without announcing what moved. The repo answers it in three ways: a pin list that `scripts/check-pins.py` compares every other document against, a staggered `revalidate-by` on every document (three months for anything that depends on ATLAS, up to eight otherwise), and the trigger tables below, which name the event and the documents and decisions it reopens so a practitioner can tell a stale recommendation from a dated one.
+That is the general problem this document exists to manage. A recommendation in this repo rests on some combination of a framework release, a schema version, a protocol revision, a catalogue snapshot and a vendor default, and each of those moves on its own schedule, some monthly, some never, and some without announcing what moved. The repo answers it in three ways: a pin list that `scripts/check-pins.py` compares every other document against, a staggered `revalidate-by` on every maintained document (three months for anything that depends on ATLAS, up to eight otherwise, and no more than three due in any 30 days), a visible frozen-reference line on every other document, and the trigger tables below, which name the event and the documents and decisions it reopens so a practitioner can tell a stale recommendation from a dated one.
 
 ## The pin table
 
@@ -136,6 +137,39 @@ The dated rows go on a calendar now. The signal rows are what a monthly or quart
 | A model change behind any evaluated system | a version, quantization or fine-tune change | `evaluating-ai-in-the-soc.md`, `fine-tuned-model-is-a-data-store.md` |
 | A lab run lands that a declared gap names | the gap's bench or study completes | the document that declared the gap (`scripts/list-declared-gaps.py` lists them) |
 
+## Maintained and frozen documents
+
+This split is a proposed amendment to Decision 11 in `DECISIONS.md`, pending the maintainer. An outside review of the 2026-11-22 release counted 24 of the 31 documents falling due inside five weeks, which one maintainer cannot revalidate, so the repo now revalidates a smaller core on a schedule and keeps the rest as dated reference.
+
+The maintained core is the four Always Fetch documents plus every document the two small-organization fixtures (`fixtures/small-org-renter`, `fixtures/small-org-short`) route to, because those are the documents a small organization's review reads and the ones a stale claim would mislead most often. That is 18 documents today, and each carries `maintenance: maintained` and a `revalidate-by` date. Every other analysis document and stub carries `maintenance: frozen`, has no `revalidate-by`, and opens its Summary with the line `Frozen reference: not revalidated since <last-verified>.`; `scripts/route.py` lists any frozen document behind an action under `frozen-docs` with that date, and the review prints the line beside the action. A frozen document is still checked by every structural script (routing coverage, pins, links, the measurement-claims parser), and its measurement claims are still read and reported, but an expired claim in a frozen document no longer fails the expiry check. `maintenance` must be one of the two values, and `scripts/check-routing-coverage.py` fails on a missing or unknown value, on a frozen document with a `revalidate-by` or without the Summary line, on a maintained document without a `revalidate-by`, on an Always Fetch or small-org-routed document that is not maintained, and on more than three maintained documents due in any 30-day window.
+
+The schedule runs from January to June 2027 at no more than three in any 30 days, with each document due on or before its own earliest measurement-claim date, so one revalidation pass covers its claims too, and the three maintained documents that pin ATLAS sit inside three months. Two documents fall due under the three-month floor on purpose: this one and `what-to-log-and-what-it-costs.md` each carry a claim that expires on 2027-01-10, and a document falls due no later than its earliest claim.
+
+The schedule:
+
+| Document | `revalidate-by` | What sets its place |
+|---|---|---|
+| `revalidation-and-pins.md` | 2027-01-04 | pins ATLAS; its KEV claim revalidates 2027-01-10 |
+| `what-to-log-and-what-it-costs.md` | 2027-01-08 | its price claim revalidates 2027-01-10 |
+| `surface-ownability.md` | 2027-01-18 | pins ATLAS |
+| `decision-sequence.md` | 2027-02-03 | pins ATLAS |
+| `coding-agent-hooks-and-policy.md` | 2027-02-07 | lab claims revalidate 2027-02-10 |
+| `rent-or-own-sized-to-the-org.md` | 2027-02-17 | plan pages |
+| `mcp-servers-and-manifest-drift.md` | 2027-03-05 | lab claims revalidate 2027-03-10 |
+| `telemetry-by-surface.md` | 2027-03-09 | lab claims revalidate 2027-03-17 |
+| `stubs/assistant-oversharing.md` | 2027-03-19 | vendor governance pages |
+| `saas-embedded-ai-and-vendor-terms.md` | 2027-04-04 | vendor defaults |
+| `agent-identity-and-delegation.md` | 2027-04-08 | lab claims revalidate 2027-05-09 and 2027-05-10 |
+| `ai-apis-and-the-gateway.md` | 2027-04-18 | lab claims revalidate 2027-05-10 |
+| `inventory-and-shadow-ai.md` | 2027-05-04 | lab claims revalidate 2027-05-10 |
+| `configure-before-you-buy.md` | 2027-05-08 | vendor defaults |
+| `ai-use-policy-and-intake.md` | 2027-05-18 | NIST AI RMF update |
+| `prompt-capture-and-the-law.md` | 2027-06-03 | statute and regulator guidance |
+| `stubs/ai-incident-response.md` | 2027-06-07 | standards |
+| `evidence-tiers.md` | 2027-06-17 | repo rule |
+
+The 13 frozen documents are `build-buy-and-the-high-priest.md`, `evaluating-ai-in-the-soc.md`, `fine-tuned-model-is-a-data-store.md`, `frameworks-and-what-they-reach.md`, `incumbent-tool-coverage.md`, `landing-ai-events-in-ocsf.md`, `models-you-hold.md`, `reading-vendor-claims.md`, `tamper-evident-record.md`, `telemetry-is-an-injection-surface.md` and the stubs `agent-builders.md`, `ai-you-ship.md` and `rag-stores.md`. Six of the nine ATLAS-pinned documents are among them, so the three-month rule in Decision 11 now binds only the three maintained ones, and a trigger in the tables above that names a frozen document (an ATLAS release reopening `frameworks-and-what-they-reach.md`, for one) is a reason to re-read it on demand rather than a scheduled task. A frozen document rejoins the core when a small-org fixture starts routing to it, which the routing-coverage check will flag, or when the maintainer decides to revalidate it, in which case it gets a `revalidate-by` that fits the window rule and loses the frozen line.
+
 ## What this does not mean
 
 A document whose pins are one release behind is not wrong. It is a revalidation task, which is why `check-pins.py` counts lagging documents in the weekly self-test line and fails only when this document is behind the newest known release, since this is the one every review prints. Nor does a trigger firing mean the recommendation it reopens has changed; many ATLAS releases add techniques without touching the claims a given document makes, and the work is a re-read with a date, not a rewrite.
@@ -152,7 +186,7 @@ Pinning is also not a substitute for reading. The pins say which version the rep
 
 ## Notes
 
-- 2026-11-24: an outside review counted 24 of the 31 documents' `revalidate-by` dates inside the five weeks from 2027-02-10 to 2027-03-17, which is the clustering Decision 11 names as the thing that would prove the stagger wrong, so the dates were spread again across January to June 2027 with five in each month and six in May. The nine documents that pin ATLAS sit at three months or sooner (five between 2027-01-12 and 2027-01-29, four between 2027-02-03 and 2027-02-10), and the January dates are under the three-month floor in Decision 11 on purpose, since nine documents cannot share one week and earlier is the safer direction for a framework that ships monthly. The other twenty-two run from late February to late June, vendor-default documents first and the ones resting on standards and literature last. Per-claim `revalidate` dates in `measurement-claims` were not moved.
+- 2026-11-24: an outside review counted 24 of the 31 documents' `revalidate-by` dates inside the five weeks from 2027-02-10 to 2027-03-17, which is the clustering Decision 11 names as the thing that would prove the stagger wrong. A first respread across January to June still left one maintainer revalidating every document, so the dates now follow the maintained and frozen split above: 18 maintained documents at no more than three in any 30 days, each due on or before its earliest measurement-claim date, and 13 frozen documents with no `revalidate-by`. No per-claim `revalidate` date was moved, and none was moved later, since that would extend a measurement nobody re-ran; 16 claims in four maintained documents still fall on 2027-05-09 and 2027-05-10, which their documents' earlier `revalidate-by` dates cover.
 - 2026-11-24: the OCSF pin moved from 1.9.0 to 1.10.0 after the 2026-11-20 release; `check-pins.py` now counts the documents still pinned to 1.9.0 as behind, which is intended, because their claims were read against 1.9.0 and each is a revalidation task rather than an error.
 - The ATLAS release diff takes `revalidate: never` because it compares two frozen, tagged releases; re-running it on the same assets gives the same counts, and the next release gets its own row rather than an update to this one.
 - KEV sits in the pin list so `RELEASES.md` can record which snapshot a release read. Because the catalogue changes several times a week, the newest-known versions file passed to `check-pins.py --current` should not list KEV, or this document would fail between weekly reviews; the weekly review bumps the KEV pin by hand, in every document that pins it and in the same commit, after re-checking the entries those documents cite against the new catalogue version. `last-verified` follows the same logic: it moves when a document's sources are re-read, and an edit that changes a claim without re-reading the rest leaves it where it is and says in the document's Notes what changed and on what date, so the field never claims a verification that did not happen.

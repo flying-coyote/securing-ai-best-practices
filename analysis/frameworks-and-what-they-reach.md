@@ -23,7 +23,7 @@ pins:
   - "atlas-d3fend-crosswalk 65cdab0"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-01-12
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "Of the 290 steps in ATLAS v2026.10's 27 Incident case studies, 235 (81.0%) reach some OCSF 1.9.0 field through the ATLAS-to-D3FEND crosswalk and 161 (55.5%) reach a specific one; the specific-versus-generic grades are one author's single pass and Tier D, and with the broad File and UserAccount artifacts set aside (not pre-registered) the specific share is 123 (42.4%); a blind second grader's partial run put the any-field share at 204 (70.3%), so the any-field figure is quoted as 70 to 81 percent"
@@ -61,6 +61,8 @@ measurement-claims:
 Evidence tier: Mixed, with the frameworks, statute and catalogues at A for what they contain, my counts over the public ATLAS and ATT&CK release files at B (first-party counts anyone can repeat from the release), my chain and burn-down computations at D until their outputs are published with a commit hash as Decision 10 asks, two verified lab runs on one host at B for their mechanics and D for the artifact grades, a partial blind re-grade of the first at B for what it measured, and the layer labels and the order of the practices at D.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 A framework reaches the layer it was built for and stops there, so the useful question about any framework an organization claims is which layer that is: a technique taxonomy, a control catalogue, a management system or a statute. The claim I see break most often is the step from "mapped" to "caught", because MITRE ATLAS carries no detection layer, the ATLAS to D3FEND to SP 800-53 chain computes but runs through a thin 800-53 hop, and in planted lab runs a mapped field became a clean detection on 2 of 8 techniques.
 
@@ -190,6 +192,7 @@ The counts have limits. The incident weights are ATLAS-only, 27 incidents, and s
 - 2026-11-24: the incident step splits were re-derived from the v2026.10 release YAML (144 and 146 on the inherited definition, 122 and 168 on the own-reference one); the chain and burn-down counts moved to Tier D until published; the licence action is reworded as this repo's rule; the OWASP numbering claim is held at D because the 2026 entry list was not read.
 - 2026-11-17: the AI 100-2 E2025 paragraph and the AI 600-1 and AI 100-2 pins were added from a reading at the publisher; they change no row, grade or count in this document.
 - 2026-11-10: the "where it stops" column, the layer labels and the order of the practices are my judgement (Tier D).
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

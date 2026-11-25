@@ -6,7 +6,8 @@ routing.yaml is the routing table as data and AUDIT-CONTEXT.md is what the
 agent reads, so the section between the `routing:start` and `routing:end`
 markers is generated from the data and never edited by hand. The rendered
 section carries, per signal, how it is collected, its weight and priority
-(with the escalation and the condition that triggers it), any row it requires,
+(with the escalation and the condition that triggers it), its confidence (the
+evidence tier and convergence on the row), any row it requires,
 and the docs it routes to, plus each row's ordinal in routing.yaml (the `#`
 column), which is the last tie-breaker in the Priority rubric and so has to be
 visible to the agent as a rule rather than implied by table position. The
@@ -66,6 +67,15 @@ def priority_cell(row: dict) -> str:
     return out
 
 
+def confidence_cell(row: dict) -> str:
+    """The row's confidence: the tier its backing Summary states for this action, and the convergence."""
+    ev = row.get("evidence") or {}
+    if not ev:
+        return ""
+    src = ", from the doc's frontmatter" if ev.get("tier-source") == "doc" else ""
+    return f"Tier {ev.get('tier')}{src} ({ev.get('convergence')})"
+
+
 def render(data: dict) -> str:
     lines = [START, ""]
     lines.append(
@@ -76,8 +86,10 @@ def render(data: dict) -> str:
         "Next 30 days section; REVIEW is listed under Prioritized actions after the PROBLEM rows, in the "
         "same order, with the matched answer quoted, and becomes a PROBLEM only where its escalation says "
         "so; INVENTORY enables other rows and fetches nothing on its own. Priority shows the band and the "
-        "four factor scores (reach + stakes + reversibility + blast). Collected: I interview, E export or "
-        "reducer output, D derived by the stated predicate."
+        "four factor scores (reach + stakes + reversibility + blast). Confidence is the row's own: the tier "
+        "label the backing doc's Summary states for the action this row triggers, as written, and the "
+        "convergence in brackets; \"from the doc's frontmatter\" marks a row whose doc states no tier for it. "
+        "Collected: I interview, E export or reducer output, D derived by the stated predicate."
     )
     so = (data.get("interview-branches") or {}).get("small-org") or {}
     if so.get("asks"):
@@ -93,8 +105,8 @@ def render(data: dict) -> str:
         lines += ["", f"### {fam}", ""]
         if owner:
             lines += [f"Question Packets for this family go to: {owner}.", ""]
-        lines += ["| # | Key | Collected | Weight, priority | Conditions | Routes to |",
-                  "|---|---|---|---|---|---|"]
+        lines += ["| # | Key | Collected | Weight, priority | Confidence | Conditions | Routes to |",
+                  "|---|---|---|---|---|---|---|"]
         for n, r in rows:
             cond = []
             if r.get("predicate"):
@@ -117,7 +129,7 @@ def render(data: dict) -> str:
             docs = ", ".join(f"`{d}`" for d in r.get("docs", []))
             lines.append(
                 f"| {n} | `{cell(r['key'])}` | {'/'.join(r.get('method', []))} | {cell(priority_cell(r))} "
-                f"| {cell('; '.join(cond))} | {docs} |"
+                f"| {cell(confidence_cell(r))} | {cell('; '.join(cond))} | {docs} |"
             )
     special = data.get("special-keys", [])
     if special:

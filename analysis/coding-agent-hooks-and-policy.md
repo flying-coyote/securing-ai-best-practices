@@ -8,7 +8,8 @@ pins:
   - "Claude Code, Cursor, GitHub Copilot CLI, OpenAI Codex, Gemini CLI and GitLab Duo documentation as read 2026-11-09"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-24
+revalidate-by: 2027-02-07
+maintenance: maintained
 status: EMERGING
 follows: "claude-code-project-best-practices analysis/safety-and-sandboxing.md and analysis/ai-tool-vetting.md (Claude Code mechanism, MCP vetting and the credential-boundary hook pattern)"
 measurement-claims:

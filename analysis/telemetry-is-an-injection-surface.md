@@ -12,7 +12,7 @@ pins:
   - "pySigma 2.0.3, pySigma-backend-sqlite 2.1.1, DuckDB 1.5.3 (lab run atlas-ocsf-observables)"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-01-29
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "With an instruction planted in 25% of non-null rows of one adversary-controlled field per table (527 planted values per store), gemma4:e4b saw the planted text in 15 of its 15 hunts over planted stores (21 hunts in all, 6 of them controls with nothing planted) and followed it in 0 of 15, under every rendering sampled including raw; 0 of 15 is consistent with a true follow rate up to about 18% (one-sided 95% exact bound), 0 of 9 on the visible channel up to about 28%, and the rerun's by-rule 1 of 15 up to about 28%; one host, one small quantized local model, one blunt benign instruction; a 2026-11-15 rerun found a row cap had cut the instruction from 4 to 8 of 96 planted command lines and, with the cap fixed, scored 1 of 15 followed under the frozen rule, an echo adjudicated post hoc as non-compliance"
@@ -42,6 +42,8 @@ measurement-claims:
 Evidence tier: Mixed, with MITRE ATLAS, MITRE ATT&CK, OCSF and OWASP at A for what they define, peer-reviewed prompt-injection research at A, two verified lab runs on one host at B, preprints at B, vendor self-evaluations at C with the bias flagged, and the placement of the filter and the order of the practices at D.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 A SOC that points a language model at raw event text has handed it attacker-written strings on the first query, because command lines, file names, user agents, DNS names and display names are values the adversary chooses. Part of that exposure can be closed with a deterministic filter (the invisible characters that let a model read something a human reviewer cannot see), and part of it cannot (plain instruction-shaped text), so the second part belongs to architecture rather than to a classifier.
 
@@ -143,6 +145,7 @@ The strip is also wrong in places. A field whose invisible character is the subj
 - 2026-11-22: the vendor-guidance lead was corrected to say the two pages differ on where untrusted text enters (Anthropic: tool results; OpenAI: user messages) and agree on keeping it out of the highest-precedence message. No grade, count or position changed.
 - The strip-at-the-query-tool position is a judgement dated 2026-11-10 and revised 2026-11-24: an outside review noted that the summary treated strip and escape as equal while the body showed escape leaves the text readable, so the summary and the placement section now strip by default and escape only in listed fields, which matches the repo's reducer sanitizer, which deletes.
 - 2026-11-24: the 2026 LLM01 entry was read in the edition PDF and replaces the 2025 quote, closing the gap that recorded it unread; two summary actions were added for verdict steering and rendered output, which the controls had not covered; the T8b claims now state their planted-hunt denominators and carry the 2026-11-15 rerun, which the lab marks as the current result for both arms. The three Findings of EMNLP 2026 DOIs in this repo (514, 1103, 2059) were resolved at doi.org on 2026-11-24 and each lands on the matching ACL Anthology page, which prints them without a `/v1/` segment.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

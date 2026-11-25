@@ -9,7 +9,7 @@ pins:
   - "OCSF 1.9.0"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-05
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "A pre-registered prompt-injection signature rule over the OCSF message_context.prompt_text field was MISSED on all three seeds on the pre-registered DuckDB engine (case-sensitive LIKE) and NOISY on SQLite at precision 0.048; authored corpus, one host"
@@ -43,6 +43,8 @@ measurement-claims:
 Evidence tier: Mixed. Tier C, bias flagged, for every vendor quote about efficacy or coverage; Tier B for vendor descriptions of what a feature does, for UK NCSC guidance and for the lab runs, which test the mechanisms the claims rely on rather than any vendor's product; Tier A for the peer-reviewed adaptive-attack and detector-evaluation work; Tier D for the four-part ask and the sentence-type grouping, which are my judgement.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 Much of what the AI-security vendors sell is real, but four kinds of sentence keep appearing in their marketing that fail for architectural reasons that better engineering does not fix: "stops" or "blocks" prompt injection with no rate, "every agent" or "complete visibility", manifest or catalogue inspection that "detects" poisoning, and "mapped to MITRE ATLAS" offered as coverage. So the useful move in an evaluation is to ask four things in writing and judge the answers.
 
@@ -125,6 +127,7 @@ It does not mean these products are bad or their builders careless, since much o
 - Revalidate-by is just under three months out because the claims are vendor pages that change monthly and the tool-poisoning reference pins ATLAS.
 - 2026-11-24: the split between readable transforms and encodings in the T3 paragraph, and the marking of rows read once, are my judgement (Tier D); tool names and counts were aligned with models-you-hold.md and the R4 RESULTS file.
 - Build-versus-buy is in `build-buy-and-the-high-priest.md`; this document only covers reading what is offered.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

@@ -33,6 +33,19 @@ depends on. The checks:
      prints, or escalates on a count one prints.
  11. The small-org branch's families are surfaces and its asks are routing
      keys.
+ 12. Every row with docs carries `evidence`: a `tier` that starts with a grade
+     A to D (a compound label as the Summary writes it), found after "Tier "
+     in the Summary of one of the row's written docs, and a `convergence`
+     equal to that doc's frontmatter value (Decision 7). A row may say
+     `tier-source: doc` only where its tier is the doc's frontmatter tier.
+ 13. Every shipped doc says `maintenance: maintained` or `maintenance: frozen`
+     (anything else fails, so a typo cannot drop a doc out of the checks). A
+     maintained doc has a `revalidate-by` date no more than eight months after
+     its `last-verified`, three where it pins ATLAS; a frozen doc has none and
+     opens its Summary with "Frozen reference: not revalidated since
+     <last-verified>.". The Always Fetch docs and every doc a small-org
+     fixture's golden routes to must be maintained, and no more than three
+     maintained docs may fall due in any 30-day window.
 
 Docs a row names that are not written yet are counted and printed, and do not
 fail the run until --release is given, because the repo is built one doc at a
@@ -47,6 +60,7 @@ import argparse
 import importlib.util
 import re
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 import yaml
@@ -57,6 +71,10 @@ METHODS = {"I", "E", "D"}
 SHIPPED = {"PRODUCTION", "EMERGING"}
 TEMPLATE = "analysis/CANONICAL-DOC-TEMPLATE.md"
 REDUCERS = Path(__file__).resolve().parent / "reducers"
+MAINTENANCE = {"maintained", "frozen"}
+CONVERGENCE = {"converged", "emerging", "single-source"}
+TIER_RE = re.compile(r"^[A-D](?:$|[ ,;/])")
+WINDOW_DAYS, WINDOW_MAX = 30, 3
 NUMBERS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8}
 
 
@@ -84,6 +102,52 @@ def frontmatter(path: Path) -> dict | None:
     if not m:
         return None
     return yaml.safe_load(m.group(1)) or {}
+
+
+def summary_texts(path: Path, fm: dict) -> tuple[str, str]:
+    """The doc's routable Summary, whitespace-collapsed, as written and with parentheticals removed,
+    so a label like "Tier A (RFC 9700); Tier D for X" matches "A; Tier D for X"."""
+    text = path.read_text(encoding="utf-8")
+    head = re.escape(str(fm.get("summary-section") or "Summary for the review"))
+    m = re.search(rf"^## {head}[^\n]*\n(.*?)(?=^## |\Z)", text, re.S | re.M)
+    raw = " ".join((m.group(1) if m else "").split())
+    stripped = raw
+    while True:
+        nxt = re.sub(r"\s*\([^()]*\)", "", stripped)
+        if nxt == stripped:
+            break
+        stripped = nxt
+    return raw, " ".join(stripped.split())
+
+
+def add_months(d: date, n: int) -> date:
+    y, m = divmod(d.month - 1 + n, 12)
+    y, m = d.year + y, m + 1
+    for day in (d.day, 30, 29, 28):
+        try:
+            return date(y, m, day)
+        except ValueError:
+            continue
+    raise ValueError(d)
+
+
+def as_date(v) -> date | None:
+    if isinstance(v, date):
+        return v
+    try:
+        return date.fromisoformat(str(v))
+    except ValueError:
+        return None
+
+
+def small_org_docs(root: Path) -> set[str]:
+    """Docs any small-org fixture's golden routes to: with the Always Fetch docs, the maintained core."""
+    out: set[str] = set()
+    for p in sorted((root / "fixtures").glob("*/expected.yaml")) if (root / "fixtures").is_dir() else []:
+        g = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+        if g.get("interview-branch") == "small-org":
+            out |= set(g.get("docs") or [])
+    return out
 
 
 def special_match(key: str, specials: list[str]) -> bool:
@@ -265,6 +329,83 @@ def main() -> int:
             if k not in ats:
                 errors.append(f"{rel}: routing row '{k}' routes here but the doc does not list it in applies-to-signals")
 
+    # per-row confidence, held to the Summary of the doc the row cites
+    fm_cache: dict[str, dict | None] = {}
+
+    def doc_fm(d: str) -> dict | None:
+        if d not in fm_cache:
+            p = root / d
+            fm_cache[d] = frontmatter(p) if p.is_file() else None
+        return fm_cache[d]
+
+    fallback = 0
+    for r in rows:
+        k, docs = r.get("key", "<no key>"), [d for d in (r.get("docs") or []) if isinstance(d, str)]
+        if not docs:
+            continue
+        ev = r.get("evidence")
+        if not isinstance(ev, dict) or not ev.get("tier") or not ev.get("convergence"):
+            errors.append(f"{k}: routes to docs but has no evidence tier and convergence")
+            continue
+        tier, conv, src = str(ev["tier"]), ev["convergence"], ev.get("tier-source")
+        if conv not in CONVERGENCE:
+            errors.append(f"{k}: convergence '{conv}' not one of {sorted(CONVERGENCE)}")
+        written = [(d, doc_fm(d)) for d in docs if doc_fm(d) is not None]
+        if written and conv not in {f.get("convergence") for _, f in written}:
+            errors.append(f"{k}: convergence '{conv}' is not the frontmatter convergence of any doc it routes to (Decision 7)")
+        if src is not None:
+            if src != "doc":
+                errors.append(f"{k}: tier-source '{src}' unknown (only 'doc')")
+            elif written and tier not in {str(f.get("evidence-tier")) for _, f in written}:
+                errors.append(f"{k}: tier-source doc, but '{tier}' is not the frontmatter evidence-tier of a doc it routes to")
+            fallback += 1
+            continue
+        if not TIER_RE.match(tier):
+            errors.append(f"{k}: evidence tier '{tier}' does not start with a grade A to D")
+            continue
+        if written and not any(f"Tier {tier}" in t for d, f in written for t in summary_texts(root / d, f)):
+            errors.append(f"{k}: evidence tier 'Tier {tier}' is not stated in the Summary of {', '.join(d for d, _ in written)}")
+
+    # maintained core and frozen reference
+    core = set(data.get("always-fetch") or []) | small_org_docs(root)
+    due: list[tuple[date, str]] = []
+    for rel in shipped:
+        fm = doc_fm(rel) or {}
+        mt = fm.get("maintenance")
+        if mt not in MAINTENANCE:
+            errors.append(f"{rel}: maintenance '{mt}' is not one of {sorted(MAINTENANCE)}")
+            continue
+        lv = as_date(fm.get("last-verified"))
+        if lv is None:
+            errors.append(f"{rel}: last-verified '{fm.get('last-verified')}' is not a date")
+            continue
+        if mt == "frozen":
+            if rel in core:
+                errors.append(f"{rel}: frozen, but it is in the maintained core (Always Fetch or routed by a small-org fixture)")
+            if "revalidate-by" in fm:
+                errors.append(f"{rel}: frozen docs carry no revalidate-by")
+            raw, _ = summary_texts(root / rel, fm)
+            want = f"Frozen reference: not revalidated since {lv.isoformat()}."
+            if not raw.startswith(want):
+                errors.append(f"{rel}: frozen, but its Summary does not open with '{want}'")
+            continue
+        rb = as_date(fm.get("revalidate-by"))
+        if rb is None:
+            errors.append(f"{rel}: maintained, but revalidate-by '{fm.get('revalidate-by')}' is not a date")
+            continue
+        atlas = any("ATLAS" in str(x) for x in fm.get("pins") or [])
+        limit = add_months(lv, 3 if atlas else 8)
+        if rb > limit:
+            errors.append(f"{rel}: revalidate-by {rb} is past {limit}, {'three' if atlas else 'eight'} months after last-verified"
+                          + (" (it pins ATLAS)" if atlas else ""))
+        due.append((rb, rel))
+    due.sort()
+    for i in range(len(due) - WINDOW_MAX):
+        if (due[i + WINDOW_MAX][0] - due[i][0]).days < WINDOW_DAYS:
+            names = ", ".join(f"{r} {d}" for d, r in due[i:i + WINDOW_MAX + 1])
+            errors.append(f"more than {WINDOW_MAX} maintained docs fall due within {WINDOW_DAYS} days: {names}")
+            break
+
     unwritten = sorted(d for d in set(routed) | set(data.get("always-fetch") or [])
                        if not (root / d).is_file())
     if args.release and unwritten:
@@ -282,6 +423,9 @@ def main() -> int:
     scored = sum(1 for r in rows if r.get("priority"))
     print(f"routing.yaml: {len(rows)} signal rows ({scored} scored), {len(observations)} observations, "
           f"{len(specials)} special keys, {len(owners)} family owners")
+    print(f"evidence: {sum(1 for r in rows if r.get('evidence'))} rows carry a tier and convergence, "
+          f"{fallback} from a doc's frontmatter; maintenance: {len(due)} maintained docs, "
+          f"{sum(1 for d in shipped if (doc_fm(d) or {}).get('maintenance') == 'frozen')} frozen")
     print(f"docs routed: {len(routed)} distinct; shipped docs checked: {checked_docs}; "
           f"routed or always-fetch docs not yet written: {len(unwritten)}"
           + ("" if args.release else " (allowed before release)"))

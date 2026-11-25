@@ -454,6 +454,73 @@ def main() -> int:
         expect("routing coverage: an always-fetch count that disagrees with AUDIT-CONTEXT fails",
                run(["check-routing-coverage.py", "--root", str(r)], r), False, "Always fetch these five")
 
+    # per-row confidence and the maintained / frozen split fail closed
+    cov = ["check-routing-coverage.py"]
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "routing.yaml", '    evidence: {tier: "B, one IdP at one version", convergence: single-source}\n', "")
+        expect("routing coverage: a row with docs and no evidence fails",
+               run([*cov, "--root", str(r)], r), False, "no evidence tier and convergence")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "routing.yaml", 'tier: "B, one IdP at one version"', 'tier: "B, two IdPs at two versions"')
+        expect("routing coverage: a tier label the cited Summary does not state fails",
+               run([*cov, "--root", str(r)], r), False, "is not stated in the Summary")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "routing.yaml", 'tier: "B, one IdP at one version"', 'tier: "High"')
+        expect("routing coverage: a tier that is not a grade fails",
+               run([*cov, "--root", str(r)], r), False, "does not start with a grade")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "routing.yaml", 'tier: "B, one IdP at one version", convergence: single-source',
+             'tier: "B, one IdP at one version", convergence: converged')
+        expect("routing coverage: a row claiming more convergence than its doc fails (Decision 7)",
+               run([*cov, "--root", str(r)], r), False, "Decision 7")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "analysis/models-you-hold.md", "\nmaintenance: frozen\n", "\nmaintenance: freezed\n")
+        expect("routing coverage: an unknown maintenance value fails instead of exempting the doc",
+               run([*cov, "--root", str(r)], r), False, "maintenance 'freezed'")
+        expect("route.py: an unknown maintenance value on a routed doc is refused",
+               run(["route.py", "--root", str(r), "--check-fixtures"], r), False, "maintenance")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "analysis/models-you-hold.md", "\nmaintenance: frozen\n", "\nmaintenance: frozen\nrevalidate-by: 2027-02-03\n")
+        edit(r / "analysis/tamper-evident-record.md", "Frozen reference: not revalidated since", "Frozen: not revalidated since")
+        p = run([*cov, "--root", str(r)], r)
+        expect("routing coverage: a frozen doc with a revalidate-by fails", p, False, "frozen docs carry no revalidate-by")
+        expect("routing coverage: a frozen doc without the Summary line fails", p, False, "does not open with")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "analysis/telemetry-by-surface.md", "\nrevalidate-by: 2027-03-09\nmaintenance: maintained\n",
+             "\nmaintenance: frozen\n")
+        expect("routing coverage: a doc the small-org goldens route to cannot be frozen",
+               run([*cov, "--root", str(r)], r), False, "in the maintained core")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "analysis/rent-or-own-sized-to-the-org.md", "\nrevalidate-by: 2027-02-17\n", "\nrevalidate-by: 2027-02-04\n")
+        expect("routing coverage: a fourth maintained doc due inside 30 days fails",
+               run([*cov, "--root", str(r)], r), False, "fall due within 30 days")
+    with tempfile.TemporaryDirectory() as td:
+        r = tree(td)
+        edit(r / "analysis/surface-ownability.md", "\nrevalidate-by: 2027-01-18\n", "\nrevalidate-by: 2027-03-01\n")
+        expect("routing coverage: an ATLAS-pinned maintained doc past three months fails",
+               run([*cov, "--root", str(r)], r), False, "it pins ATLAS")
+    goldens = {g: yaml.safe_load((ROOT / "fixtures" / g / "expected.yaml").read_text(encoding="utf-8"))
+               for g in ("small-org-renter", "small-org-short", "mid-size-mixed", "own-heavy-regulated")}
+    items = {g: v["actions"] + v["review"] for g, v in goldens.items()}
+    check("route: every action and review item carries an evidence tier and convergence",
+          all(it.get("evidence-tier") and it.get("convergence") for v in items.values() for it in v))
+    check("route: the goldens print at least three distinct confidence values",
+          len({it["evidence-tier"] for v in items.values() for it in v}) >= 3
+          and all(len({it["evidence-tier"] for it in v}) >= 3 for v in items.values()))
+    check("route: the small-org goldens carry no frozen-reference marker",
+          not any("frozen-docs" in it for g in ("small-org-renter", "small-org-short") for it in items[g]))
+    check("route: an action backed by a frozen doc names it with its last-verified date",
+          any(it["key"] == "pickle-formats-present" and it.get("frozen-docs") == [
+              "analysis/models-you-hold.md (not revalidated since 2026-11-10)"] for it in items["own-heavy-regulated"]))
+
     seq_doc = "analysis/decision-sequence.md"
     with tempfile.TemporaryDirectory() as td:
         r = tree(td)

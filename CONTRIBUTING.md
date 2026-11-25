@@ -18,9 +18,9 @@ A correction to one fact, version, default or citation does not need the checkli
 1. Copy `analysis/CANONICAL-DOC-TEMPLATE.md`, fill in the frontmatter, and keep the routable summary section inside the size budget the template sets.
 2. Add or reuse at least one signal in `routing.yaml` whose `docs` names the new document. A routing row is mandatory, and so is an interview `question` for every key the row adds.
 3. List exactly those keys in the document's `applies-to-signals`; every entry there must be a key in `routing.yaml`.
-4. Give each new PROBLEM or REVIEW key its four priority factors and check that they fold to the band you intend.
+4. Give each new PROBLEM or REVIEW key its four priority factors and check that they fold to the band you intend, and give every row with docs an `evidence` entry: the tier label the document's Summary states for the action that row triggers, copied as written, and the document's convergence (`tier-source: doc` with the frontmatter tier only where no Summary action states one).
 5. Set `convergence: single-source` unless the standards route applies (a published standard, statute or schema prescribes the practice and at least one independent implementation exists), and say which in the document.
-6. Stagger `revalidate-by` between three and eight months out, three for anything that depends on ATLAS.
+6. Set `maintenance`. A document that is Always Fetch or that a small-org fixture routes to is `maintained` and takes a `revalidate-by` between three and eight months out, three for anything that depends on ATLAS and no later than its earliest measurement claim, placed so that no more than three maintained documents fall due in any 30 days; any other document is `frozen`, takes no `revalidate-by`, and opens its Summary with `Frozen reference: not revalidated since <last-verified>.` (see `analysis/revalidation-and-pins.md`, "Maintained and frozen documents").
 7. Put every re-runnable measurement in `measurement-claims` with its source pinned to a commit, a release or a dated primary. Judgements and models with stated assumptions take a dated prose marker instead.
 8. Add a dossier to `SOURCES.md` for any new source, and a row to `ABSORPTION-MAP.md` for the document.
 9. Run the checks locally (see `scripts/README.md`) before opening the pull request.

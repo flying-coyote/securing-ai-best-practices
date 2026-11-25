@@ -9,7 +9,8 @@ pins:
   - "CISA BOD 25-01 2024-12-17"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-04-02
+revalidate-by: 2027-05-08
+maintenance: maintained
 status: EMERGING
 ---
 
@@ -120,6 +121,7 @@ It does not mean owned tools cover AI, since some components sit outside the rea
 - "Accepted" is a disposition column rather than a sixth audit state, so the five-state shape stays the same data contract as the ai-config-pointers worksheet.
 - The ai-config-pointers set is a separate repository, the platforms layer beside this one (Decision 12), and it is not yet public, so this document calls it forthcoming and carries no link to it; its pages will be linked, never copied, once it has a public address.
 - The default-state rows were checked on 2026-11-09; vendor pages change monthly, hence revalidation in under five months.
+- 2026-11-24: `revalidate-by` moved to 2027-05-08 so that no more than three maintained documents fall due in any 30 days (`revalidation-and-pins.md`, "Maintained and frozen documents"); the reasons above still decide where this document sits in that order.
 
 ## Sources
 

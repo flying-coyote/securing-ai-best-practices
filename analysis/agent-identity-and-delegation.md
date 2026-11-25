@@ -13,7 +13,8 @@ pins:
   - "MCP specification 2026-07-28"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-05-18
+revalidate-by: 2027-04-08
+maintenance: maintained
 status: EMERGING
 measurement-claims:
   - claim: "Every Keycloak 26.8.1 TOKEN_EXCHANGE event named the client the subject token was issued to (subject_token_client_id, 72 of 72 successful exchanges in the default arm and 15 of 15 exchange events in the delegation arm) and none named the subject token's own id (0 of 78 and 0 of 15 hops), so the chain is explicit at client granularity and only implicit at token granularity; one host, one IdP version, synthetic realm"

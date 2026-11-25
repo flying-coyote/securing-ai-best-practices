@@ -10,7 +10,7 @@ pins:
   - "SmolLM2-135M 93efa2f097d58c2a74874c7e644dbc9b0cee75a2 (lab run T6, LoRA r 16, CPU)"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-02-10
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "In one seed of a CPU LoRA fine-tune (r 16, 3 epochs, 59,257 synthetic tokens) of SmolLM2-135M, no planted 4-digit secret was returned at any insertion count from 0 to 50: 0 of 1,510 extraction attempts per checkpoint (greedy plus three sampled settings, 10 canaries) and 0 of 200 blind samples, on the base model and after each of three epochs; seeds 8 and 9 and the full fine-tune arm did not run"
@@ -36,6 +36,8 @@ measurement-claims:
 Evidence tier: Mixed, with peer-reviewed memorization, membership-inference and safety-regression research at A, preprints and one verified single-seed lab run at B, a first-party incident disclosure at B, and the classification rule, the lineage record's shape and the order of the practices at D.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 Fine-tuning on organization data copies some of that data into the weights, in a form that DLP, row-level access, retention schedules and deletion requests cannot read, so a fine-tuned model inherits the classification of its most sensitive training record and should be stored, tested and logged as a data store as well as a model. How much it retains depends on the task, the method, the duplication in the set and the training budget, which is why the answer for a given model comes from testing it rather than from arguing about the method.
 
@@ -130,6 +132,7 @@ It does not mean every fine-tune leaks enough to matter. Classifier fine-tunes a
 - No vendor default-state table is carried because no managed fine-tuning platform's documentation was read for this doc; a dated row on where a managed platform records training-job history and dataset reads is the first addition I would make.
 - 2026-11-24: the provider-hosted lineage path, the query-access limit, the pipeline supply-chain action and the deduplication split by training method are my judgement (Tier D); ATLAS mitigation names were read from the v2026.10 STIX bundle.
 - Judgements dated 2026-11-10: the classification rule, the lineage record's fields, the order of the summary actions, and pseudonymization plus deduplication over DP as the default.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

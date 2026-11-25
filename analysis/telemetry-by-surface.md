@@ -13,7 +13,8 @@ pins:
   - "OCSF 1.9.0"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-03-17
+revalidate-by: 2027-03-09
+maintenance: maintained
 status: EMERGING
 measurement-claims:
   - claim: "Claude Code 2.1.321 OpenTelemetry export at documented defaults delivered 8 of 12 per-interaction fields (identity, session, tool name, model, tokens, cost, host attributes, timestamps) and withheld prompt text, tool arguments, tool output and response text as lengths or <REDACTED>, identically in 3 of 3 trials"

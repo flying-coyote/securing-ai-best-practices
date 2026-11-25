@@ -11,7 +11,8 @@ pins:
   - "EU AI Act consolidated CELEX-02024R1689-20260727"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-04-24
+revalidate-by: 2027-06-07
+maintenance: maintained
 status: EMERGING
 ---
 

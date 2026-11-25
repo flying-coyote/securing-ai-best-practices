@@ -13,7 +13,7 @@ pins:
   - "OWASP Agent Observability Standard OCSF mapping at commit 9a9bc37 (lab run R2)"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-05-24
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "Recording one MCP tools/call as 33 facts, OCSF main with the ai_operation profile on API Activity typed 24, the OCSF #1754 draft class 22, OpenTelemetry GenAI plus MCP 19, and OWASP AOS on OCSF 11 (8 under the page's other example), with AOS putting 22 facts in unmapped; stdio only, agent and model identity supplied by the harness"
@@ -51,6 +51,8 @@ measurement-claims:
 Evidence tier: Mixed, with the OCSF schema and the MCP specification at A, three November lab runs on one host at B (each verified by a second agent, verdict VERIFIED-WITH-FIXES, pre-registrations frozen by the agent and not reviewed by the maintainer) and two June mapping runs at B, OpenTelemetry and OWASP AOS documentation at B for what each defines, and the path choices marked as judgement at D.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 OCSF already has most of the AI vocabulary a security team needs to record an agent's tool call (the `ai_operation` profile and the `ai_agent`, `ai_model`, `delegation` and `message_context` objects since 1.9.0, joined by the `ai_capability` and `ai_status` objects in 1.10.0, released on 2026-11-20), but it has no AI event class yet, so the record rides on an existing class, and where its hunt keys land decides whether anyone can query it. In one lab run the shape that passed the 1.9.0 validator with zero errors was the one that put 22 of 33 facts in `unmapped` and ran hunts roughly 5x to 22x slower, though at the million-call size tested every shape still answered in under 0.3 seconds. That run scored OCSF main as it stood before the 1.10.0 release, the #1754 draft, OpenTelemetry and AOS, and did not score the 1.9.0 mapping most pipelines wrote until then, so the 1.9.0 paths below are my judgement (Tier D); the AI objects the main column used shipped in 1.10.0 with the same attributes (compared at the release on 2026-11-24), so that column now describes a released mapping, though nobody has run the 1.10.0 validator over its records.
 
@@ -191,6 +193,7 @@ It does not mean OCSF is the only defensible storage shape, since a SOC already 
 - 2026-11-24: absolute hunt times were added from agent-toolcall-schemas/RESULTS.md:116-125 at 91e44df, the hunt count corrected to five with the null control named, and the OTel ratio range widened to include the argument hunt's 7.4x.
 - 2026-11-10: the June mapping runs (OCSF 1.8.0) are cited for the shape of the result, not a current accuracy figure.
 - 2026-11-10: the cross-provider verification leg found the summary listing `ai_operation` among the 1.9.0 objects; at tag v1.9.0 it is a profile (`profiles/ai_operation.json`, no `objects/ai_operation.json`), as the path table already said, so the summary sentence now names it as the profile (analysis/VERIFICATION-LOG.md).
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 

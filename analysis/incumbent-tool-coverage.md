@@ -10,7 +10,7 @@ pins:
   - "Incumbent vendor documentation for fourteen tool categories as read 2026-11-09, five defaults re-read 2026-11-10"
 summary-section: "Summary for the review"
 last-verified: 2026-11-10
-revalidate-by: 2027-06-07
+maintenance: frozen
 status: EMERGING
 measurement-claims:
   - claim: "Across Syft, Grype, Trivy, ai-bom and cyclonedx-bom run three times over six AI artifacts (315 invocations, 88 of 88 tool-fixture pairs identical across runs), the pre-registered strict name match found 4 of 6 in some form (3 of 6 without Trivy rootfs mode, which was not pre-registered) and 1 of 6 as an AI artifact; the lenient post-run rule gives 5 of 6 (4 of 6 without Trivy rootfs mode) and 2 of 6; the Ollama blob store was found by no tool; one host"
@@ -32,6 +32,8 @@ measurement-claims:
 Evidence tier: Mixed, with the CoSAI component map at A, vendor documentation of what a feature does and three verified lab runs at B, vendor efficacy claims at C, and every coverage grade and the join design at D, since the grades are one author's reading with no second reader.
 
 ## Summary for the review
+
+Frozen reference: not revalidated since 2026-11-10. This document is outside the maintained core (`analysis/revalidation-and-pins.md`, "Maintained and frozen documents"), so the weekly review does not re-check it; read its defaults, figures and pins as of that date and check any you act on against the current source.
 
 The security tools an organization above the small-org band (the `small-org` row in `routing.yaml`: under about 1,000 people and no sector regulator) usually already runs see the identity plane, the cloud resources a managed AI platform creates, and the traffic someone routed through their own enforcement points. Network tools are blind by position to local models and stdio tool servers, where endpoint tools see the process and the install but not what it sends, and every category is blind to the agent-to-tool hop inside managed platforms and to the stages that run inside an agent's process. Graded against CoSAI's 42 components, fourteen incumbent categories give 16 sees grades between them, which land on 11 distinct components because some components are seen by more than one category, so 11 components are seen in full by at least one category, 30 partially at best, and one, `componentModelEvaluation`, not at all, so a coverage view is mostly a map of partial views that only become useful once they are joined.
 
@@ -172,6 +174,7 @@ And the view dates quickly, since Tenable published its agent-skills plugins on 
 - 2026-11-09: the grading rules, grades, join order and structural-miss list are my judgement (Tier D).
 - 2026-11-10: four vendor statements known only from search summaries are left out rather than cited unfetched.
 - 2026-11-10: an independent verification pass re-derived both grid totals from strand tables, recounted `components.yaml` at `622605a1` (42 components, 11 subcategories), re-read the R4, R7 and R8 lines at `91e44df`, and re-fetched eight vendor pages (Bedrock invocation logging, Defender AI-SPM, Defender AI threat protection, Purview DSPM for AI, Entra Agent ID, Okta Cross App Access, Netskope certificate-pinned apps, Prisma AIRS Cortex AISPM), each matching; it qualified the lenient R4 count by Trivy `rootfs` mode and the model-PURL wording, and added the figure's page-pending marker to Sources.
+- 2026-11-24: this document is frozen reference under the maintained-core split proposed in `revalidation-and-pins.md` ("Maintained and frozen documents"), so it no longer carries `revalidate-by` and its `measurement-claims` dates are reported rather than gated; any offset reasoning above applies again if it rejoins the maintained core.
 
 ## Sources
 
