@@ -29,8 +29,8 @@ A correction to one fact, version, default or citation does not need the checkli
 
 | Tier | What earns it |
 |---|---|
-| A | Standards, statute, court and regulator text, peer-reviewed research |
-| B | Practitioner work, first-party lab measurement, and vendor documentation of what a feature does |
+| A | Standards and frameworks from standards bodies and open framework projects, statute, court judgments and other binding regulator text, peer-reviewed research |
+| B | Practitioner work, first-party lab measurement, vendor documentation of what a feature does, and regulator and agency guidance |
 | C | Vendor claims about how well a product works, how fast it is or how it compares, and marketing, with the bias flagged every time |
 | D | One author's judgement, or a model with stated assumptions, labelled as a hypothesis |
 

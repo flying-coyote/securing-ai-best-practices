@@ -110,7 +110,7 @@ A tier is not a vendor ranking, and a vendor whose documentation is cited at B h
 - No claim in this document is re-runnable, so it carries no `measurement-claims` rows.
 - `revalidate-by` is set seven months out because the ladder depends on no framework release and moves only when the evidence rubric it follows changes; the offset also keeps it off the template's expiry date.
 - `surfaces` is empty because the ladder applies to every surface equally and routes only through `audit-always-fetch`.
-- 2026-11-24: the confidence printed beside an action moved from the document's frontmatter to the routing row, because 30 of the 31 documents were `Mixed` and all 31 `single-source`, so every action printed the same value. Each row now copies the tier its backing Summary states for the action it triggers, and convergence stays the document's value under Decision 7, so no row carries anything but `single-source` today. This is a proposed amendment to Decision 3, pending the maintainer.
+- 2026-11-24: the confidence printed beside an action moved from the document's frontmatter to the routing row, because 30 of the 31 documents were `Mixed` and all 31 `single-source`, so every action printed the same value. Each row now copies the tier its backing Summary states for the action it triggers, and convergence stays the document's value under Decision 7, so no row carries anything but `single-source` today. Decision 3 was amended to match on 2026-11-24.
 
 ## Sources
 
